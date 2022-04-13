@@ -38,7 +38,7 @@ source(file.path('Rcode', 'plotting', 'layout.R'), encoding='UTF-8')
 
 
 ## 0. SHAPEFILE LOADING ______________________________________________
-# Shapefile importation in order to it only once time
+# Shapefile importation in order to do it only once time
 df_shapefile = ini_shapefile(resources_path, df_meta,
                              fr_shpdir, fr_shpname,
                              bs_shpdir, bs_shpname,
