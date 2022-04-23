@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/plotting/table.R
+# R/plotting/table.R
 #
 # Allows the creation of a summarizing table of trend and break analyses
 

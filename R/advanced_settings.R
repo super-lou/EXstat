@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/advanced_settings.R
+# R/advanced_settings.R
 #
 # Configuration file that regroups different advanced settings about
 # file structure, analyses and plotting.
@@ -173,7 +173,7 @@ fast_format = TRUE
 # The risk of the Mann-Kendall trend detection test
 alpha = 0.1
 
-allMonth = TRUE
+allMonth = FALSE
 
 
 ## 4. PLOTTING OPTIONS _______________________________________________

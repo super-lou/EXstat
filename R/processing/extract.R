@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/processing/extract.R
+# R/processing/extract.R
 #
 # Regroups functions to generation of generical station selection
 # according to pre-existing directory of data or specific other

@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/plotting/map.R
+# R/plotting/map.R
 #
 # Deals with the creation of a map for presenting the trend analysis of hydrological variables
 

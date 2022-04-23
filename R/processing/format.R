@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/processing/format.R
+# R/processing/format.R
 #
 # Manages all the format problem of data and info. Mainly problem of
 # input and output of the 'StatsAnalysisTrend' package. It also allows

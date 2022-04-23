@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/processing/analyse.R
+# R/processing/analyse.R
 #
 # File that realise all the possible analysis of data.
 # This file regroup mainly the functions use to compute the trend
@@ -42,7 +42,7 @@ library(lubridate)
 library(trend)
 
 # Sourcing R file
-source(file.path('Rcode', 'processing', 'format.R'), encoding='UTF-8')
+source(file.path('R', 'processing', 'format.R'), encoding='UTF-8')
 
 
 ## 1. TREND ANALYSIS _________________________________________________
@@ -109,16 +109,16 @@ get_XAtrend = function (df_data, df_meta, period, perStart, alpha, dayLac_lim, y
                  ' function with hydrological month start ',
                  substr(perStart, 1, 2)))
     
-    if (!is.null(df_flag)) {
-        # Local corrections if needed
-        res = flag_data(df_data, df_meta,
-                        df_flag=df_flag,
-                        df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
+    # Local corrections if needed
+    print('Checking of flags')
+    res = flag_data(df_data, df_meta,
+                    df_flag=df_flag,
+                    df_mod=df_mod)
+    df_data = res$data
+    df_mod = res$mod
     
     # Removes incomplete data from time series
+    print('Checking missing data')
     res = missing_data(df_data, df_meta,
                        dayLac_lim=dayLac_lim,
                        yearNA_lim=yearNA_lim,
@@ -142,6 +142,8 @@ get_XAtrend = function (df_data, df_meta, period, perStart, alpha, dayLac_lim, y
         df_XAlist = prepare(df_data, colnamegroup=c('code'))
 
         # Compute the yearly mean over the data
+        print(paste0('Extraction of data for period ',
+                     paste0(per, collapse=' / ')))
         df_XAEx = extract.Var(data.station=df_XAlist,
                               funct=funct,
                               timestep='year',
@@ -151,6 +153,8 @@ get_XAtrend = function (df_data, df_meta, period, perStart, alpha, dayLac_lim, y
                               ...)
         
         # Compute the trend analysis
+        print(paste0('Estimation of trend for period ',
+                     paste0(per, collapse=' / ')))
         df_XAtrend = Estimate.stats(data.extract=df_XAEx,
                                     level=alpha,
                                     dep.option='AR1')
@@ -186,6 +190,7 @@ get_QMNAtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
                  substr(perStart, 1, 2)))
     
     # Local corrections if needed
+    print('Checking of flags')
     res = flag_data(df_data, df_meta,
                     df_flag=df_flag,
                     df_mod=df_mod)
@@ -193,6 +198,7 @@ get_QMNAtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     df_mod = res$mod
     
     # Removes incomplete data from time series
+    print('Checking missing data')
     res = missing_data(df_data, df_meta,
                        dayLac_lim=dayLac_lim,
                        yearNA_lim=yearNA_lim,
@@ -202,6 +208,7 @@ get_QMNAtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     df_mod = res$mod
     
     # Samples the data
+    print('Sampling of the data')
     res = sampling_data(df_data, df_meta,
                         sampleSpan=sampleSpan,
                         df_mod=df_mod)
@@ -221,7 +228,10 @@ get_QMNAtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
         
         # Prepare the data to fit the entry of extract.Var
         df_QMNAlist = prepare(df_data, colnamegroup=c('code'))
+        
         # Compute the montly mean over the data
+        print(paste0('Extraction of data for period ',
+                     paste0(per, collapse=' / ')))
         df_QMNAEx = extract.Var(data.station=df_QMNAlist,
                                 funct=mean,
                                 period=per,
@@ -229,11 +239,15 @@ get_QMNAtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
                                 per.start="01",
                                 pos.datetime=1,
                                 na.rm=TRUE)
+        
         # Rerepare the data to fit the entry of extract.Var
         df_QMNAlist = reprepare(df_QMNAEx,
                                 df_QMNAlist,
                                 colnamegroup=c('code'))
+        
         # Compute the yearly min over the data
+        print(paste0('Extraction of data for period ',
+                     paste0(per, collapse=' / ')))
         df_QMNAEx = extract.Var(data.station=df_QMNAlist,
                                 funct=min,
                                 period=per,
@@ -306,31 +320,28 @@ rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
 # over the year (VCN10) hydrological variable
 get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan, dayLac_lim, yearNA_lim, df_flag, df_mod=tibble()) {
 
-    print(paste0('Computes VCN10 trend with hydrological month start ',
+    print(paste0('Computes VCN10 trend with hydrological month start at ',
                  substr(perStart, 1, 2)))
     
     # Get all different stations code
     Code = levels(factor(df_meta$code))
 
-    print('flag')
-    
     # Local corrections if needed
+    print('Checking of flags')
     res = flag_data(df_data, df_meta,
                     df_flag=df_flag,
                     df_mod=df_mod)
     df_data = res$data
     df_mod = res$mod
-
-    print('roll')
     
     # Computes the rolling average by 10 days over the data
+    print('Computes roll mean')
     res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
     df_data_roll = res$data
     df_mod = res$mod
 
-    print('miss')
-
     # Removes incomplete data from time series
+    print('Checking missing data')
     res = missing_data(df_data_roll, df_meta,
                        dayLac_lim=dayLac_lim,
                        yearNA_lim=yearNA_lim,
@@ -339,9 +350,8 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan
     df_data_roll = res$data
     df_mod = res$mod
 
-    print('sample')
-    
     # Samples the data
+    print('Sampling of the data')
     res = sampling_data(df_data_roll, df_meta,
                         sampleSpan=sampleSpan,
                         df_mod=df_mod)
@@ -354,15 +364,17 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan
     Imax = 0
     # Blank tibble for data to return
     df_VCN10trendB = tibble()
-
+    
     # For all periods
     for (per in period) {
         # Prepare the data to fit the entry of extract.Var
         df_VCN10list = prepare(df_data_roll, colnamegroup=c('code'))
 
-        print('extract')
+        print(df_VCN10list$data$Value)
         
         # Compute the yearly min over the averaged data
+        print(paste0('Extraction of data for period ',
+                     paste0(per, collapse=' / ')))
         df_VCN10Ex = extract.Var(data.station=df_VCN10list,
                                  funct=min,
                                  period=per,
@@ -371,13 +383,16 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan
                                  pos.datetime=1,
                                  na.rm=TRUE)
 
-        print('estime')
-        
+        print(df_VCN10Ex)
+
         # Compute the trend analysis
+        print(paste0('Estimation of trend for period ',
+                     paste0(per, collapse=' / ')))
         df_VCN10trend = Estimate.stats(data.extract=df_VCN10Ex,
                                        level=alpha,
                                        dep.option='AR1')
 
+        print(df_VCN10trend)
         print('ok')
 
         # Get the associated time interval
@@ -451,6 +466,7 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     nCode = length(Code)
 
     # Local corrections if needed
+    print('Checking of flags')
     res = flag_data(df_data, df_meta,
                     df_flag=df_flag,
                     df_mod=df_mod)
@@ -458,11 +474,13 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     df_mod = res$mod
     
     # Computes the rolling average by 10 days over the data
+    print('Computes roll mean')
     res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
     df_data_roll = res$data
     df_mod = res$mod
 
     # Removes incomplete data from time series
+    print('Checking missing data')
     df_data = missing_data(df_data,
                            df_meta=df_meta,
                            dayLac_lim=dayLac_lim,
@@ -470,11 +488,13 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
                            perStart=perStart)
     
     # Samples the data
+    print('Sampling of the data')
     df_data = sampling_data(df_data,
                             df_meta=df_meta,
                             sampleSpan=sampleSpan)
     
     # Removes incomplete data from the averaged time series
+    print('Checking missing data')
     res = missing_data(df_data_roll,
                        df_meta=df_meta,
                        dayLac_lim=dayLac_lim,
@@ -485,6 +505,7 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     df_mod = res$mod
     
     # Samples the data
+    print('Sampling of the data')
     res = sampling_data(df_data_roll,
                         df_meta=df_meta,
                         sampleSpan=sampleSpan,
@@ -551,6 +572,8 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
             QT_code = df_QT$Thresold[df_QT$code == code]
             
             # Compute the yearly min over the averaged data
+            print(paste0('Extraction of data for period ',
+                         paste0(per, collapse=' / ')))
             df_tDEBEx_code = extract.Var(data.station=df_tDEBlist_code,
                                         funct=which_underfirst,
                                         period=per,
@@ -579,6 +602,8 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
         }
         
         # Compute the trend analysis
+                print(paste0('Estimation of trend for period ',
+                     paste0(per, collapse=' / ')))
         df_tDEBtrend = Estimate.stats(data.extract=df_tDEBEx,
                                       level=alpha,
                                       dep.option='AR1')
@@ -621,6 +646,7 @@ get_tCENtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     df_data_roll = tibble() 
 
     # Local corrections if needed
+    print('Checking of flags')
     res = flag_data(df_data, df_meta,
                     df_flag=df_flag,
                     df_mod=df_mod)
@@ -628,11 +654,13 @@ get_tCENtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     df_mod = res$mod
     
     # Computes the rolling average by 10 days over the data
+    print('Computes roll mean')
     res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
     df_data_roll = res$data
     df_mod = res$mod
         
     # Removes incomplete data from time series
+    print('Checking missing data')
     res = missing_data(df_data_roll, df_meta,
                        dayLac_lim=dayLac_lim,
                        yearNA_lim=yearNA_lim,
@@ -642,6 +670,7 @@ get_tCENtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     df_mod = res$mod
     
     # Samples the data
+    print('Sampling of the data')
     res = sampling_data(df_data_roll, df_meta,
                                  sampleSpan=sampleSpan,
                                  df_mod=df_mod)
@@ -659,7 +688,10 @@ get_tCENtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
     for (per in period) {
         # Prepare the data to fit the entry of extract.Var
         df_tCENlist = prepare(df_data_roll, colnamegroup=c('code'))
+        
         # Compute the yearly min over the averaged data
+        print(paste0('Extraction of data for period ',
+                     paste0(per, collapse=' / ')))
         df_tCENEx = extract.Var(data.station=df_tCENlist,
                                funct=which.min,
                                period=per,
@@ -671,6 +703,8 @@ get_tCENtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
         df_tCENEx = prepare_date(df_tCENEx, df_tCENlist)
         
         # Compute the trend analysis
+        print(paste0('Estimation of trend for period ',
+                     paste0(per, collapse=' / ')))
         df_tCENtrend = Estimate.stats(data.extract=df_tCENEx,
                                       level=alpha,
                                       dep.option='AR1')

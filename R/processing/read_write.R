@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/processing/results_manager.R
+# R/processing/results_manager.R
 #
 # Manages the writing and reading of results data of the trend analysis.
 

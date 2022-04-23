@@ -77,7 +77,7 @@ print("")
 print('For the following packages you need to press the right key in order to install all.')
 print("")
 install_github("https://github.com/benRenard/BFunk") 
-install_git("https://gitlab.irstea.fr/valentin.mansanarez/statistical-analysis-of-trends.git")
+install_github("https://github.com/vmansanarez/AoTre.git")
 
 
 # ## 2. OS NOT COMMON INSTALLATION PACKAGES ____________________________

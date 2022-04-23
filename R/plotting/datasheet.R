@@ -26,14 +26,14 @@
 # ///
 #
 #
-# Rcode/plotting/datasheet.R
+# R/plotting/datasheet.R
 #
 # Regroups all the graphical tools to generates the datasheets. More precisely, the 'datasheet_panel' function manages all the call for each station of the different graphical functions that generates info header, time serie visualisation and trend analysis graphs for every variable. It also deals with the arranging of all the plots in a single PDF page.
 
 
 # Sourcing R file
-source(file.path('Rcode', 'processing', 'analyse.R'), encoding='UTF-8') # hydrograph
-source(file.path('Rcode', 'plotting', 'shortcut.R'), encoding='UTF-8')
+source(file.path('R', 'processing', 'analyse.R'), encoding='UTF-8') # hydrograph
+source(file.path('R', 'plotting', 'shortcut.R'), encoding='UTF-8')
 
 
 ## 1. DATASHEET PANEL MANAGER ________________________________________

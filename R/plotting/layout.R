@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/plotting/layout.R
+# R/plotting/layout.R
 #
 # Regroups general parameters about plotting like the theme used ang
 # color management. It mainly deals with the calling to specific
@@ -51,11 +51,11 @@ library(ggrepel)
 
 
 # Sourcing R file
-source(file.path('Rcode', 'plotting', 'datasheet.R'), encoding='UTF-8')
-source(file.path('Rcode', 'plotting', 'map.R'), encoding='UTF-8')
-source(file.path('Rcode', 'plotting', 'table.R'), encoding='UTF-8')
-source(file.path('Rcode', 'plotting', 'break.R'), encoding='UTF-8')
-source(file.path('Rcode', 'plotting', 'tools.R'), encoding='UTF-8')
+source(file.path('R', 'plotting', 'datasheet.R'), encoding='UTF-8')
+source(file.path('R', 'plotting', 'map.R'), encoding='UTF-8')
+source(file.path('R', 'plotting', 'table.R'), encoding='UTF-8')
+source(file.path('R', 'plotting', 'break.R'), encoding='UTF-8')
+source(file.path('R', 'plotting', 'tools.R'), encoding='UTF-8')
 
 
 ## 1. PERSONALISATION ________________________________________________

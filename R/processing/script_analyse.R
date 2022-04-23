@@ -26,14 +26,14 @@
 # ///
 #
 #
-# Rcode/processing/script_analyse.R
+# R/processing/script_analyse.R
 #
 # Script that manages the call to the right process in order to
 # realise analyses.
 
 
 # Sourcing the R file
-source(file.path('Rcode', 'processing', 'analyse.R'),
+source(file.path('R', 'processing', 'analyse.R'),
        encoding='UTF-8')
 
 
@@ -125,10 +125,7 @@ if ('station_trend_analyse' %in% to_do) {
         }
 
         # VCN10 trend
-        if ('VCN10' %in% var) {
-
-            print(perSTART['VCN10' == var, i])
-            
+        if ('VCN10' %in% var) {            
             res = get_VCN10trend(df_data, df_meta,
                                  period=trend_period,
                                  perStart=perSTART['VCN10' == var, i],
@@ -137,6 +134,9 @@ if ('station_trend_analyse' %in% to_do) {
                                  dayLac_lim=dayLac_lim,
                                  yearNA_lim=yearNA_lim,
                                  df_flag=df_flag)
+
+            print(res)
+            
             df_VCN10data = res$data
             df_VCN10mod = res$mod
             res_VCN10trend = res$analyse
@@ -190,7 +190,7 @@ if ('station_trend_analyse' %in% to_do) {
 ### 1.3. Saving ______________________________________________________
         if ('meta' %in% saving) {
             # Sourcing the R file
-            source(file.path('Rcode', 'processing', 'read_write.R'),
+            source(file.path('R', 'processing', 'read_write.R'),
                    encoding='UTF-8')
             
             if (fast_format) {
@@ -201,7 +201,7 @@ if ('station_trend_analyse' %in% to_do) {
 
         if ('data' %in% saving) {
             # Sourcing the R file
-            source(file.path('Rcode', 'processing', 'read_write.R'),
+            source(file.path('R', 'processing', 'read_write.R'),
                    encoding='UTF-8')
             
             # For all the variable
@@ -230,7 +230,7 @@ if ('station_trend_analyse' %in% to_do) {
 
         if ('analyse' %in% saving) {
             # Sourcing the R file
-            source(file.path('Rcode', 'processing', 'read_write.R'),
+            source(file.path('R', 'processing', 'read_write.R'),
                    encoding='UTF-8')
             
             # For all the variable

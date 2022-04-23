@@ -26,18 +26,18 @@
 # ///
 #
 #
-# Rcode/processing/script_extract.R
+# R/processing/script_extract.R
 #
 # Script that manages the call to the right process in order to
 # realise extraction of data.
 
 
 # Sourcing R files
-source(file.path('Rcode', 'processing', 'extract.R'),
+source(file.path('R', 'processing', 'extract.R'),
        encoding='UTF-8')
-source(file.path('Rcode', 'processing', 'format.R'),
+source(file.path('R', 'processing', 'format.R'),
        encoding='UTF-8')
-source(file.path('Rcode', 'processing', 'analyse.R'),
+source(file.path('R', 'processing', 'analyse.R'),
        encoding='UTF-8')
 
 ## 1. EXTRACTION OF HYDROMETRIC STATIONS _____________________________

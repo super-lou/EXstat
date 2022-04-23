@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/plotting/shortcut.R
+# R/plotting/shortcut.R
 
 
 ## 1. EXTREMES OF VALUE FOR ALL STATION ______________________________

@@ -70,19 +70,19 @@ computer_work_path =
 # ash\\data\\.
 filedir =
     # ""
-    # "AEAG_selection"
-    "RRSE"
+    "AEAG_selection"
+    # "RRSE"
 
 # Name of the files that will be analysed from the data directory
 # (if "all", all the file of the directory will be chosen)
 filename =
     # ""
-    "all"
-    # c(
-        # "S2235610_HYDRO_QJM.txt",
-        # "Q7002910_HYDRO_QJM.txt",
-        # "O0362510_HYDRO_QJM.txt"
-    # )
+    # "all"
+    c(
+        "S2235610_HYDRO_QJM.txt",
+        "Q7002910_HYDRO_QJM.txt",
+        "O0362510_HYDRO_QJM.txt"
+    )
 
 ## 3. WHAT YOU WANT TO DO ____________________________________________
 # This vector regroups all the different step you want to do. For example if you write 'station_extraction', the extraction of the data for the station will be done. If you add also 'station_analyse', the extraction and then the trend analyse will be done. But if you only write, for example, 'station_plot', without having previously execute the code with 'station_extraction' and 'station_analyse', it will results in a failure.
@@ -157,7 +157,7 @@ if (!is.null(periodCur)) {
 }
 
 # Gets the path to the advanced settings
-advanced_settings_path = file.path('Rcode', 'advanced_settings.R')
+advanced_settings_path = file.path('R', 'advanced_settings.R')
 # If the user want to modify these settings
 if (modify_advanced_settings) {
     # It opens it for him
@@ -170,20 +170,20 @@ source(advanced_settings_path, encoding='UTF-8')
 ## 1. EXTRACTION _____________________________________________________
 if ('station_extraction' %in% to_do | 'climate_extraction' %in% to_do) {
     print('EXTRACTION')
-    source(file.path('Rcode', 'processing', 'script_extract.R'),
+    source(file.path('R', 'processing', 'script_extract.R'),
            encoding='UTF-8')
 }
 
 ## 2. ANALYSES _______________________________________________________
 if ('station_trend_analyse' %in% to_do | 'station_break_analyse' %in% to_do | 'climate_trend_analyse' %in% to_do) {
     print('ANALYSES')
-    source(file.path('Rcode', 'processing', 'script_analyse.R'),
+    source(file.path('R', 'processing', 'script_analyse.R'),
            encoding='UTF-8')
 }
 
 ## 3. PLOTTING _______________________________________________________
 if ('station_serie_plot' %in% to_do | 'station_trend_plot' %in% to_do | 'station_break_plot' %in% to_do | 'climate_trend_plot' %in% to_do) {
     print('PLOTTING')
-    source(file.path('Rcode', 'plotting', 'script_layout.R'),
+    source(file.path('R', 'plotting', 'script_layout.R'),
            encoding='UTF-8')
 }

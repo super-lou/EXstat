@@ -26,7 +26,7 @@
 # ///
 #
 #
-# Rcode/plotting/tools.R
+# R/plotting/tools.R
 
 
 ## 1. COLOR MANAGEMENT

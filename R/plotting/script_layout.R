@@ -26,15 +26,15 @@
 # ///
 #
 #
-# Rcode/plotting/script_layout.R
+# R/plotting/script_layout.R
 #
 # Script that manages the call to the right process in order to
 # realise plottings of data analyses.
 
 
 # Sourcing R files
-source(file.path('Rcode', 'processing', 'extract.R'), encoding='UTF-8')
-source(file.path('Rcode', 'plotting', 'layout.R'), encoding='UTF-8')
+source(file.path('R', 'processing', 'extract.R'), encoding='UTF-8')
+source(file.path('R', 'plotting', 'layout.R'), encoding='UTF-8')
 
 
 ## 0. SHAPEFILE LOADING ______________________________________________
