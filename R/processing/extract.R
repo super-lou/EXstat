@@ -218,7 +218,7 @@ copy_selection = function (select_dir, select_file, from_dir, to_dir,
 #' @return Writes a selection '.txt' file of data filename of
 #' stations.
 #' @export
-create_selection = function (computer_data_path, filedir, outname,
+create_selection <- function (computer_data_path, filedir, outname,
                              optname='_HYDRO_QJM') {
 
     # Out file for store results

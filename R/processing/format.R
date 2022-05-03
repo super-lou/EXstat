@@ -128,6 +128,161 @@ flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 }
 
 ### 1.3. Manages missing data ________________________________________
+missingYear_data = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
+
+    if (is.null(Code)) {
+        # Get all different stations code
+        Code = levels(factor(df_meta$code))
+        nCode = length(Code)
+    } else {
+        nCode = length(Code)
+    }
+
+    for (code in Code) {        
+        # Extracts the data corresponding to the code
+        df_data_code = df_data[df_data$code == code,]
+
+        DateNA = df_data_code$Date[is.na(df_data_code$Value)]
+
+        dDateNA = diff(DateNA)
+        if (any(dDateNA != 1)) {
+            
+            dDateNA = c(10, dDateNA)
+            idJump = which(dDateNA != 1)
+            NJump = length(idJump)
+
+            for (i in 1:NJump) {
+                idStart = idJump[i]
+                
+                if (i < NJump) {
+                    idEnd = idJump[i+1] - 1
+                } else {
+                    idEnd = length(DateNA)
+                }
+
+                Start = DateNA[idStart]
+                End = DateNA[idEnd]
+
+                duration = (End - Start)/365.25
+                if (duration >= yearNA_lim) {
+                    df_data_code$Value[df_data_code$Date <= End] = NA
+                    
+                    if (!is.null(df_mod)) {
+                        df_mod =
+                            add_mod(df_mod, code,
+                                    type='Missing data management',
+                                    fun_name='NA assignment',
+                                    comment=paste('From the start of measurements',
+                                                  ' to ', End, sep=''))
+                    }
+                }
+            }
+        }
+        df_data[df_data$code == code,] = df_data_code        
+    }
+    if (!is.null(df_mod)) {
+        res = list(data=df_data, mod=df_mod)
+        return (res)
+    } else {
+        return (df_data)
+    }
+}
+
+
+missingDay_data = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=NULL, df_mod=NULL) {
+
+    if (is.null(Code)) {
+        # Get all different stations code
+        Code = levels(factor(df_meta$code))
+        nCode = length(Code)
+    } else {
+        nCode = length(Code)
+    }
+
+    for (code in Code) {        
+        # Extracts the data corresponding to the code
+        df_data_code = df_data[df_data$code == code,]
+
+        DateMD = format(df_data_code$Date, "%m-%d")
+        idperStart = which(DateMD == perStart)
+
+        if (DateMD[1] != perStart) {
+            idperStart = c(1, idperStart)
+        }
+        NidperStart = length(idperStart)
+
+        for (i in 1:NidperStart) {
+            Start = df_data_code$Date[idperStart[i]]
+            if (i < NidperStart) {
+                End = df_data_code$Date[idperStart[i+1] - 1]
+            } else {
+                End = df_data_code$Date[length(df_data_code$Date)]
+            }
+            
+            OkYear = df_data_code$Date >= Start & df_data_code$Date <= End
+            df_data_code_year = df_data_code[OkYear,]
+
+            StartReal = as.Date(paste(substr(Start, 1, 4),
+                                      perStart, sep='-'))
+            EndReal = as.Date(paste(as.numeric(substr(Start, 1, 4)) + 1,
+                                    perStart, sep='-'))
+            
+            nbDate = as.numeric(difftime(EndReal, StartReal,
+                                         units="days"))
+                        
+            nbNA = sum(as.numeric(is.na(df_data_code_year$Value)))
+            nbNA = nbNA + abs(as.numeric(difftime(StartReal, Start,
+                                                  units="days")))
+            nbNA = nbNA + abs(as.numeric(difftime(EndReal, End+1,
+                                                  units="days")))
+
+            yearLacMiss_pct = nbNA/nbDate * 100
+
+            if (nbNA > dayLac_lim) {
+                df_data_code_year$Value = NA
+                df_data_code[OkYear,] = df_data_code_year
+
+                if (!is.null(df_mod)) {
+                    df_mod = add_mod(df_mod, code,
+                                     type='Missing data management',
+                                     fun_name='NA assignment',
+                                     comment=paste('From ', Start,
+                                                   ' to ', End, sep=''))
+                }
+                
+            } else if (nbNA <= dayLac_lim & nbNA > 1) {
+                DateJ = as.numeric(df_data_code_year$Date)
+                Value = df_data_code_year$Value
+               
+                Value = approxExtrap(x=DateJ,
+                                     y=Value,
+                                     xout=DateJ,
+                                     method="linear",
+                                     na.rm=TRUE)$y                
+                df_data_code$Value[OkYear] = Value
+
+                if (!is.null(df_mod)) {
+                    df_mod = add_mod(df_mod, code,
+                                     type='Missing data management',
+                                     fun_name='approxExtrap',
+                                     comment=paste(
+                                         'Linear extrapolation of NA from ',
+                                         Start, ' to ', End, sep=''))
+                }
+            }
+        }
+        df_data[df_data$code == code,] = df_data_code        
+    }
+    if (!is.null(df_mod)) {
+        res = list(data=df_data, mod=df_mod)
+        return (res)
+    } else {
+        return (df_data)
+    }
+}
+
+
+
 missing_data = function (df_data, df_meta, dayLac_lim=3, yearNA_lim=10, perStart='01-01', Code=NULL, df_mod=NULL) {
 
     if (is.null(Code)) {
@@ -257,6 +412,7 @@ missing_data = function (df_data, df_meta, dayLac_lim=3, yearNA_lim=10, perStart
     }
 }
 
+
 ### 1.4. Sampling of the data ________________________________________
 sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code=NULL, df_mod=NULL) {
 
@@ -273,10 +429,18 @@ sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code
     sampleEnd = as.Date(paste('1972', sampleSpan[2], sep='-'))
 
     DateMD = format(df_data$Date, "%m-%d")
-    Date = paste('1972', DateMD, sep='-')
+    DateRef = paste('1972', DateMD, sep='-')
     
-    df_data$Value[Date < sampleStart | Date > sampleEnd] = NA
+    df_data$Value[DateRef < sampleStart | DateRef > sampleEnd] = NA
 
+    # df_data$DateRef = DateRef
+    # df_data = mutate(.data=df_data,
+    #                  Value=
+    #                      replace(Value,
+    #                              DateRef < sampleStart | DateRef > sampleEnd,
+    #                              NA))
+    # df_data = select(df_data, -DateRef)
+    
     if (!is.null(df_mod)) {
         for (code in Code) {
             df_mod = add_mod(df_mod, code,
@@ -345,7 +509,8 @@ prepare = function(df_data, colnamegroup=NULL) {
     # Creates a new tibble of data with a group column
     data = tibble(Date=df_data$Date, 
                   group=group_indices(df_data),
-                  Value=df_data$Value)
+                  Value=df_data$Value,
+                  Na.percent=df_data$Na.percent)
     
     # Gets the different value of the group
     Gkey = group_keys(df_data)
@@ -367,8 +532,8 @@ reprepare = function(df_XEx, df_Xlist, colnamegroup=NULL) {
     
     # Changes the column name of the results of the
     # 'extract.Var' function
-    colnames(df_XEx) = c('Date', 'group', 'Value')
-
+    colnames(df_XEx)[1:3] = c('Date', 'group', 'Value')
+    
     # Converts Date column as character
     df_XEx$Date = as.character(df_XEx$Date)
     # Takes the first date as example
@@ -513,7 +678,60 @@ get_period = function (per, df_Xtrend, df_XEx, df_Xlist, per.start='01-01') {
     return (df_Xtrend)
 }
 
-### 3.2. Cleaning ____________________________________________________
+### 3.2. Intercept of trend __________________________________________
+# Compute intercept values of linear trends with first order values
+# of trends and the data on which analysis is performed.
+get_intercept = function (df_Xtrend, df_Xlist, unit2day=365.25) {
+
+    # Create a column in trend full of NA
+    df_Xtrend$intercept = NA
+
+    # For all different group
+    for (g in df_Xlist$info$group) {
+        # Get the data and trend value linked to this group
+        df_data_code = df_Xlist$data[df_Xlist$data$group == g,]
+        df_Xtrend_code = df_Xtrend[df_Xtrend$group == g,]
+
+        # Get the time start and end of the different periods
+        Start = df_Xtrend_code$period_start
+        End = df_Xtrend_code$period_end
+        # Extract only the unrepeated dates
+        UStart = levels(factor(Start))
+        UEnd = levels(factor(End))
+        # Get the number of different periods of trend analysis
+        nPeriod = max(length(UStart), length(UEnd))
+
+        # For each of these perdiods
+        for (i in 1:nPeriod) {
+            # Get data and trend associated to the period
+            df_data_code_per = 
+                df_data_code[df_data_code$Date >= Start[i] 
+                             & df_data_code$Date <= End[i],]
+            df_Xtrend_code_per = 
+                df_Xtrend_code[df_Xtrend_code$period_start == Start[i] 
+                              & df_Xtrend_code$period_end == End[i],]
+
+            # Get the group associated to this period
+            id = which(df_Xtrend$group == g 
+                       & df_Xtrend$period_start == Start[i] 
+                       & df_Xtrend$period_end == End[i])
+
+            # Compute mean of flow and time period
+            mu_X = mean(df_data_code_per$Value, na.rm=TRUE)
+            mu_t = as.numeric(mean(c(Start[i],
+                                     End[i]),
+                                   na.rm=TRUE)) / unit2day
+
+            # Get the intercept of the trend
+            b = mu_X - mu_t * df_Xtrend_code_per$trend
+            # And store it
+            df_Xtrend$intercept[id] = b
+        } 
+    }
+    return (df_Xtrend)
+}
+
+### 3.3. Cleaning ____________________________________________________
 # Cleans the trend results of the function 'Estimate.stats' in the
 # 'StatsAnalysisTrend' package. It adds the station code and the
 # intercept of the trend to the trend results. Also makes the data

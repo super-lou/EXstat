@@ -46,59 +46,6 @@ source(file.path('R', 'processing', 'format.R'), encoding='UTF-8')
 
 
 ## 1. TREND ANALYSIS _________________________________________________
-### 1.0. Intercept of trend __________________________________________
-# Compute intercept values of linear trends with first order values
-# of trends and the data on which analysis is performed.
-get_intercept = function (df_Xtrend, df_Xlist, unit2day=365.25) {
-
-    # Create a column in trend full of NA
-    df_Xtrend$intercept = NA
-
-    # For all different group
-    for (g in df_Xlist$info$group) {
-        # Get the data and trend value linked to this group
-        df_data_code = df_Xlist$data[df_Xlist$data$group == g,]
-        df_Xtrend_code = df_Xtrend[df_Xtrend$group == g,]
-
-        # Get the time start and end of the different periods
-        Start = df_Xtrend_code$period_start
-        End = df_Xtrend_code$period_end
-        # Extract only the unrepeated dates
-        UStart = levels(factor(Start))
-        UEnd = levels(factor(End))
-        # Get the number of different periods of trend analysis
-        nPeriod = max(length(UStart), length(UEnd))
-
-        # For each of these perdiods
-        for (i in 1:nPeriod) {
-            # Get data and trend associated to the period
-            df_data_code_per = 
-                df_data_code[df_data_code$Date >= Start[i] 
-                             & df_data_code$Date <= End[i],]
-            df_Xtrend_code_per = 
-                df_Xtrend_code[df_Xtrend_code$period_start == Start[i] 
-                              & df_Xtrend_code$period_end == End[i],]
-
-            # Get the group associated to this period
-            id = which(df_Xtrend$group == g 
-                       & df_Xtrend$period_start == Start[i] 
-                       & df_Xtrend$period_end == End[i])
-
-            # Compute mean of flow and time period
-            mu_X = mean(df_data_code_per$Value, na.rm=TRUE)
-            mu_t = as.numeric(mean(c(Start[i],
-                                     End[i]),
-                                   na.rm=TRUE)) / unit2day
-
-            # Get the intercept of the trend
-            b = mu_X - mu_t * df_Xtrend_code_per$trend
-            # And store it
-            df_Xtrend$intercept[id] = b
-        } 
-    }
-    return (df_Xtrend)
-}
-
 ### 1.1. XA __________________________________________________________
 # Realise the trend analysis of the average annual flow (QA)
 # hydrological variable
@@ -295,7 +242,7 @@ rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
         # Perform the roll mean of the flow over 10 days
         df_data_roll_code = tibble(Date=df_data_code$Date,
                                    Value=rollmean(df_data_code$Value, 
-                                                  10,
+                                                  k=10,
                                                   fill=NA),
                                    code=code)
         # Store the results
@@ -308,6 +255,10 @@ rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
                              comment='Rolling average of 10 day over all the data')
         }
     }
+
+    # df_roll = summarise(group_by(df_data, code),
+                        # Value=rollmean(Value, k=10, fill=NA))
+
     if (!is.null(df_mod)) {
         res = list(data=df_data, mod=df_mod)
         return (res)
@@ -366,11 +317,11 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan
     df_VCN10trendB = tibble()
     
     # For all periods
-    for (per in period) {
+    for (per in period) {        
         # Prepare the data to fit the entry of extract.Var
         df_VCN10list = prepare(df_data_roll, colnamegroup=c('code'))
 
-        print(df_VCN10list$data$Value)
+        # print(df_VCN10list$data$Value)
         
         # Compute the yearly min over the averaged data
         print(paste0('Extraction of data for period ',
@@ -383,7 +334,7 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan
                                  pos.datetime=1,
                                  na.rm=TRUE)
 
-        print(df_VCN10Ex)
+        # print(df_VCN10Ex)
 
         # Compute the trend analysis
         print(paste0('Estimation of trend for period ',
@@ -392,7 +343,7 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan
                                        level=alpha,
                                        dep.option='AR1')
 
-        print(df_VCN10trend)
+        # print(df_VCN10trend)
         print('ok')
 
         # Get the associated time interval
@@ -408,9 +359,11 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan
         # Specify the period of analyse
         df_VCN10trend = get_period(per, df_VCN10trend, df_VCN10Ex,
                                    df_VCN10list)
+
         # Store the trend
         df_VCN10trendB = bind_rows(df_VCN10trendB, df_VCN10trend)
     }
+    
     # Clean results of trend analyse
     res_VCN10trend = clean(df_VCN10trendB, df_VCN10ExB, df_VCN10listB)
     
