@@ -84,6 +84,8 @@ join_selection = function (list_data, list_meta, list_from) {
 ### 1.2. Local correction of data ____________________________________
 flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 
+    print('Checking of flags')
+    
     if (is.null(Code)) {
         # Get all different stations code
         Code = levels(factor(df_meta$code))
@@ -128,7 +130,7 @@ flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 }
 
 ### 1.3. Manages missing data ________________________________________
-missingYear_data = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
+missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
 
     if (is.null(Code)) {
         # Get all different stations code
@@ -189,7 +191,7 @@ missingYear_data = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=
 }
 
 
-missingDay_data = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=NULL, df_mod=NULL) {
+missing_day = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=NULL, df_mod=NULL) {
 
     if (is.null(Code)) {
         # Get all different stations code
@@ -282,8 +284,16 @@ missingDay_data = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Co
 }
 
 
+NA_filter = function (df_XEx, NA_pct_lim=0.01) {
+    df_XEx$values[df_XEx$Na.percent > NA_pct_lim] = NA
+    return (df_XEx)
+}
+
+
 
 missing_data = function (df_data, df_meta, dayLac_lim=3, yearNA_lim=10, perStart='01-01', Code=NULL, df_mod=NULL) {
+
+    print('Checking missing data')
 
     if (is.null(Code)) {
         # Get all different stations code
@@ -416,6 +426,8 @@ missing_data = function (df_data, df_meta, dayLac_lim=3, yearNA_lim=10, perStart
 ### 1.4. Sampling of the data ________________________________________
 sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code=NULL, df_mod=NULL) {
 
+    print('Sampling of the data')
+    
     if (is.null(Code)) {
         # Get all different stations code
         Code = levels(factor(df_meta$code))
@@ -462,49 +474,13 @@ sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code
 
 
 ## 2. DURING TREND ANALYSE ___________________________________________
-date_correction = function (df_XEx, per) {
+extract_Var_WRAP = function (df_data, funct, period, perStart,
+                             timestep, ...) {
 
-    # Takes the first date as example
-    exDate = df_XEx$datetime[1]
-    # Finds the number of dash in the date
-    nbt = lengths(regmatches(exDate, gregexpr('-', exDate)))
-
-    # If there is only one dash
-    if (nbt == 1) {
-        # Converts it to date from a year and a month
-        Date = paste(df_XEx$datetime, '01', sep='-')
-    # If there is no dash
-    } else if (nbt == 0) {
-        # Converts it to date from only a year
-        Date = paste(df_XEx$datetime, '01', '01', sep='-')
-    # If there is more than 2 dashes
-    } else if (nbt != 2) {
-        # This is not a classical date
-        stop('erreur of date format')
-    }
-
-    Start = per[1]
-    End = per[2]
+    print('Extraction of data')
     
-    df_XEx = df_XEx[Date >= Start & Date <= End,]
-
-    return (df_XEx)
-}
-
-
-### 2.1. Preparation _________________________________________________
-# Prepares the data in order to have a list of a data tibble with
-# date, group and flow column and a info tibble with the station code
-# and group column to fit the entry of the 'extract.Var' function in
-# the 'StatsAnalysisTrend' package
-prepare = function(df_data, colnamegroup=NULL) {
-    
-    # Forces the column name to group to be a vector 
-    colnamegroup = c(colnamegroup)
-    # Converts it to index of the column to group
-    colindgroup = which(colnames(df_data) == colnamegroup)
-    # Groups the data by those indexes
-    df_data = group_by_at(df_data, colindgroup)
+    # Groups the data by code column
+    df_data = group_by(df_data, code)
 
     # Creates a new tibble of data with a group column
     data = tibble(Date=df_data$Date, 
@@ -520,52 +496,71 @@ prepare = function(df_data, colnamegroup=NULL) {
 
     # Stores data and info tibble as a list that match the entry of
     # the 'extract.Var' function
-    res = list(data=data, info=info)
-    return (res)
-}
-
-### 2.2. Re-preparation ______________________________________________
-# Re-prepares the data in outing of the 'extract.Var' function in
-# the 'StatsAnalysisTrend' package in order to fit again to the
-# entry of the same function
-reprepare = function(df_XEx, df_Xlist, colnamegroup=NULL) {
+    df_Xlist = list(data=data, info=info)
     
-    # Changes the column name of the results of the
-    # 'extract.Var' function
-    colnames(df_XEx)[1:3] = c('Date', 'group', 'Value')
-    
-    # Converts Date column as character
-    df_XEx$Date = as.character(df_XEx$Date)
-    # Takes the first date as example
-    exDate = df_XEx$Date[1]
-    # Finds the number of dash in the date
-    nbt = lengths(regmatches(exDate, gregexpr('-', exDate)))
+    df_XEx = extract.Var(data.station=df_Xlist,
+                         funct=funct,
+                         period=period,
+                         per.start=perStart,
+                         timestep=timestep,
+                         pos.datetime=1,
+                         ...)
 
-    # If there is only one dash
-    if (nbt == 1) {
-        # Converts it to date from a year and a month
-        df_XEx$Date = paste(df_XEx$Date, '01', sep='-')
-    # If there is no dash
-    } else if (nbt == 0) {
-        # Converts it to date from only a year
-        df_XEx$Date = paste(df_XEx$Date, '01', '01', sep='-')
-    # If there is more than 2 dashes
-    } else if (nbt != 2) {
-        # This is not a classical date
-        stop('erreur of date format')
-    }
+    # print(df_XEx)
+    
+    colnames(df_XEx) = c('Date', 'group', 'Value', 'NA_pct')
+    df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', perStart))
     
     # Recreates the outing of the 'extract.Var' function nicer
-    df_XEx = bind_cols(Date=as.Date(df_XEx$Date,
-                                       format="%Y-%m-%d"),
-                       df_XEx[-1],
-                       df_Xlist$info[df_XEx$group,
-                                     2:ncol(df_Xlist$info)])
+    df_XEx = tibble(Date=df_XEx$Date,
+                    Value=df_XEx$Value,
+                    code=df_Xlist$info$code[df_XEx$group],
+                    NA_pct=df_XEx$NA_pct*100)
+
+    # print(df_XEx)
     
-    # Prepares the nicer outing
-    df_XlistEx = prepare(df_XEx, colnamegroup=colnamegroup)
-    return (df_XlistEx)
+    return (df_XEx)
 }
+
+
+Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
+
+    print('Estimation of trend')
+    
+    df_XEx = group_by(df_XEx, code)
+
+    df_XEx_RAW = tibble(datetime=as.numeric(format(df_XEx$Date, "%Y")),
+                        group1=group_indices(df_XEx),
+                        values=df_XEx$Value,
+                        Na.percent=df_XEx$NA_pct/100)
+    
+    # Gets the different value of the group
+    Gkey = group_keys(df_XEx)
+    # Creates a new tibble of info of the group
+    info = bind_cols(group=seq(1:nrow(Gkey)),
+                     Gkey)
+
+    df_Xtrend = Estimate.stats(data.extract=df_XEx_RAW,
+                               level=alpha,
+                               dep.option=dep_option)
+
+    
+    # Converts results of trend to tibble
+    df_Xtrend = tibble(df_Xtrend)
+
+    colnames(df_Xtrend)[1] = 'group'
+
+    df_Xtrend = tibble(code=info$code[df_Xtrend$group],
+                       df_Xtrend[-1])
+        
+    df_Xtrend = get_intercept(df_Xtrend, df_XEx)
+    
+    # Specify the period of analyse
+    df_Xtrend = get_period(df_Xtrend, df_XEx)
+    
+    return (df_Xtrend)
+}
+
 
 ### 2.3. Prepare date ________________________________________________
 prepare_date = function(df_XEx, df_Xlist, per.start="01-01") {
@@ -641,131 +636,45 @@ prepare_date = function(df_XEx, df_Xlist, per.start="01-01") {
 ### 3.1. Period of trend _____________________________________________
 # Compute the start and the end of the period for a trend analysis
 # according to the accessible data 
-get_period = function (per, df_Xtrend, df_XEx, df_Xlist, per.start='01-01') {
+get_period = function (df_Xtrend, df_XEx) {
 
-    # Converts results of trend to tibble
-    df_Xtrend = tibble(df_Xtrend)
-    # Fix the period start and end of the accessible period to a
-    # default date
-    df_Xtrend$period_start = as.Date("1970-01-01")
-    df_Xtrend$period_end = as.Date("1970-01-01")
-
-    # print(df_XEx)
-    # print(head(df_XEx))
-    # print(tail(df_XEx))
-    # print('')
-
-    df_data = df_Xlist$data
-    df_info = df_Xlist$info
+    df_Start = summarise(group_by(df_XEx, code),
+                         Start=min(Date, na.rm=TRUE))
     
-    # For all the different group
-    for (g in df_info$group) {
-        # Gets the analyse data associated to the group
-        df_data_code = df_data[df_data$group == g,]
-        # Gets the id in the trend result associated to the group
-        id = which(df_Xtrend$group1 == g)
-        
-        Date = df_data_code$Date
-        Date = df_data_code$Date
-        
-        iStart = which.min(abs(Date - as.Date(per[1])))
-        iEnd = which.min(abs(Date - as.Date(per[2])))
-
-        # Stores the start and end of the trend analysis
-        df_Xtrend$period_start[id] = as.Date(Date[iStart])
-        df_Xtrend$period_end[id] = as.Date(Date[iEnd])
-    }
+    df_End = summarise(group_by(df_XEx, code),
+                       End=max(Date, na.rm=TRUE))
+    
+    df_Xtrend$period_start = df_Start$Start
+    df_Xtrend$period_end = df_End$End
+    
     return (df_Xtrend)
 }
+
 
 ### 3.2. Intercept of trend __________________________________________
 # Compute intercept values of linear trends with first order values
 # of trends and the data on which analysis is performed.
-get_intercept = function (df_Xtrend, df_Xlist, unit2day=365.25) {
+get_intercept = function (df_Xtrend, df_XEx, unit2day=365.25) {
 
-    # Create a column in trend full of NA
-    df_Xtrend$intercept = NA
+    df_mu_X = summarise(group_by(df_XEx, code),
+                        mu_X=mean(Value, na.rm=TRUE))
 
-    # For all different group
-    for (g in df_Xlist$info$group) {
-        # Get the data and trend value linked to this group
-        df_data_code = df_Xlist$data[df_Xlist$data$group == g,]
-        df_Xtrend_code = df_Xtrend[df_Xtrend$group == g,]
+    df_mu_t = summarise(group_by(df_XEx, code),
+                        mu_t=as.numeric(mean(Date, na.rm=TRUE)) / unit2day)
 
-        # Get the time start and end of the different periods
-        Start = df_Xtrend_code$period_start
-        End = df_Xtrend_code$period_end
-        # Extract only the unrepeated dates
-        UStart = levels(factor(Start))
-        UEnd = levels(factor(End))
-        # Get the number of different periods of trend analysis
-        nPeriod = max(length(UStart), length(UEnd))
-
-        # For each of these perdiods
-        for (i in 1:nPeriod) {
-            # Get data and trend associated to the period
-            df_data_code_per = 
-                df_data_code[df_data_code$Date >= Start[i] 
-                             & df_data_code$Date <= End[i],]
-            df_Xtrend_code_per = 
-                df_Xtrend_code[df_Xtrend_code$period_start == Start[i] 
-                              & df_Xtrend_code$period_end == End[i],]
-
-            # Get the group associated to this period
-            id = which(df_Xtrend$group == g 
-                       & df_Xtrend$period_start == Start[i] 
-                       & df_Xtrend$period_end == End[i])
-
-            # Compute mean of flow and time period
-            mu_X = mean(df_data_code_per$Value, na.rm=TRUE)
-            mu_t = as.numeric(mean(c(Start[i],
-                                     End[i]),
-                                   na.rm=TRUE)) / unit2day
-
-            # Get the intercept of the trend
-            b = mu_X - mu_t * df_Xtrend_code_per$trend
-            # And store it
-            df_Xtrend$intercept[id] = b
-        } 
-    }
+    df_Xtrendtmp = tibble(code=df_Xtrend$code,
+                          trend=df_Xtrend$trend,
+                          mu_X=df_mu_X$mu_X,
+                          mu_t=df_mu_t$mu_t)
+    
+    df_b = summarise(group_by(df_Xtrendtmp, code),
+                     b=mu_X - mu_t * trend)
+    
+    df_Xtrend$intercept = df_b$b
+    
     return (df_Xtrend)
 }
 
-### 3.3. Cleaning ____________________________________________________
-# Cleans the trend results of the function 'Estimate.stats' in the
-# 'StatsAnalysisTrend' package. It adds the station code and the
-# intercept of the trend to the trend results. Also makes the data
-# more presentable.
-clean = function (df_Xtrend, df_XEx, df_Xlist) {
-
-    # Reprepares the list of data and info in order to be presentable
-    df_Xlist = reprepare(df_XEx, df_Xlist, colnamegroup=c('code'))
-    
-    # Adds a column of station code
-    df_Xlist$data$code = NA
-    # For all the group
-    for (g in df_Xlist$info$group) {
-        # Adds the station code corresponding to each group info
-        df_Xlist$data$code[which(df_Xlist$data$group == g)] = df_Xlist$info$code[df_Xlist$info$group == g]
-    }
-
-    # Adds the info to trend tibble
-    df_Xtrend = bind_cols(df_Xtrend,
-                          df_Xlist$info[df_Xtrend$group1,
-                                        2:ncol(df_Xlist$info)])
-
-    # Renames the column of group of trend results
-    colnames(df_Xtrend)[1] = 'group'
-    # Adds the intercept value of trend
-    df_Xtrend = get_intercept(df_Xtrend, df_Xlist, unit2day=365.25)
-
-    # Changes the position of the intercept column
-    df_Xtrend = relocate(df_Xtrend, intercept, .after=trend)
-
-    # Creates a list of results to return
-    res = list(trend=df_Xtrend, data=df_Xlist$data)
-    return (res)
-}
 
 ## 4. OTHER __________________________________________________________
 add_mod = function (df_mod, Code, type, fun_name, comment, df_meta=NULL) {

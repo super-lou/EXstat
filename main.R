@@ -101,7 +101,7 @@ filename =
 #    'climate_trend_plot' : Plotting of trend analyses of climate data
 to_do =
     c(
-        'station_extraction',
+        # 'station_extraction',
         'station_trend_analyse'
         # 'station_trend_plot'
     )

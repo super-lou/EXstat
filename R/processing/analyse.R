@@ -233,6 +233,9 @@ get_QMNAtrend = function (df_data, df_meta, period, perStart, alpha, sampleSpan,
 
 ### 1.3. VCN10 _______________________________________________________
 rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
+
+    print('Computes roll mean')
+    
     # Blank tibble to store the data averaged
     df_data_roll = tibble()
     # For all the code
@@ -269,7 +272,13 @@ rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
 
 # Realises the trend analysis of the minimum 10 day average flow
 # over the year (VCN10) hydrological variable
-get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan, dayLac_lim, yearNA_lim, df_flag, df_mod=tibble()) {
+get_VCN10trend = function (df_data, df_meta, period, perStart, alpha,
+                           df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
+                           NA_pct_lim,
+                           correction_to_do=c('flag', 'sampling',
+                                              'miss_year', 'miss_day',
+                                              'NA_filter'),
+                           df_mod=tibble()) {
 
     print(paste0('Computes VCN10 trend with hydrological month start at ',
                  substr(perStart, 1, 2)))
@@ -277,98 +286,96 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha, sampleSpan
     # Get all different stations code
     Code = levels(factor(df_meta$code))
 
-    # Local corrections if needed
-    print('Checking of flags')
-    res = flag_data(df_data, df_meta,
-                    df_flag=df_flag,
-                    df_mod=df_mod)
-    df_data = res$data
-    df_mod = res$mod
+    if ('flag' %in% correction_to_do) {
+        # Local corrections if needed
+        res = flag_data(df_data, df_meta,
+                        df_flag=df_flag,
+                        df_mod=df_mod)
+        df_data = res$data
+        df_mod = res$mod
+    }
     
     # Computes the rolling average by 10 days over the data
-    print('Computes roll mean')
     res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
     df_data_roll = res$data
     df_mod = res$mod
 
-    # Removes incomplete data from time series
-    print('Checking missing data')
-    res = missing_data(df_data_roll, df_meta,
-                       dayLac_lim=dayLac_lim,
-                       yearNA_lim=yearNA_lim,
-                       perStart=perStart,
-                       df_mod=df_mod)
-    df_data_roll = res$data
-    df_mod = res$mod
+    if ('miss_year' %in% correction_to_do) {
+        # Removes older data if there are a too long missing period
+        res = missing_year(df_data_roll, df_meta,
+                           yearNA_lim=yearNA_lim,
+                           df_mod=df_mod)
+        df_data_roll = res$data
+        df_mod = res$mod
+    }
 
-    # Samples the data
-    print('Sampling of the data')
-    res = sampling_data(df_data_roll, df_meta,
-                        sampleSpan=sampleSpan,
-                        df_mod=df_mod)
-    df_data_roll = res$data
-    df_mod = res$mod
+    if ('miss_day' %in% correction_to_do) {
+        # Removes incomplete years if there are too long missing
+        # consecutive days
+        res = missing_day(df_data_roll, df_meta,
+                          dayLac_lim=dayLac_lim,
+                          perStart=perStart,
+                          df_mod=df_mod)
+        df_data_roll = res$data
+        df_mod = res$mod
+    }
+
+    if ('sampling' %in% correction_to_do) {
+        # Samples the data
+        res = sampling_data(df_data_roll, df_meta,
+                            sampleSpan=sampleSpan,
+                            df_mod=df_mod)
+        df_data_roll = res$data
+        df_mod = res$mod
+    }
     
     # Make sure to convert the period to a list
     period = as.list(period)
     # Set the max interval period as the minimal possible
     Imax = 0
     # Blank tibble for data to return
-    df_VCN10trendB = tibble()
+    df_VCN10trend_all = tibble()
     
     # For all periods
-    for (per in period) {        
-        # Prepare the data to fit the entry of extract.Var
-        df_VCN10list = prepare(df_data_roll, colnamegroup=c('code'))
-
-        # print(df_VCN10list$data$Value)
+    for (per in period) {
         
         # Compute the yearly min over the averaged data
-        print(paste0('Extraction of data for period ',
-                     paste0(per, collapse=' / ')))
-        df_VCN10Ex = extract.Var(data.station=df_VCN10list,
-                                 funct=min,
-                                 period=per,
-                                 per.start=perStart,
-                                 timestep='year',
-                                 pos.datetime=1,
-                                 na.rm=TRUE)
+        print(paste0('For period : ', paste0(per, collapse=' / ')))
+        
+        df_VCN10Ex = extract_Var_WRAP(df_data=df_data_roll,
+                                      funct=min,
+                                      period=per,
+                                      perStart=perStart,
+                                      timestep='year',
+                                      na.rm=TRUE)
 
-        # print(df_VCN10Ex)
+        if ('NA_filter' %in% correction_to_do) {
+            df_VCN10Ex = NA_filter(df_VCN10Ex, NA_pct_lim=NA_pct_lim)
+        }
 
-        # Compute the trend analysis
-        print(paste0('Estimation of trend for period ',
-                     paste0(per, collapse=' / ')))
-        df_VCN10trend = Estimate.stats(data.extract=df_VCN10Ex,
-                                       level=alpha,
-                                       dep.option='AR1')
-
-        # print(df_VCN10trend)
-        print('ok')
+        # Compute the trend analysis        
+        df_VCN10trend = Estimate_stats_WRAP(df_XEx=df_VCN10Ex,
+                                            alpha=alpha,
+                                            dep_option='AR1')
 
         # Get the associated time interval
         I = interval(per[1], per[2])
         # If it is the largest interval       
         if (I > Imax) {
-            # Store it and the associated data and info           
+            # Store it and the associated data
             Imax = I
-            df_VCN10listB = df_VCN10list
-            df_VCN10ExB = df_VCN10Ex
+            df_VCN10Ex_all = df_VCN10Ex
         }
 
-        # Specify the period of analyse
-        df_VCN10trend = get_period(per, df_VCN10trend, df_VCN10Ex,
-                                   df_VCN10list)
-
         # Store the trend
-        df_VCN10trendB = bind_rows(df_VCN10trendB, df_VCN10trend)
+        df_VCN10trend_all = bind_rows(df_VCN10trend_all, df_VCN10trend)
     }
-    
-    # Clean results of trend analyse
-    res_VCN10trend = clean(df_VCN10trendB, df_VCN10ExB, df_VCN10listB)
+
+    # Creates a list of results to return
+    res_analyse = list(data=df_VCN10Ex_all, trend=df_VCN10trend_all)
     
     res = list(data=df_data_roll, mod=df_mod,
-               analyse=res_VCN10trend)
+               analyse=res_analyse)
     return (res)
 }
 

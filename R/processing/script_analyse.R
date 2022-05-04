@@ -135,7 +135,7 @@ if ('station_trend_analyse' %in% to_do) {
                                  yearNA_lim=yearNA_lim,
                                  df_flag=df_flag)
 
-            print(res)
+            # print(res)
             
             df_VCN10data = res$data
             df_VCN10mod = res$mod
