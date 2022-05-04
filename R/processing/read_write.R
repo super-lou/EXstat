@@ -70,7 +70,7 @@ write_data = function (df_data, df_mod, resdir, filedir) {
     for (code in Code) {
         df_data_code = df_data[df_data$code == code,]
         df_mod_code = df_mod[df_mod$code == code,]
-    
+
         outfile1 = paste(code, '.txt', sep='')
         write.table(df_data_code,
                     file=file.path(outdir, outfile1),

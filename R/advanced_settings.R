@@ -112,6 +112,9 @@ TXTlistname =
 
 
 ## 3. ANALYSIS PARAMETERS ____________________________________________
+
+allMonth = FALSE
+
 ### 3.1. Station analysis ____________________________________________
 to_analyse = c(
     # 'QA',
@@ -150,6 +153,9 @@ df_flag = data.frame(
                3) # /!\ Unit
 )
 
+# Sampling span of the data
+sampleSpan = c('05-01', '11-30')
+
 # Number of missing continuous days per year before removing the year
 dayLac_lim = 3
 
@@ -157,12 +163,19 @@ dayLac_lim = 3
 # before it
 yearNA_lim = 10
 
-# Sampling span of the data
-sampleSpan = c('05-01', '11-30')
+NA_pct_lim = 1
+
+correction_to_do = c(
+    'flag',
+    # 'sampling',
+    'miss_year',
+    'miss_day',
+    'NA_filter'
+)
 
 ### 3.4. Saving option _______________________________________________
 saving = c(
-    # 'data',
+    'data',
     'meta',
     'analyse'
 )
@@ -172,8 +185,6 @@ fast_format = TRUE
 ### 3.5. Statistical option __________________________________________
 # The risk of the Mann-Kendall trend detection test
 alpha = 0.1
-
-allMonth = FALSE
 
 
 ## 4. PLOTTING OPTIONS _______________________________________________

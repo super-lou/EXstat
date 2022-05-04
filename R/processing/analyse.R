@@ -350,7 +350,12 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha,
                                       na.rm=TRUE)
 
         if ('NA_filter' %in% correction_to_do) {
-            df_VCN10Ex = NA_filter(df_VCN10Ex, NA_pct_lim=NA_pct_lim)
+            # NA filtering
+            res = NA_filter(df_VCN10Ex,
+                            NA_pct_lim=NA_pct_lim,
+                            df_mod=df_mod)
+            df_VCN10Ex = res$data
+            df_mod = res$mod
         }
 
         # Compute the trend analysis        

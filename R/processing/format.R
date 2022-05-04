@@ -132,6 +132,8 @@ flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 ### 1.3. Manages missing data ________________________________________
 missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
 
+    print('Checking for missing years')
+    
     if (is.null(Code)) {
         # Get all different stations code
         Code = levels(factor(df_meta$code))
@@ -193,6 +195,8 @@ missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL
 
 missing_day = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=NULL, df_mod=NULL) {
 
+    print('Checking for missing days')
+
     if (is.null(Code)) {
         # Get all different stations code
         Code = levels(factor(df_meta$code))
@@ -284,144 +288,31 @@ missing_day = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=N
 }
 
 
-NA_filter = function (df_XEx, NA_pct_lim=0.01) {
-    df_XEx$values[df_XEx$Na.percent > NA_pct_lim] = NA
-    return (df_XEx)
-}
+NA_filter = function (df_XEx, NA_pct_lim=1, df_mod=NULL) {
 
-
-
-missing_data = function (df_data, df_meta, dayLac_lim=3, yearNA_lim=10, perStart='01-01', Code=NULL, df_mod=NULL) {
-
-    print('Checking missing data')
-
-    if (is.null(Code)) {
-        # Get all different stations code
-        Code = levels(factor(df_meta$code))
-        nCode = length(Code)
-    } else {
-        nCode = length(Code)
-    }
-
-    for (code in Code) {        
-        # Extracts the data corresponding to the code
-        df_data_code = df_data[df_data$code == code,]
-
-        DateNA = df_data_code$Date[is.na(df_data_code$Value)]
-
-        dDateNA = diff(DateNA)
-        if (any(dDateNA != 1)) {
-            
-            dDateNA = c(10, dDateNA)
-            idJump = which(dDateNA != 1)
-            NJump = length(idJump)
-
-            for (i in 1:NJump) {
-                idStart = idJump[i]
-                
-                if (i < NJump) {
-                    idEnd = idJump[i+1] - 1
-                } else {
-                    idEnd = length(DateNA)
-                }
-
-                Start = DateNA[idStart]
-                End = DateNA[idEnd]
-
-                duration = (End - Start)/365.25
-                if (duration >= yearNA_lim) {
-                    df_data_code$Value[df_data_code$Date <= End] = NA
-                    
-                    if (!is.null(df_mod)) {
-                        df_mod =
-                            add_mod(df_mod, code,
-                                    type='Missing data management',
-                                    fun_name='NA assignment',
-                                    comment=paste('From the start of measurements',
-                                                  ' to ', End, sep=''))
-                    }
-                }
-            }
-        }
-
-        DateMD = format(df_data_code$Date, "%m-%d")
-        idperStart = which(DateMD == perStart)
-
-        if (DateMD[1] != perStart) {
-            idperStart = c(1, idperStart)
-        }
-        NidperStart = length(idperStart)
-
-        for (i in 1:NidperStart) {
-            Start = df_data_code$Date[idperStart[i]]
-            if (i < NidperStart) {
-                End = df_data_code$Date[idperStart[i+1] - 1]
-            } else {
-                End = df_data_code$Date[length(df_data_code$Date)]
-            }
-            
-            OkYear = df_data_code$Date >= Start & df_data_code$Date <= End
-            df_data_code_year = df_data_code[OkYear,]
-
-            StartReal = as.Date(paste(substr(Start, 1, 4),
-                                      perStart, sep='-'))
-            EndReal = as.Date(paste(as.numeric(substr(Start, 1, 4)) + 1,
-                                    perStart, sep='-'))
-            
-            nbDate = as.numeric(difftime(EndReal, StartReal,
-                                         units="days"))
-                        
-            nbNA = sum(as.numeric(is.na(df_data_code_year$Value)))
-            nbNA = nbNA + abs(as.numeric(difftime(StartReal, Start,
-                                                  units="days")))
-            nbNA = nbNA + abs(as.numeric(difftime(EndReal, End+1,
-                                                  units="days")))
-
-            yearLacMiss_pct = nbNA/nbDate * 100
-
-            if (nbNA > dayLac_lim) {
-                df_data_code_year$Value = NA
-                df_data_code[OkYear,] = df_data_code_year
-
-                if (!is.null(df_mod)) {
-                    df_mod = add_mod(df_mod, code,
-                                     type='Missing data management',
-                                     fun_name='NA assignment',
-                                     comment=paste('From ', Start,
-                                                   ' to ', End, sep=''))
-                }
-                
-            } else if (nbNA <= dayLac_lim & nbNA > 1) {
-                DateJ = as.numeric(df_data_code_year$Date)
-                Value = df_data_code_year$Value
-               
-                Value = approxExtrap(x=DateJ,
-                                     y=Value,
-                                     xout=DateJ,
-                                     method="linear",
-                                     na.rm=TRUE)$y                
-                df_data_code$Value[OkYear] = Value
-
-                if (!is.null(df_mod)) {
-                    df_mod = add_mod(df_mod, code,
-                                     type='Missing data management',
-                                     fun_name='approxExtrap',
-                                     comment=paste(
-                                         'Linear extrapolation of NA from ',
-                                         Start, ' to ', End, sep=''))
-                }
-            }
-        }
-        df_data[df_data$code == code,] = df_data_code        
-    }
+    filter = df_XEx$NA_pct > NA_pct_lim
+    
+    df_XEx$Value[filter] = NA
+    codeFilter = df_XEx$code[filter]
+    dateFilter = format(df_XEx$Date[filter], "%Y")
+    Nmod = length(codeFilter)
+    
     if (!is.null(df_mod)) {
-        res = list(data=df_data, mod=df_mod)
+        for (i in 1:Nmod) {
+            df_mod =
+                add_mod(df_mod, codeFilter[i],
+                        type='Filtering of NA percentage after Extraction',
+                        fun_name='NA assignment',
+                        comment=paste0('Removal of year ', dateFilter[i]))
+        }
+    }    
+    if (!is.null(df_mod)) {
+        res = list(data=df_XEx, mod=df_mod)
         return (res)
     } else {
-        return (df_data)
+        return (df_XEx)
     }
 }
-
 
 ### 1.4. Sampling of the data ________________________________________
 sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code=NULL, df_mod=NULL) {
@@ -497,6 +388,8 @@ extract_Var_WRAP = function (df_data, funct, period, perStart,
     # Stores data and info tibble as a list that match the entry of
     # the 'extract.Var' function
     df_Xlist = list(data=data, info=info)
+
+    # print(tail(data))
     
     df_XEx = extract.Var(data.station=df_Xlist,
                          funct=funct,
@@ -507,6 +400,7 @@ extract_Var_WRAP = function (df_data, funct, period, perStart,
                          ...)
 
     # print(df_XEx)
+    # print(tail(df_XEx))
     
     colnames(df_XEx) = c('Date', 'group', 'Value', 'NA_pct')
     df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', perStart))
@@ -529,10 +423,14 @@ Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
     
     df_XEx = group_by(df_XEx, code)
 
+    # print(df_XEx)
+    
     df_XEx_RAW = tibble(datetime=as.numeric(format(df_XEx$Date, "%Y")),
                         group1=group_indices(df_XEx),
                         values=df_XEx$Value,
                         Na.percent=df_XEx$NA_pct/100)
+
+    # print(df_XEx_RAW)
     
     # Gets the different value of the group
     Gkey = group_keys(df_XEx)

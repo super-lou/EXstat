@@ -130,12 +130,12 @@ if ('station_trend_analyse' %in% to_do) {
                                  period=trend_period,
                                  perStart=perSTART['VCN10' == var, i],
                                  alpha=alpha,
+                                 df_flag=df_flag,
                                  sampleSpan=sampleSpan,
-                                 dayLac_lim=dayLac_lim,
                                  yearNA_lim=yearNA_lim,
-                                 df_flag=df_flag)
-
-            # print(res)
+                                 dayLac_lim=dayLac_lim,
+                                 NA_pct_lim=NA_pct_lim,
+                                 correction_to_do=correction_to_do)
             
             df_VCN10data = res$data
             df_VCN10mod = res$mod
