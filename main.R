@@ -103,8 +103,8 @@ filename =
 to_do =
     c(
         'station_extraction',
-        'station_trend_analyse',
-        'station_trend_plot'
+        'station_trend_analyse'
+        # 'station_trend_plot'
     )
 
 ## 4. ANALYSIS PARAMETERS ____________________________________________

@@ -498,22 +498,6 @@ convert_dateEx = function(df_XEx, df_data, perStart="01-01") {
             df_XEx$code == code & format(df_XEx$Date, "%Y") == year        
         df_XEx$Value[OkXEx_code_year] =
             df_XEx$Value[OkXEx_code_year] + Shift
-
-        
-        # df_XEx_code = df_XEx[df_XEx$code == code,]
-
-        # print(df_XEx_code)
-        
-        # mean_code = mean(df_XEx_code$Value, na.rm=TRUE)
-
-        # print(mean_code*4/3)
-        
-        # Out = df_XEx_code$Value >= mean_code*4/3
-        # Out[is.na(Out)] = FALSE
-        # df_XEx_code$Value[Out] = df_XEx_code$Value[Out] - 365
-        # df_XEx[df_XEx$code == code,] = df_XEx_code
-
-        # print(df_XEx_code)
     }
 
     Year = format(df_XEx$Date, "%Y")
@@ -521,13 +505,8 @@ convert_dateEx = function(df_XEx, df_data, perStart="01-01") {
     End = Start + years(1) - days(1)
     nbDate = as.numeric(difftime(End, Start,
                                  units="days"))
-    print(nbDate)
-
-    print(df_XEx)
     
     df_XEx$Value = df_XEx$Value %% nbDate
-
-    print(df_XEx)
     
     return (df_XEx)
 }

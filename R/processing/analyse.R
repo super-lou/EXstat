@@ -576,8 +576,6 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
                                            alpha=alpha,
                                            dep_option='AR1')
 
-        print(df_tDEBtrend)
-
         # Get the associated time interval
         I = interval(per[1], per[2])
         # If it is the largest interval       
