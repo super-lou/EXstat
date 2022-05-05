@@ -40,21 +40,21 @@ source(file.path('R', 'processing', 'analyse.R'),
 ## 1. STATION TREND ANALYSIS _________________________________________
 if ('station_trend_analyse' %in% to_do) {
 ### 1.1. Info about analysis _________________________________________    
-    varAll = list(
+    var_all = list(
         'QA',
         'QMNA',
         'VCN10',
         'tDEB',
         'tCEN'
     )
-    typeAll = list(
+    type_all = list(
         'sévérité',
         'sévérité',
         'sévérité',
         'saisonnalité',
         'saisonnalité'
     )
-    gloseAll = list(
+    glose_all = list(
         "Moyenne annuelle du débit journalier",
         "Minimum annuel de la moyenne mensuelle du débit journalier",
         "Minimum annuel de la moyenne sur 10 jours du débit journalier",
@@ -63,18 +63,18 @@ if ('station_trend_analyse' %in% to_do) {
     )
 
     if (allMonth) {
-        perSTARTAll = matrix(rep(paste0(formatC(1:12, width=2,
+        perSTART_all = matrix(rep(paste0(formatC(1:12, width=2,
                                              flag=0),
                                      '-01'),
-                              length(varAll)),
-                          nrow=length(varAll), byrow=TRUE)
+                              length(var_all)),
+                          nrow=length(var_all), byrow=TRUE)
     } else {
-        perSTARTAll = matrix(c('09-01',
-                            '01-01',
-                            '01-01',
-                            '01-01',
-                            '01-01'),
-                          byrow=length(varAll))
+        perSTART_all = matrix(c('09-01',
+                                '01-01',
+                                '01-01',
+                                '01-01',
+                                '01-01'),
+                              byrow=length(var_all))
     }
     
 ### 1.2. Selection of variables ______________________________________
@@ -82,12 +82,12 @@ if ('station_trend_analyse' %in% to_do) {
     type = c()
     glose = c()
     for (OkVar in to_analyse) {
-        Ok = varAll == OkVar
-        var = c(var, varAll[Ok])
-        type = c(type, typeAll[Ok])
-        glose = c(glose, gloseAll[Ok])
+        Ok = var_all == OkVar
+        var = c(var, var_all[Ok])
+        type = c(type, type_all[Ok])
+        glose = c(glose, glose_all[Ok])
     }
-    perSTART = matrix(perSTARTAll[varAll %in% to_analyse,],
+    perSTART = matrix(perSTART_all[var_all %in% to_analyse,],
                       nrow=length(var))
     nbPerStart = ncol(perSTART)
     
@@ -285,17 +285,17 @@ if ('station_break_analyse' %in% to_do) {
 ## 3. CLIMATE TREND ANALYSIS _________________________________________
 if ('climate_trend_analyse' %in% to_do) {
 ### 3.1. Info about analysis _________________________________________
-    varAll_climate = list(
+    var_all_climate = list(
         'PA',
         'TA',
         'ETPA'
     )
-    typeAll_climate = list(
+    type_all_climate = list(
         'pluviométrie',
         'température',
         'évapotranspiration'
     )
-    gloseAll_climate = list(
+    glose_all_climate = list(
         '',
         '',
         ''
@@ -306,10 +306,10 @@ if ('climate_trend_analyse' %in% to_do) {
     type_climate = c()
     glose_climate = c()
     for (OkVar in to_analyse_climate) {
-        Ok = varAll_climate == OkVar
-        var_climate = c(var_climate, varAll_climate[Ok])
-        type_climate = c(type_climate, typeAll_climate[Ok])
-        glose_climate = c(glose_climate, gloseAll_climate[Ok])
+        Ok = var_all_climate == OkVar
+        var_climate = c(var_climate, var_all_climate[Ok])
+        type_climate = c(type_climate, type_all_climate[Ok])
+        glose_climate = c(glose_climate, glose_all_climate[Ok])
     } 
     
 ### 3.3. Formatting of climate dataframe _____________________________

@@ -117,10 +117,10 @@ allMonth = FALSE
 
 ### 3.1. Station analysis ____________________________________________
 to_analyse = c(
-    # 'QA',
-    # 'QMNA',
-    'VCN10'
-    # 'tDEB',
+    # 'QA'
+    # 'QMNA'
+    # 'VCN10'
+    'tDEB'
     # 'tCEN'
 )
 
@@ -167,10 +167,10 @@ NA_pct_lim = 1
 
 correction_to_do = c(
     'flag',
-    # 'sampling',
+    'sampling',
     'miss_year',
-    'miss_day',
-    'NA_filter'
+    'miss_day'
+    # 'NA_filter'
 )
 
 ### 3.4. Saving option _______________________________________________
@@ -203,9 +203,9 @@ axis_xlim =
 #          'map' : map about trend analyses
 to_plot_station =
     c(
-        'datasheet',
-        'table',
-        'map'
+        'datasheet'
+        # 'table',
+        # 'map'
     )
 
 map_to_plot =

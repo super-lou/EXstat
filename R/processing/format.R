@@ -366,7 +366,7 @@ sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code
 
 ## 2. DURING TREND ANALYSE ___________________________________________
 extract_Var_WRAP = function (df_data, funct, period, perStart,
-                             timestep, ...) {
+                             timestep, isDate=FALSE, ...) {
 
     print('Extraction of data')
     
@@ -389,6 +389,7 @@ extract_Var_WRAP = function (df_data, funct, period, perStart,
     # the 'extract.Var' function
     df_Xlist = list(data=data, info=info)
 
+    # print(df_Xlist)
     # print(tail(data))
     
     df_XEx = extract.Var(data.station=df_Xlist,
@@ -400,10 +401,13 @@ extract_Var_WRAP = function (df_data, funct, period, perStart,
                          ...)
 
     # print(df_XEx)
+    # print(sum(!is.na(df_XEx$values)))
     # print(tail(df_XEx))
     
     colnames(df_XEx) = c('Date', 'group', 'Value', 'NA_pct')
     df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', perStart))
+
+    # print(df_XEx)
     
     # Recreates the outing of the 'extract.Var' function nicer
     df_XEx = tibble(Date=df_XEx$Date,
@@ -411,6 +415,15 @@ extract_Var_WRAP = function (df_data, funct, period, perStart,
                     code=df_Xlist$info$code[df_XEx$group],
                     NA_pct=df_XEx$NA_pct*100)
 
+    # print(df_XEx)
+    # print(sum(!is.na(df_XEx$Value)))
+    
+
+    if (isDate) {
+        # Converts index of the tCEN to the julian date associated
+        df_XEx = convert_dateEx(df_XEx, df_data, perStart=perStart)
+    }
+    
     # print(df_XEx)
     
     return (df_XEx)
@@ -461,70 +474,60 @@ Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
 
 
 ### 2.3. Prepare date ________________________________________________
-prepare_date = function(df_XEx, df_Xlist, per.start="01-01") {
+convert_dateEx = function(df_XEx, df_data, perStart="01-01") {
 
-    df_dateStart = summarise(group_by(df_Xlist$data, group),
-                                Date=min(Date))
-    # filter(group_by(df_Xlist$data, group), Date == min(Date))
+    Shift_perStart = as.integer(df_XEx$Date - as.Date(paste0(format(df_XEx$Date, "%Y"), "-01-01")))
+    df_XEx$Value = df_XEx$Value + Shift_perStart
     
-    df_dateStart$Date_julian = NA
-    df_dateStart$DateHydro_julian = NA
-    
-    date = as.Date(df_dateStart$Date)
-    
-    date_per.start = as.Date(paste(substr(date, 1, 4),
-                                   '-', per.start, sep=''))
-    
-    date[date < date_per.start] = date_per.start[date < date_per.start]
-    df_dateStart$Date = date
-    
-    origin = as.Date(paste(format(df_dateStart$Date, "%Y"),
-                           '-', per.start, sep=''))
-
-    # originHydro = as.Date(paste(format(df_dateStart$Date, "%Y"),
-                                # '-01-01', sep=''))
-
-    for (i in 1:nrow(df_dateStart)) {
-        dateJultmp = julian(date[i], origin=origin[i])
-        df_dateStart$Date_julian[i] = dateJultmp
-
-        # print(date[i])
-        # dateJulHydrotmp = julian(date[i], origin=originHydro[i])
-        # df_dateStart$DateHydro_julian[i] = dateJulHydrotmp
+    df_Date = summarise(group_by(df_data, code),
+                                Start=min(Date, na.rm=TRUE))
+    df_Date$Julian = NA
+    df_Date$origin = as.Date(paste0(format(df_Date$Start, "%Y"),
+                                    '-', perStart))
+    for (i in 1:nrow(df_Date)) {
+        df_Date$Julian[i] = julian(df_Date$Start[i], origin=df_Date$origin[i])
     }
 
-    df_dateStart$Year = format(df_dateStart$Date, "%Y")
-    
-    for (group in df_dateStart$group) {
-        
-        Ok_dateStart = df_dateStart$group == group
-        Shift = df_dateStart$Date_julian[Ok_dateStart]
-        year = df_dateStart$Year[Ok_dateStart]
-        OkXEx_code_year = df_XEx$group1 == group & df_XEx$datetime == year
-        df_XEx$values[OkXEx_code_year] =
-            df_XEx$values[OkXEx_code_year] + Shift
+    df_Date$Year = format(df_Date$Start, "%Y")
 
-        # OkXEx_code = df_XEx$group1 == group
+    for (code in df_Date$code) {
+        Ok_Start = df_Date$code == code
+        Shift = df_Date$Julian[Ok_Start]
+        year = df_Date$Year[Ok_Start]
+        OkXEx_code_year =
+            df_XEx$code == code & format(df_XEx$Date, "%Y") == year        
+        df_XEx$Value[OkXEx_code_year] =
+            df_XEx$Value[OkXEx_code_year] + Shift
 
-        # ShiftHydro = df_dateStart$DateHydro_julian[Ok_dateStart]
-        # df_XEx$values[OkXEx_code] = df_XEx$values[OkXEx_code] + ShiftHydro
         
-        ## Add 365 when the point is too remote
-        # XEx_code = df_XEx$values[OkXEx_code]
-        # meanXEx_code = mean(XEx_code, na.rm=TRUE)
-        # dXEx_code = meanXEx_code - XEx_code
-        # stdXEx_code = sd(XEx_code, na.rm=TRUE)
-        # OkOverStd = dXEx_code >= stdXEx_code*3
-        # OkOverStd[is.na(OkOverStd)] = FALSE
-        # XEx_code[OkOverStd] = XEx_code[OkOverStd] + 365
-        # df_XEx$values[OkXEx_code] = XEx_code
+        # df_XEx_code = df_XEx[df_XEx$code == code,]
 
-        # print(group)
-        # print(df_XEx$datetime[df_XEx$group1 == group][dXEx_code >= stdXEx_code*3])
+        # print(df_XEx_code)
         
+        # mean_code = mean(df_XEx_code$Value, na.rm=TRUE)
+
+        # print(mean_code*4/3)
+        
+        # Out = df_XEx_code$Value >= mean_code*4/3
+        # Out[is.na(Out)] = FALSE
+        # df_XEx_code$Value[Out] = df_XEx_code$Value[Out] - 365
+        # df_XEx[df_XEx$code == code,] = df_XEx_code
+
+        # print(df_XEx_code)
     }
 
-    df_XEx$datetime = as.double(df_XEx$datetime)
+    Year = format(df_XEx$Date, "%Y")
+    Start = as.Date(paste0(Year, '-', perStart))
+    End = Start + years(1) - days(1)
+    nbDate = as.numeric(difftime(End, Start,
+                                 units="days"))
+    print(nbDate)
+
+    print(df_XEx)
+    
+    df_XEx$Value = df_XEx$Value %% nbDate
+
+    print(df_XEx)
     
     return (df_XEx)
 }

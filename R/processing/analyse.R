@@ -103,12 +103,14 @@ get_XAtrend = function (df_data, df_meta, period, perStart, alpha,
 
         print(paste0('For period : ', paste0(per, collapse=' / ')))
 
+        print(df_data)
+        
         df_XAEx = extract_Var_WRAP(df_data=df_data,
-                                      funct=funct,
-                                      period=per,
-                                      perStart=perStart,
-                                      timestep='year',
-                                      ...)
+                                   funct=funct,
+                                   period=per,
+                                   perStart=perStart,
+                                   timestep='year',
+                                   ...)
 
         if ('NA_filter' %in% correction_to_do) {
             # NA filtering
@@ -465,35 +467,12 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
     res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
     df_data_roll = res$data
     df_mod = res$mod
-
-    # Removes incomplete data from time series
-    df_data = missing_data(df_data,
-                           df_meta=df_meta,
-                           dayLac_lim=dayLac_lim,
-                           yearNA_lim=yearNA_lim,
-                           perStart=perStart)
-
+    
     if ('miss_year' %in% correction_to_do) {
         # Removes older data if there are a too long missing period
         df_data = missing_year(df_data, df_meta,
                                yearNA_lim=yearNA_lim)
-    }
-
-    if ('miss_day' %in% correction_to_do) {
-        # Removes incomplete years if there are too long missing
-        # consecutive days
-        df_data = missing_day(df_data, df_meta,
-                          dayLac_lim=dayLac_lim,
-                          perStart=perStart)
-    }
-
-    if ('sampling' %in% correction_to_do) {
-        # Samples the data
-        df_data = sampling_data(df_data, df_meta,
-                                sampleSpan=sampleSpan)
-    }
-    
-    if ('miss_year' %in% correction_to_do) {
+        
         # Removes older data if there are a too long missing period
         res = missing_year(df_data_roll, df_meta,
                            yearNA_lim=yearNA_lim,
@@ -505,6 +484,12 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
     if ('miss_day' %in% correction_to_do) {
         # Removes incomplete years if there are too long missing
         # consecutive days
+        df_data = missing_day(df_data, df_meta,
+                          dayLac_lim=dayLac_lim,
+                          perStart=perStart)
+        
+        # Removes incomplete years if there are too long missing
+        # consecutive days
         res = missing_day(df_data_roll, df_meta,
                           dayLac_lim=dayLac_lim,
                           perStart=perStart,
@@ -514,6 +499,10 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
     }
 
     if ('sampling' %in% correction_to_do) {
+        # Samples the data
+        df_data = sampling_data(df_data, df_meta,
+                                sampleSpan=sampleSpan)
+        
         # Samples the data
         res = sampling_data(df_data_roll, df_meta,
                             sampleSpan=sampleSpan,
@@ -548,29 +537,16 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
                                    timestep='year',
                                    na.rm=TRUE)
         
-        df_QT = summarise(group_by(df_QTEx, group1),
-                          values=max(values, na.rm=TRUE))
-        
-        # Renames the column of group of trend results
-        colnames(df_QT) = c('group', 'Thresold')
-        df_QT = full_join(df_QT, df_QTlist$info, by='group')
-        df_QT = df_QT[-1]
-        
-        # print(df_QT)
-        
+        df_QT = summarise(group_by(df_QTEx, code),
+                          Thresold=max(Value, na.rm=TRUE))
+                
         df_tDEBEx = tibble()
-        df_tDEBlist = list(data=tibble(), info=tibble())
         
         # For all the code
-        for (k in 1:nCode) {
-            # Gets the code
-            code = Code[k]
-            
-            # Get the data associated to the code
-            df_data_code = df_data[df_data$code == code,]
+        for (code in Code) {
+
             # Get the averaged data associated to the code
             df_data_roll_code = df_data_roll[df_data_roll$code == code,]
-
             QT_code = df_QT$Thresold[df_QT$code == code]
 
             df_tDEBEx_code = extract_Var_WRAP(df_data=df_data_roll_code,
@@ -579,24 +555,11 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
                                               perStart=perStart,
                                               timestep='year',
                                               UpLim=QT_code,
-                                              select_longest=select_longest)
-
-            df_tDEBEx_code$group1 = k
-            df_tDEBlist_code$data$group = k
-            df_tDEBlist_code$info$group = k
+                                              select_longest=select_longest,
+                                              isDate=TRUE)
             
-            # Converts index of the tDEB to the julian date associated
-            df_tDEBEx_code = prepare_date(df_tDEBEx_code,
-                                          df_tDEBlist_code)
-
             # Store the results
             df_tDEBEx = bind_rows(df_tDEBEx, df_tDEBEx_code)
-            
-            df_tDEBlist$data = bind_rows(df_tDEBlist$data,
-                                         df_tDEBlist_code$data)
-            
-            df_tDEBlist$info = bind_rows(df_tDEBlist$info,
-                                         df_tDEBlist_code$info)
         }
 
         if ('NA_filter' %in% correction_to_do) {
@@ -612,6 +575,8 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
         df_tDEBtrend = Estimate_stats_WRAP(df_XEx=df_tDEBEx,
                                            alpha=alpha,
                                            dep_option='AR1')
+
+        print(df_tDEBtrend)
 
         # Get the associated time interval
         I = interval(per[1], per[2])
@@ -633,6 +598,14 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
 }
 
 ### 1.5. tCEN date ___________________________________________________
+which.minNA = function (x) {
+    idMin = which.min(x)
+    if (identical(idMin, integer(0))) {
+        idMin = NA
+    }
+    return (idMin)
+}
+
 # Realises the trend analysis of the date of the minimum 10 day
 # average flow over the year (VCN10) hydrological variable
 get_tCENtrend = function (df_data, df_meta, period, perStart, alpha,
@@ -703,15 +676,13 @@ get_tCENtrend = function (df_data, df_meta, period, perStart, alpha,
     for (per in period) {
 
         print(paste0('For period : ', paste0(per, collapse=' / ')))
-
+        
         df_tCENEx = extract_Var_WRAP(df_data=df_data_roll,
-                                     funct=which.min,
+                                     funct=which.minNA,
                                      period=per,
                                      perStart=perStart,
-                                     timestep='year')
-
-        # Converts index of the tCEN to the julian date associated
-        df_tCENEx = prepare_date(df_tCENEx, df_tCENlist)
+                                     timestep='year',
+                                     isDate=TRUE)
 
         if ('NA_filter' %in% correction_to_do) {
             # NA filtering
