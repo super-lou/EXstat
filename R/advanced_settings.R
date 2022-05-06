@@ -121,6 +121,7 @@ var_all = list(
     'tDEB',
     'tCEN'
 )
+
 type_all = list(
     'sévérité',
     'saisonnalité',
@@ -130,6 +131,7 @@ type_all = list(
     'saisonnalité',
     'saisonnalité'
 )
+
 glose_all = list(
     "Maximum annuel du débit journalier",
     "Date du maximum annuel du débit journalier",
@@ -150,11 +152,7 @@ correction_all = list(
     c('flag', 'sampling', 'miss_year', 'miss_day') 
 )
 
-hydroYear_mode =
-    # 'every'
-    'fixed'
-
-hydroYear_fixed = c(
+hydroYear_all = c(
     '01-01',
     '01-01',
     '09-01',
@@ -164,9 +162,15 @@ hydroYear_fixed = c(
     '01-01'
 )
 
+hydroYear_mode =
+    # 'every'
+    'fixed'
+
+
+
 ### 3.1. Station analysis ____________________________________________
 to_analyse = c(
-    'QIXA',
+    # 'QIXA',
     'tQIXA'
     # 'QA',
     # 'QMNA',
@@ -218,9 +222,9 @@ NA_pct_lim = 1
 
 ### 3.4. Saving option _______________________________________________
 saving = c(
-    'data',
-    'meta',
-    'analyse'
+    # 'data',
+    # 'meta',
+    # 'analyse'
 )
 
 fast_format = TRUE

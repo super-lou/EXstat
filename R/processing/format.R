@@ -37,6 +37,7 @@
 # Usefull library
 library(dplyr)
 library(Hmisc)
+library(CircStats)
 
 
 ## 1. BEFORE TREND ANALYSE ___________________________________________
@@ -498,6 +499,25 @@ convert_dateEx = function(df_XEx, df_data, perStart="01-01") {
             df_XEx$code == code & format(df_XEx$Date, "%Y") == year        
         df_XEx$Value[OkXEx_code_year] =
             df_XEx$Value[OkXEx_code_year] + Shift
+
+        OkXEx_code = df_XEx$code == code
+        Month = df_XEx$Value[OkXEx_code] / (365.25/12)        
+        MonthNoNA = Month[!is.na(Month)]
+
+        fact = 2*pi/12
+        monthMean_raw = circ.mean(fact * MonthNoNA) / fact
+        monthMean = (monthMean_raw + 12) %% 12
+
+        upLim = monthMean + 6
+        lowLim = monthMean - 6
+
+        above = Month > upLim
+        above[is.na(above)] = FALSE
+        below = Month < lowLim
+        below[is.na(below)] = FALSE
+        
+        df_XEx$Value[OkXEx_code][above] = df_XEx$Value[OkXEx_code][above] - 365
+        df_XEx$Value[OkXEx_code][below] = df_XEx$Value[OkXEx_code][below] + 365
     }
 
     Year = format(df_XEx$Date, "%Y")
@@ -505,8 +525,9 @@ convert_dateEx = function(df_XEx, df_data, perStart="01-01") {
     End = Start + years(1) - days(1)
     nbDate = as.numeric(difftime(End, Start,
                                  units="days"))
-    
-    df_XEx$Value = df_XEx$Value %% nbDate
+
+    # Issue for negative value in the y axis
+    # df_XEx$Value = df_XEx$Value + 365 
     
     return (df_XEx)
 }

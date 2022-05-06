@@ -48,7 +48,7 @@ if ('station_trend_analyse' %in% to_do) {
                               nrow=length(var_all), byrow=TRUE)
         
     } else if (hydroYear_mode == 'fixed') {
-        hydroYear_all = matrix(hydroYear_fixed,
+        hydroYear_all = matrix(hydroYear_all,
                                byrow=length(var_all))
     }
     
@@ -95,7 +95,7 @@ if ('station_trend_analyse' %in% to_do) {
         if ('tQIXA' %in% var) {
             res = get_XAtrend(df_data, df_meta,
                               period=trend_period,
-                              perStart=hydroYear['QIXA' == var, i],
+                              perStart=hydroYear['tQIXA' == var, i],
                               alpha=alpha,
                               df_flag=df_flag,
                               sampleSpan=sampleSpan,

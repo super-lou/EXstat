@@ -472,6 +472,15 @@ time_panel = function (df_data_code, df_trend_code, var, type,
                        mean_period=NULL, axis_xlim=NULL, grid=TRUE,
                        ymin_lim=NULL, color=NULL, NspaceMax=NULL,
                        first=FALSE, last=FALSE, lim_pct=10) {
+
+
+    # Issue for negative values in the y axis ticks : if Value is a
+    # number of days that can be negative, it adds a year in order
+    # to always be positive
+    if (type == 'saisonnalité') {
+        df_data_code$Value = df_data_code$Value + 365
+        df_trend_code$intercept = df_trend_code$intercept + 365
+    }
     
     # Compute max and min of flow
     maxQ = max(df_data_code$Value, na.rm=TRUE)
@@ -508,9 +517,9 @@ time_panel = function (df_data_code, df_trend_code, var, type,
         Grad = GradQ_10 * 10^get_power(minQtmp_lim)      
         Grad[Grad > minQtmp_lim] = NA        
         dist = abs(Grad - minQtmp_lim)        
-        idGrad = which.min(dist)        
-        minQ_lim = Grad[idGrad]        
-    } else {        
+        idGrad = which.min(dist)
+        minQ_lim = Grad[idGrad]
+    } else {
         minQ_lim = ymin_lim
     }
     maxQ_list = c()
@@ -1309,11 +1318,6 @@ time_panel = function (df_data_code, df_trend_code, var, type,
                                                     prefix=prefix))
     # If it is a date variable
     } else if (type == 'saisonnalité') {
-        # monthNum = as.numeric(format(seq(as.Date(minQ_lim),
-                                       # as.Date(maxQ_lim),
-                                       # by=paste(breakQ, 'days')),
-        # "%m"))
-
         monthStart = as.Date(paste(substr(as.Date(minQ_lim), 1, 7),
                                    '-01', sep=''))
         monthEnd = as.Date(paste(substr(as.Date(maxQ_lim), 1, 7),
@@ -1340,7 +1344,6 @@ time_panel = function (df_data_code, df_trend_code, var, type,
                                limits=c(minQ_win, maxQ_win),
                                labels=labels,  
                                expand=c(0, 0))
-        
     }
     return(p)
 }
