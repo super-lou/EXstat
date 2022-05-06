@@ -46,12 +46,28 @@ source(file.path('R', 'processing', 'format.R'), encoding='UTF-8')
 
 
 ## 1. TREND ANALYSIS _________________________________________________
+which.maxNA = function (x) {
+    idMax = which.max(x)
+    if (identical(idMax, integer(0))) {
+        idMax = NA
+    }
+    return (idMax)
+}
+
+which.minNA = function (x) {
+    idMin = which.min(x)
+    if (identical(idMin, integer(0))) {
+        idMin = NA
+    }
+    return (idMin)
+}
+
 ### 1.1. XA __________________________________________________________
 # Realise the trend analysis of the average annual flow (QA)
 # hydrological variable
 get_XAtrend = function (df_data, df_meta, period, perStart, alpha,
                         df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
-                        NA_pct_lim, funct=mean,
+                        NA_pct_lim, funct=mean, isDate=FALSE,
                         correction_to_do=c('flag', 'sampling',
                                            'miss_year', 'miss_day',
                                            'NA_filter'),
@@ -102,14 +118,13 @@ get_XAtrend = function (df_data, df_meta, period, perStart, alpha,
     for (per in period) {
 
         print(paste0('For period : ', paste0(per, collapse=' / ')))
-
-        print(df_data)
         
         df_XAEx = extract_Var_WRAP(df_data=df_data,
                                    funct=funct,
                                    period=per,
                                    perStart=perStart,
                                    timestep='year',
+                                   isDate=isDate,
                                    ...)
 
         if ('NA_filter' %in% correction_to_do) {
@@ -596,14 +611,6 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
 }
 
 ### 1.5. tCEN date ___________________________________________________
-which.minNA = function (x) {
-    idMin = which.min(x)
-    if (identical(idMin, integer(0))) {
-        idMin = NA
-    }
-    return (idMin)
-}
-
 # Realises the trend analysis of the date of the minimum 10 day
 # average flow over the year (VCN10) hydrological variable
 get_tCENtrend = function (df_data, df_meta, period, perStart, alpha,
