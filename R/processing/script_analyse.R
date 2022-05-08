@@ -74,7 +74,7 @@ if ('station_trend_analyse' %in% to_do) {
 
         # QIXA trend
         if ('QIXA' %in% var) {
-            res = get_XAtrend(df_data, df_meta,
+            res = get_Xtrend(df_data, df_meta,
                               period=trend_period,
                               perStart=hydroYear['QIXA' == var, i],
                               alpha=alpha,
@@ -93,7 +93,7 @@ if ('station_trend_analyse' %in% to_do) {
 
         # tQIXA trend
         if ('tQIXA' %in% var) {
-            res = get_XAtrend(df_data, df_meta,
+            res = get_Xtrend(df_data, df_meta,
                               period=trend_period,
                               perStart=hydroYear['tQIXA' == var, i],
                               alpha=alpha,
@@ -112,7 +112,7 @@ if ('station_trend_analyse' %in% to_do) {
         
         # QA trend
         if ('QA' %in% var) {
-            res = get_XAtrend(df_data, df_meta,
+            res = get_Xtrend(df_data, df_meta,
                               period=trend_period,
                               perStart=hydroYear['QA' == var, i],
                               alpha=alpha,
@@ -344,7 +344,7 @@ if ('climate_trend_analyse' %in% to_do) {
                             code=df_climate_data$code)
 ### 3.4. Trend analyses ______________________________________________
     # TA trend
-    res = get_XAtrend(df_data_P, df_climate_meta,
+    res = get_Xtrend(df_data_P, df_climate_meta,
                       period=trend_period,
                       perStart='09-01',
                       alpha=alpha,
@@ -357,7 +357,7 @@ if ('climate_trend_analyse' %in% to_do) {
     res_PAtrend = res$analyse
     
     # PA trend
-    res = get_XAtrend(df_data_T, df_climate_meta,
+    res = get_Xtrend(df_data_T, df_climate_meta,
                       period=trend_period,
                       perStart='09-01',
                       alpha=alpha,
@@ -371,7 +371,7 @@ if ('climate_trend_analyse' %in% to_do) {
     res_TAtrend = res$analyse
 
     # ETPA trend
-    res = get_XAtrend(df_data_ETP, df_climate_meta,
+    res = get_Xtrend(df_data_ETP, df_climate_meta,
                       period=trend_period,
                       perStart='09-01',
                       alpha=alpha,

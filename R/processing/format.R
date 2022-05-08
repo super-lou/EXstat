@@ -36,7 +36,6 @@
 
 # Usefull library
 library(dplyr)
-library(Hmisc)
 library(CircStats)
 
 

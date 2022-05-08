@@ -70,6 +70,7 @@ install.packages("png")
 install.packages("shadowtext")
 install.packages("qpdf")
 install.packages("gridExtra")
+install.packages("CircStats")
 
 ### 1.2. On git ______________________________________________________
 library(devtools)

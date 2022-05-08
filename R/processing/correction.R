@@ -34,6 +34,7 @@
 
 # Usefull library
 library(dplyr)
+library(Hmisc)
 
 
 ## 1. LOCAL CORRECTION OF DATA _______________________________________
@@ -86,6 +87,7 @@ flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 
 
 ## 2. MANAGES MISSING DATA ___________________________________________
+### 2.1. Long missing period over several years ______________________
 missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
 
     print('Checking for missing years')
@@ -148,7 +150,7 @@ missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL
     }
 }
 
-
+### 2.2. Missing period over several days ____________________________
 missing_day = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=NULL, df_mod=NULL) {
 
     print('Checking for missing days')
