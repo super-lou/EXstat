@@ -43,59 +43,12 @@ library(trend)
 library(Hmisc)
 
 # Sourcing R file
-# source(file.path('R', 'processing', 'format.R'), encoding='UTF-8')
+source(file.path('R', 'processing', 'format.R'), encoding='UTF-8')
+source(file.path('R', 'processing', 'correction.R'), encoding='UTF-8')
+
 
 
 ## 1. TREND ANALYSIS _________________________________________________
-which.maxNA = function (x) {
-    idMax = which.max(x)
-    if (identical(idMax, integer(0))) {
-        idMax = NA
-    }
-    return (idMax)
-}
-
-which.minNA = function (x) {
-    idMin = which.min(x)
-    if (identical(idMin, integer(0))) {
-        idMin = NA
-    }
-    return (idMin)
-}
-
-BFS = function (Q, d=5, w=0.9) {
-
-    N = length(Q)
-    Slices = split(Q, ceiling(seq_along(Q)/d))
-    
-    idMinSlices = unlist(lapply(Slices, which.min), use.names=FALSE)
-    idShift = c(0, cumsum(unlist(lapply(Slices, length), use.names=FALSE)))
-    idShift = idShift[-length(idShift)]
-    idMin = idMinSlices + idShift
-    Qmin_k = Q[idMin]
-
-    n = length(Qmin_k)
-    Qmin_kp1 = c(Qmin_k[2:n], NA)
-    Qmin_km1 = c(NA, Qmin_k[1:(n-1)])
-    test = w * Qmin_k < pmin(Qmin_km1, Qmin_kp1)
-    test[is.na(test)] = FALSE
-    idPivots = idMin[which(test)]
-    Pivots = Qmin_k[test]
-
-    # BF = approx(idPivots, Pivots, xout=1:N)$y
-    BF = approxExtrap(idPivots, Pivots, xout=1:N,
-                      method="linear", na.rm=TRUE)$y  
-    
-    BF[is.na(Q)] = NA
-    BF[BF < 0] = 0
-    test = BF > Q
-    test[is.na(test)] = FALSE
-    BF[test] = Q[test]
-
-    return (BF)
-}
-
-
 ### 1.1. XA __________________________________________________________
 # Realise the trend analysis of the average annual flow (QA)
 # hydrological variable
@@ -306,39 +259,6 @@ get_QMNAtrend = function (df_data, df_meta, period, perStart, alpha,
 }
 
 ### 1.3. VCN10 _______________________________________________________
-rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
-    
-    # Blank tibble to store the data averaged
-    df_data_roll = tibble()
-    # For all the code
-    for (code in Code) {
-        # Get the data associated to the code
-        df_data_code = df_data[df_data$code == code,]
-        # Perform the roll mean of the flow over 10 days
-        df_data_roll_code = tibble(Date=df_data_code$Date,
-                                   Value=rollmean(df_data_code$Value, 
-                                                  k=10,
-                                                  fill=NA),
-                                   code=code)
-        # Store the results
-        df_data_roll = bind_rows(df_data_roll, df_data_roll_code)
-
-        if (!is.null(df_mod)) {
-            df_mod = add_mod(df_mod, code,
-                             type='Rolling average',
-                             fun_name='rollmean',
-                             comment='Rolling average of 10 day over all the data')
-        }
-    }
-
-    if (!is.null(df_mod)) {
-        res = list(data=df_data, mod=df_mod)
-        return (res)
-    } else {
-        return (df_data_roll)
-    }
-}
-
 # Realises the trend analysis of the minimum 10 day average flow
 # over the year (VCN10) hydrological variable
 get_VCN10trend = function (df_data, df_meta, period, perStart, alpha,
@@ -451,41 +371,6 @@ get_VCN10trend = function (df_data, df_meta, period, perStart, alpha,
 }
 
 ### 1.4. tDEB date ___________________________________________________
-which_underfirst = function (L, UpLim, select_longest=TRUE) {
-    
-    ID = which(L <= UpLim)
-
-    if (select_longest) {
-        dID = diff(ID)
-        dID = c(10, dID)
-        
-        IDjump = which(dID != 1)
-        Njump = length(IDjump)
-        
-        Periods = vector(mode='list', length=Njump)
-        Nperiod = c()
-        
-        for (i in 1:Njump) {
-            idStart = IDjump[i]
-            
-            if (i < Njump) {
-                idEnd = IDjump[i+1] - 1
-            } else {
-                idEnd = length(ID)
-            }
-            
-            period = ID[idStart:idEnd]
-            Periods[[i]] = period
-            Nperiod = c(Nperiod, length(period))
-        }
-        period_max = Periods[[which.max(Nperiod)]]
-        id = period_max[1]
-    } else {
-        id = ID[1]
-    }
-    return (id)
-}
-
 get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
                           df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
                           NA_pct_lim,
@@ -757,8 +642,140 @@ get_tCENtrend = function (df_data, df_meta, period, perStart, alpha,
 }
 
 
-## 2. OTHER ANALYSES _________________________________________________
-### 2.1. Hydrograph __________________________________________________
+## 2. USEFUL FUNCTIONS _______________________________________________
+### 2.1. Rolling average over stations _______________________________
+rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
+    
+    # Blank tibble to store the data averaged
+    df_data_roll = tibble()
+    # For all the code
+    for (code in Code) {
+        # Get the data associated to the code
+        df_data_code = df_data[df_data$code == code,]
+        # Perform the roll mean of the flow over 10 days
+        df_data_roll_code = tibble(Date=df_data_code$Date,
+                                   Value=rollmean(df_data_code$Value, 
+                                                  k=10,
+                                                  fill=NA),
+                                   code=code)
+        # Store the results
+        df_data_roll = bind_rows(df_data_roll, df_data_roll_code)
+
+        if (!is.null(df_mod)) {
+            df_mod = add_mod(df_mod, code,
+                             type='Rolling average',
+                             fun_name='rollmean',
+                             comment='Rolling average of 10 day over all the data')
+        }
+    }
+
+    if (!is.null(df_mod)) {
+        res = list(data=df_data, mod=df_mod)
+        return (res)
+    } else {
+        return (df_data_roll)
+    }
+}
+
+### 2.2. Which with NA management ____________________________________
+which.maxNA = function (x) {
+    idMax = which.max(x)
+    if (identical(idMax, integer(0))) {
+        idMax = NA
+    }
+    return (idMax)
+}
+
+which.minNA = function (x) {
+    idMin = which.min(x)
+    if (identical(idMin, integer(0))) {
+        idMin = NA
+    }
+    return (idMin)
+}
+
+### 2.3. Which under threshold _______________________________________
+which_underfirst = function (L, UpLim, select_longest=TRUE) {
+    
+    ID = which(L <= UpLim)
+
+    if (select_longest) {
+        dID = diff(ID)
+        dID = c(10, dID)
+        
+        IDjump = which(dID != 1)
+        Njump = length(IDjump)
+        
+        Periods = vector(mode='list', length=Njump)
+        Nperiod = c()
+        
+        for (i in 1:Njump) {
+            idStart = IDjump[i]
+            
+            if (i < Njump) {
+                idEnd = IDjump[i+1] - 1
+            } else {
+                idEnd = length(ID)
+            }
+            
+            period = ID[idStart:idEnd]
+            Periods[[i]] = period
+            Nperiod = c(Nperiod, length(period))
+        }
+        period_max = Periods[[which.max(Nperiod)]]
+        id = period_max[1]
+    } else {
+        id = ID[1]
+    }
+    return (id)
+}
+
+### 2.4. Base flow separation ________________________________________
+BFS = function (Q, d=5, w=0.9) {
+
+    N = length(Q)
+    Slices = split(Q, ceiling(seq_along(Q)/d))
+    
+    idMinSlices = unlist(lapply(Slices, which.min),
+                         use.names=FALSE)
+    idShift = c(0, cumsum(unlist(lapply(Slices, length),
+                                 use.names=FALSE)))
+    idShift = idShift[-length(idShift)]
+    idMin = idMinSlices + idShift
+    Qmin_k = Q[idMin]
+
+    n = length(Qmin_k)
+    Qmin_kp1 = c(Qmin_k[2:n], NA)
+    Qmin_km1 = c(NA, Qmin_k[1:(n-1)])
+    test = w * Qmin_k < pmin(Qmin_km1, Qmin_kp1)
+    test[is.na(test)] = FALSE
+    idPivots = idMin[which(test)]
+    Pivots = Qmin_k[test]
+
+    # BF = approx(idPivots, Pivots, xout=1:N)$y
+    BF = approxExtrap(idPivots, Pivots, xout=1:N,
+                      method="linear", na.rm=TRUE)$y  
+    
+    BF[is.na(Q)] = NA
+    BF[BF < 0] = 0
+    test = BF > Q
+    test[is.na(test)] = FALSE
+    BF[test] = Q[test]
+
+    return (BF)
+}
+
+### 2.5. Compute square root of data _________________________________
+compute_sqrt = function (df_data) {
+    df_sqrt = tibble(Date=df_data$Date,
+                     Value=sqrt(df_data$Value),
+                     code=df_data$code)
+    return (df_sqrt)
+}
+
+
+## 3. OTHER ANALYSES _________________________________________________
+### 3.1. Hydrograph __________________________________________________
 xref = matrix(
     c(0.099, 0.100, 0.101, 0.099, 0.088, 0.078, 0.072,
       0.064, 0.064, 0.069, 0.076, 0.089,
@@ -888,7 +905,7 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
     return (list(QM=df_QM, meta=df_meta))
 }
     
-### 2.2. Break date __________________________________________________
+### 3.2. Break date __________________________________________________
 # Compute the break date of the flow data by station 
 get_break = function (df_data, df_meta, alpha=0.1) {
     
@@ -936,7 +953,7 @@ get_break = function (df_data, df_meta, alpha=0.1) {
     return (df_break)
 }
 
-### 2.3. Time gap ____________________________________________________
+### 3.3. Time gap ____________________________________________________
 # Compute the time gap by station
 get_lacune = function (df_data, df_meta) {
     
@@ -990,17 +1007,8 @@ get_lacune = function (df_data, df_meta) {
     return (df_meta)
 }
 
-### 2.4. Compute square root of data _________________________________
-compute_sqrt = function (df_data) {
 
-    df_sqrt = tibble(Date=df_data$Date,
-                     Value=sqrt(df_data$Value),
-                     code=df_data$code)
-        
-    return (df_sqrt)
-}
-
-### 2.5. Criticism of data ___________________________________________
+## 4. CRITICISM OF DATA ______________________________________________
 add_critique = function (df_critique, Code, author, level, start_date, variable, type, comment='', end_date=NULL, df_meta=NULL, resdir=NULL) {
     if (Code == 'all' & is.null(df_meta)) {
         Code = NA # erreur
