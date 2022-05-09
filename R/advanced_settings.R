@@ -112,72 +112,21 @@ TXTlistname =
 
 
 ## 3. ANALYSIS PARAMETERS ____________________________________________
-var_all = list(
-    'QIXA',
-    'tQIXA',
-    'QA',
-    'QMNA',
-    'VCN10',
-    'tDEB',
-    'tCEN'
-)
+init_var_file = 'default.R'
+var_dir = 'variable'
+var_to_analyse_dir =
+    'AEAG_selection'
+    # ''
 
-type_all = list(
-    'sévérité',
-    'saisonnalité',
-    'sévérité',
-    'sévérité',
-    'sévérité',
-    'saisonnalité',
-    'saisonnalité'
-)
-
-glose_all = list(
-    "Maximum annuel du débit journalier",
-    "Date du maximum annuel du débit journalier",
-    "Moyenne annuelle du débit journalier",
-    "Minimum annuel de la moyenne mensuelle du débit journalier",
-    "Minimum annuel de la moyenne sur 10 jours du débit journalier",
-    "Début d'étiage (jour de l'année de la première moyenne sur 10 jours sous le maximum des VCN10)",
-    "Centre d'étiage (jour de l'année du VCN10)"
-)
-
-correction_all = list(
-    c('flag', 'miss_year', 'miss_day'),
-    c('flag', 'miss_year', 'miss_day'), 
-    c('flag', 'miss_year', 'miss_day'),
-    c('flag', 'sampling', 'miss_year', 'miss_day'),
-    c('flag', 'sampling', 'miss_year', 'miss_day'),
-    c('flag', 'sampling', 'miss_year', 'miss_day'),
-    c('flag', 'sampling', 'miss_year', 'miss_day') 
-)
-
-hydroYear_all = c(
-    '01-01',
-    '01-01',
-    '09-01',
-    '01-01',
-    '01-01',
-    '01-01',
-    '01-01'
+to_assign_out = c(
+    # 'data',
+    'analyse'
 )
 
 hydroYear_mode =
     # 'every'
     'fixed'
 
-
-
-### 3.1. Station analysis ____________________________________________
-to_analyse = c(
-    # 'QIXA',
-    # 'tQIXA'
-    # 'QA',
-    # 'QMNA',
-    # 'VCN10',
-    'tDEB'
-    # 'tCEN'
-)
 
 ### 3.2. Climate analysis ____________________________________________
 to_analyse_climate = c(
@@ -208,17 +157,6 @@ df_flag = data.frame(
                3) # /!\ Unit
 )
 
-# Sampling span of the data
-sampleSpan = c('05-01', '11-30')
-
-# Number of missing continuous days per year before removing the year
-dayLac_lim = 3
-
-# Maximum continuously missing years before removing everything
-# before it
-yearNA_lim = 10
-
-NA_pct_lim = 1
 
 ### 3.4. Saving option _______________________________________________
 saving = c(

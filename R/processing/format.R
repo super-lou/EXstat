@@ -83,10 +83,10 @@ join_selection = function (list_data, list_meta, list_from) {
 
 ## 2. WRAP OF TREND ANALYSE __________________________________________
 ### 2.1. extract.Var _________________________________________________
-extract_Var_WRAP = function (df_data, funct, period, perStart,
+extract_Var_WRAP = function (df_data, funct, period, hydroYear,
                              timestep, isDate=FALSE, ...) {
 
-    print('Extraction of data')
+    print('... Extraction of data')
     
     # Groups the data by code column
     df_data = group_by(df_data, code)
@@ -108,13 +108,13 @@ extract_Var_WRAP = function (df_data, funct, period, perStart,
     df_XEx = extract.Var(data.station=df_Xlist,
                          funct=funct,
                          period=period,
-                         per.start=perStart,
+                         per.start=hydroYear,
                          timestep=timestep,
                          pos.datetime=1,
                          ...)
 
     colnames(df_XEx) = c('Date', 'group', 'Value', 'NA_pct')
-    df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', perStart))
+    df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', hydroYear))
     # Recreates the outing of the 'extract.Var' function nicer
     df_XEx = tibble(Date=df_XEx$Date,
                     Value=df_XEx$Value,
@@ -123,7 +123,7 @@ extract_Var_WRAP = function (df_data, funct, period, perStart,
 
     if (isDate) {
         # Converts index of the tCEN to the julian date associated
-        df_XEx = convert_dateEx(df_XEx, df_data, perStart=perStart)
+        df_XEx = convert_dateEx(df_XEx, df_data, hydroYear=hydroYear)
     }
 
     return (df_XEx)
@@ -132,7 +132,7 @@ extract_Var_WRAP = function (df_data, funct, period, perStart,
 ### 2.2. Estimate.stats ______________________________________________
 Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
 
-    print('Estimation of trend')
+    print('... Estimation of trend')
     
     df_XEx = group_by(df_XEx, code)
     df_XEx_RAW = tibble(datetime=as.numeric(format(df_XEx$Date, "%Y")),
@@ -164,16 +164,16 @@ Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
 
 ### 2.3. Wrap tools __________________________________________________
 #### 2.3.1. Convert index to  date ___________________________________
-convert_dateEx = function(df_XEx, df_data, perStart="01-01") {
+convert_dateEx = function(df_XEx, df_data, hydroYear="01-01") {
 
-    Shift_perStart = as.integer(df_XEx$Date - as.Date(paste0(format(df_XEx$Date, "%Y"), "-01-01")))
-    df_XEx$Value = df_XEx$Value + Shift_perStart
+    Shift_hydroYear = as.integer(df_XEx$Date - as.Date(paste0(format(df_XEx$Date, "%Y"), "-01-01")))
+    df_XEx$Value = df_XEx$Value + Shift_hydroYear
     
     df_Date = summarise(group_by(df_data, code),
                                 Start=min(Date, na.rm=TRUE))
     df_Date$Julian = NA
     df_Date$origin = as.Date(paste0(format(df_Date$Start, "%Y"),
-                                    '-', perStart))
+                                    '-', hydroYear))
     for (i in 1:nrow(df_Date)) {
         df_Date$Julian[i] = julian(df_Date$Start[i], origin=df_Date$origin[i])
     }
@@ -210,7 +210,7 @@ convert_dateEx = function(df_XEx, df_data, perStart="01-01") {
     }
 
     Year = format(df_XEx$Date, "%Y")
-    Start = as.Date(paste0(Year, '-', perStart))
+    Start = as.Date(paste0(Year, '-', hydroYear))
     End = Start + years(1) - days(1)
     nbDate = as.numeric(difftime(End, Start,
                                  units="days"))

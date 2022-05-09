@@ -40,7 +40,7 @@ library(Hmisc)
 ## 1. LOCAL CORRECTION OF DATA _______________________________________
 flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 
-    print('Checking of flags')
+    print('.. Checking of flags')
     
     if (is.null(Code)) {
         # Get all different stations code
@@ -90,7 +90,7 @@ flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 ### 2.1. Long missing period over several years ______________________
 missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
 
-    print('Checking for missing years')
+    print('.. Checking for missing years')
     
     if (is.null(Code)) {
         # Get all different stations code
@@ -151,9 +151,9 @@ missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL
 }
 
 ### 2.2. Missing period over several days ____________________________
-missing_day = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=NULL, df_mod=NULL) {
+missing_day = function (df_data, df_meta, dayLac_lim=3, hydroYear='01-01', Code=NULL, df_mod=NULL) {
 
-    print('Checking for missing days')
+    print('.. Checking for missing days')
 
     if (is.null(Code)) {
         # Get all different stations code
@@ -168,17 +168,17 @@ missing_day = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=N
         df_data_code = df_data[df_data$code == code,]
 
         DateMD = format(df_data_code$Date, "%m-%d")
-        idperStart = which(DateMD == perStart)
+        idhydroYear = which(DateMD == hydroYear)
 
-        if (DateMD[1] != perStart) {
-            idperStart = c(1, idperStart)
+        if (DateMD[1] != hydroYear) {
+            idhydroYear = c(1, idhydroYear)
         }
-        NidperStart = length(idperStart)
+        NidhydroYear = length(idhydroYear)
 
-        for (i in 1:NidperStart) {
-            Start = df_data_code$Date[idperStart[i]]
-            if (i < NidperStart) {
-                End = df_data_code$Date[idperStart[i+1] - 1]
+        for (i in 1:NidhydroYear) {
+            Start = df_data_code$Date[idhydroYear[i]]
+            if (i < NidhydroYear) {
+                End = df_data_code$Date[idhydroYear[i+1] - 1]
             } else {
                 End = df_data_code$Date[length(df_data_code$Date)]
             }
@@ -187,9 +187,9 @@ missing_day = function (df_data, df_meta, dayLac_lim=3, perStart='01-01', Code=N
             df_data_code_year = df_data_code[OkYear,]
 
             StartReal = as.Date(paste(substr(Start, 1, 4),
-                                      perStart, sep='-'))
+                                      hydroYear, sep='-'))
             EndReal = as.Date(paste(as.numeric(substr(Start, 1, 4)) + 1,
-                                    perStart, sep='-'))
+                                    hydroYear, sep='-'))
             
             nbDate = as.numeric(difftime(EndReal, StartReal,
                                          units="days"))
@@ -277,7 +277,7 @@ NA_filter = function (df_XEx, NA_pct_lim=1, df_mod=NULL) {
 ## 4. SAMPLING OF THE DATA ___________________________________________
 sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code=NULL, df_mod=NULL) {
 
-    print('Sampling of the data')
+    print('.. Sampling of the data')
     
     if (is.null(Code)) {
         # Get all different stations code

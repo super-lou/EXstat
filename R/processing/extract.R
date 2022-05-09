@@ -423,7 +423,7 @@ extract_meta = function (computer_data_path, filedir, filename,
     
     # Print metadata if asked
     if (verbose) {
-        print(paste("extraction of BH meta for file :", filename))
+        print(paste(". Extraction of BH meta for file :", filename))
     }
 
     # Get the file path to the data
@@ -578,7 +578,7 @@ extract_data = function (computer_data_path, filedir, filename,
     
     # Print metadata if asked
     if (verbose) {
-        print(paste("extraction of BH data for file :", filename))
+        print(paste(". Extraction of BH data for file :", filename))
     }
 
     # Get the file path to the data

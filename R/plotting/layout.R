@@ -206,50 +206,31 @@ layout_panel = function (df_data, df_meta, layout_matrix,
 
     if (all(class(df_trend) != 'list')) {
         df_trend = list(df_trend)
-        if (length(df_trend) == 1) {
+    }
 
-            df_trend = replicate(nbp, df_trend)
-        }}
-
-    if (all(class(alpha) != 'list')) {
-        alpha = list(alpha)
-        # If there is only one value
-        if (length(alpha) == 1) {
-            # Replicates the value the number of times that there
-            # is of studied variables
-            alpha = replicate(nbp, alpha)
-        }}
-
-    # Same
-    if (all(class(unit2day) != 'list')) {
-        unit2day = list(unit2day)
-        if (length(unit2day) == 1) {
-            unit2day = replicate(nbp, unit2day)
-        }}
-
-    if (all(class(var) != 'list')) {
-        var = list(var)
-        if (length(var) == 1) {
-            var = replicate(nbp, var)
-        }}
-
-    if (all(class(glose) != 'list')) {
-        glose = list(glose)
-        if (length(glose) == 1) {
-            glose = replicate(nbp, glose)
-        }}
+    if (length(alpha) != nbp) {
+        alpha = rep(alpha[1], nbp)
+    }
     
-    if (all(class(type) != 'list')) {
-        type = list(type)
-        if (length(type) == 1) {
-            type = replicate(nbp, type)
-        }}
+    if (length(unit2day) != nbp) {
+        unit2day = rep(unit2day[1], nbp)
+    }
 
-    if (all(class(missRect) != 'list')) {
-        missRect = list(missRect)
-        if (length(missRect) == 1) {
-            missRect = replicate(nbp, missRect)
-        }}
+    if (length(var) != nbp) {
+        var = rep(var[1], nbp)
+    }
+
+    if (length(glose) != nbp) {
+        glose = rep(glose[1], nbp)
+    }
+
+    if (length(type) != nbp) {
+        type = rep(type[1], nbp)
+    }
+
+    if (length(missRect) != nbp) {
+        missRect = rep(missRect[1], nbp)
+    }
 
     # Creates a blank list to store all the data of each type of plot
     list_df2plot = vector(mode='list', length=nbp)

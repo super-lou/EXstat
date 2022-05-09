@@ -49,21 +49,19 @@ source(file.path('R', 'processing', 'correction.R'), encoding='UTF-8')
 
 ## 1. TREND ANALYSIS _________________________________________________
 ### 1.0. X ___________________________________________________________
-get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
+get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
                        df_flag=NULL, sampleSpan=NULL, yearNA_lim=NULL,
-                       dayLac_lim=NULL, NA_pct_lim=NULL, to_roll=FALSE,
+                       dayLac_lim=NULL, NA_pct_lim=NULL,
+                       day_to_roll=NULL,
                        functM=NULL, functM_args=NULL, isDateM=FALSE,
+                       functY=NULL, functY_args=NULL, isDateY=FALSE,
                        functYT_ext=NULL, functYT_ext_args=NULL,
                        isDateYT_ext=FALSE, functYT_sum=NULL,
                        functYT_sum_args=NULL,
-                       functY=mean, functY_args=NULL, isDateY=FALSE,
-                       name_argYT='',
                        df_mod=tibble()) {
 
-    print(paste0('Computes X trend of ',
-                 as.character(substitute(funct)),
-                 ' function with hydrological month start ',
-                 substr(perStart, 1, 2)))
+    print(paste0('. Computes ', var, ' trend for hydrological month start ',
+                 substr(hydroYear, 1, 2)))
 
     # Get all different stations code
     Code = levels(factor(df_meta$code))
@@ -77,9 +75,9 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
         df_mod = res$mod
     }
 
-    if (to_roll) {
-        # Computes the rolling average by 10 days over the data
-        res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
+    if (!is.null(day_to_roll)) {
+        # Computes the rolling average by day_to_roll days over the data
+        res = rollmean_code(df_data, Code, day_to_roll, df_mod=df_mod)
         df_data = res$data
         df_mod = res$mod
     }
@@ -98,7 +96,7 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
         # consecutive days
         res = missing_day(df_data, df_meta,
                           dayLac_lim=dayLac_lim,
-                          perStart=perStart,
+                          hydroYear=hydroYear,
                           df_mod=df_mod)
         df_data = res$data
         df_mod = res$mod
@@ -123,7 +121,7 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
     # For all periods
     for (per in period) {
 
-        print(paste0('For period : ', paste0(per, collapse=' / ')))
+        print(paste0('.. For period : ', paste0(per, collapse=' / ')))
 
         # Monthly extraction
         if (!is.null(functM)) {
@@ -132,7 +130,7 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
                 args=c(list(df_data=df_data,
                             funct=functM,
                             period=per,
-                            perStart="01",
+                            hydroYear="01",
                             timestep='year-month',
                             isDate=isDateM),
                        functM_args))
@@ -146,7 +144,7 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
                 args=c(list(df_data=df_data,
                             funct=functYT_ext,
                             period=per,
-                            perStart=perStart,
+                            hydroYear=hydroYear,
                             timestep='year',
                             isDate=isDateYT_ext),
                        functYT_ext_args))
@@ -171,7 +169,7 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
                     args=c(list(df_data=df_data_code,
                                 funct=functY,
                                 period=per,
-                                perStart=perStart,
+                                hydroYear=hydroYear,
                                 timestep='year',
                                 isDate=isDateY),
                            functY_args))
@@ -184,7 +182,7 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
                 args=c(list(df_data=df_data,
                             funct=functY,
                             period=per,
-                            perStart=perStart,
+                            hydroYear=hydroYear,
                             timestep='year',
                             isDate=isDateY),
                        functY_args))
@@ -217,165 +215,8 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
     } 
 
     # Creates a list of results to return
-    res_analyse = list(data=df_XEx_all, trend=df_Xtrend_all)
+    res_analyse = list(extract=df_XEx_all, estimate=df_Xtrend_all)
     res = list(data=df_data, mod=df_mod,
-               analyse=res_analyse)
-    return (res)
-}
-
-
-### 1.4. tDEB date ___________________________________________________
-get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
-                          df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
-                          NA_pct_lim,
-                          correction_to_do=c('flag', 'sampling',
-                                             'miss_year', 'miss_day',
-                                             'NA_filter'),
-                          thresold_type='VCN10', select_longest=TRUE,
-                          df_mod=tibble()) {
-
-    print(paste0('Computes tDEB trend with hydrological month start ',
-                 substr(perStart, 1, 2)))
-    
-    # Get all different stations code
-    Code = levels(factor(df_meta$code))
-    
-    if ('flag' %in% correction_to_do) {
-        # Local corrections if needed
-        res = flag_data(df_data, df_meta,
-                        df_flag=df_flag,
-                        df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-    
-    # Computes the rolling average by 10 days over the data
-    res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
-    df_data_roll = res$data
-    df_mod = res$mod
-    
-    if ('miss_year' %in% correction_to_do) {
-        # Removes older data if there are a too long missing period
-        df_data = missing_year(df_data, df_meta,
-                               yearNA_lim=yearNA_lim)
-        
-        # Removes older data if there are a too long missing period
-        res = missing_year(df_data_roll, df_meta,
-                           yearNA_lim=yearNA_lim,
-                           df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-
-    if ('miss_day' %in% correction_to_do) {
-        # Removes incomplete years if there are too long missing
-        # consecutive days
-        df_data = missing_day(df_data, df_meta,
-                          dayLac_lim=dayLac_lim,
-                          perStart=perStart)
-        
-        # Removes incomplete years if there are too long missing
-        # consecutive days
-        res = missing_day(df_data_roll, df_meta,
-                          dayLac_lim=dayLac_lim,
-                          perStart=perStart,
-                          df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-
-    if ('sampling' %in% correction_to_do) {
-        # Samples the data
-        df_data = sampling_data(df_data, df_meta,
-                                sampleSpan=sampleSpan)
-        
-        # Samples the data
-        res = sampling_data(df_data_roll, df_meta,
-                            sampleSpan=sampleSpan,
-                            df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-
-    # Make sure to convert the period to a list
-    period = as.list(period)
-    # Set the max interval period as the minimal possible
-    Imax = 0
-    # Blank tibble for data to return
-    df_tDEBtrend_all = tibble()
-
-    # For all periods
-    for (per in period) {
-
-        print(paste0('For period : ', paste0(per, collapse=' / ')))
-
-        if (thresold_type == 'QNj') {
-            df_dataT = df_data
-            
-        } else if (thresold_type == 'VCN10') {
-            df_dataT = df_data_roll
-        }
-
-        df_QTEx = extract_Var_WRAP(df_data=df_dataT,
-                                   funct=min,
-                                   period=per,
-                                   perStart=perStart,
-                                   timestep='year',
-                                   na.rm=TRUE)
-        
-        df_QT = summarise(group_by(df_QTEx, code),
-                          Thresold=max(Value, na.rm=TRUE))
-                
-        df_tDEBEx = tibble()
-        # For all the code
-        for (code in Code) {
-
-            # Get the averaged data associated to the code
-            df_data_roll_code = df_data_roll[df_data_roll$code == code,]
-            QT_code = df_QT$Thresold[df_QT$code == code]
-
-            df_tDEBEx_code = extract_Var_WRAP(df_data=df_data_roll_code,
-                                              funct=which_underfirst,
-                                              period=per,
-                                              perStart=perStart,
-                                              timestep='year',
-                                              UpLim=QT_code,
-                                              select_longest=select_longest,
-                                              isDate=TRUE)
-            
-            # Store the results
-            df_tDEBEx = bind_rows(df_tDEBEx, df_tDEBEx_code)
-        }
-
-        if ('NA_filter' %in% correction_to_do) {
-            # NA filtering
-            res = NA_filter(df_tDEBEx,
-                            NA_pct_lim=NA_pct_lim,
-                            df_mod=df_mod)
-            df_tDEBEx = res$data
-            df_mod = res$mod
-        }
-
-        # Compute the trend analysis
-        df_tDEBtrend = Estimate_stats_WRAP(df_XEx=df_tDEBEx,
-                                           alpha=alpha,
-                                           dep_option='AR1')
-
-        # Get the associated time interval
-        I = interval(per[1], per[2])
-        # If it is the largest interval       
-        if (I > Imax) {
-            # Store it and the associated data
-            Imax = I
-            df_tDEBEx_all = df_tDEBEx
-        }
-        # Store the trend
-        df_tDEBtrend_all = bind_rows(df_tDEBtrend_all, df_tDEBtrend)
-    }
-
-    # Creates a list of results to return
-    res_analyse = list(data=df_tDEBEx_all, trend=df_tDEBtrend_all)
-    res = list(data=df_data_roll, mod=df_mod,
                analyse=res_analyse)
     return (res)
 }

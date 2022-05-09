@@ -35,254 +35,130 @@
 # Sourcing the R file
 source(file.path('R', 'processing', 'analyse.R'),
        encoding='UTF-8')
+source(file.path('R', 'processing', 'read_write.R'),
+       encoding='UTF-8')
 
 
 ## 1. STATION TREND ANALYSIS _________________________________________
 if ('station_trend_analyse' %in% to_do) {
-### 1.1. Info about analysis _________________________________________
-    if (hydroYear_mode == 'every') {
-        hydroYear_all = matrix(rep(paste0(formatC(1:12, width=2,
-                                             flag=0),
-                                     '-01'),
-                              length(var_all)),
-                              nrow=length(var_all), byrow=TRUE)
-        
-    } else if (hydroYear_mode == 'fixed') {
-        hydroYear_all = matrix(hydroYear_all,
-                               byrow=length(var_all))
-    }
+
+    var_to_analyse_dirpath = file.path('R', var_dir, var_to_analyse_dir)
+    var_to_analyse_script = list.files(var_to_analyse_dirpath,
+                                       pattern="[^default].R$")
     
-### 1.2. Selection of variables ______________________________________
-    var = c()
-    type = c()
-    glose = c()
-    for (OkVar in to_analyse) {
-        Ok = var_all == OkVar
-        var = c(var, var_all[Ok])
-        type = c(type, type_all[Ok])
-        glose = c(glose, glose_all[Ok])
-    }
-    hydroYear = matrix(hydroYear_all[var_all %in% to_analyse,],
-                      nrow=length(var))
-    nbHydroYear = ncol(hydroYear)
+    var_analyse = c()
+    type_analyse = c()
+    glose_analyse = c()
+    df_data_analyse = list()
+    df_trend_analyse = list()
     
 ### 1.3. Trend analyses ______________________________________________
-    for (i in 1:nbHydroYear) {
 
-        # QIXA trend
-        if ('QIXA' %in% var) {
-            res = get_Xtrend(df_data, df_meta,
-                             period=trend_period,
-                             perStart=hydroYear['QIXA' == var, i],
-                             alpha=alpha,
-                             df_flag=df_flag,
-                             sampleSpan=NULL,
-                             yearNA_lim=yearNA_lim,
-                             dayLac_lim=dayLac_lim,
-                             NA_pct_lim=NULL,
-                             functY=max,
-                             functY_args=list(na.rm=TRUE))
-            df_QIXAdata = res$data
-            df_QIXAmod = res$mod
-            res_QIXAtrend = res$analyse
-        }
+    for (script in var_to_analyse_script) {
 
-        # tQIXA trend
-        if ('tQIXA' %in% var) {
-            res = get_Xtrend(df_data, df_meta,
-                             period=trend_period,
-                             perStart=hydroYear['tQIXA' == var, i],
-                             alpha=alpha,
-                             df_flag=df_flag,
-                             sampleSpan=NULL,
-                             yearNA_lim=yearNA_lim,
-                             dayLac_lim=dayLac_lim,
-                             NA_pct_lim=NULL,
-                             functY=which.maxNA,
-                             isDateY=TRUE)
-            df_tQIXAdata = res$data
-            df_tQIXAmod = res$mod
-            res_tQIXAtrend = res$analyse
+        if (hydroYear_mode == 'every') {
+            nHydroYear = 12
+        } else {
+            nHydroYear = 1
         }
-        
-        # QA trend
-        if ('QA' %in% var) {
-            res = get_Xtrend(df_data, df_meta,
-                             period=trend_period,
-                             perStart=hydroYear['QA' == var, i],
-                             alpha=alpha,
-                             df_flag=df_flag,
-                             sampleSpan=NULL,
-                             yearNA_lim=yearNA_lim,
-                             dayLac_lim=dayLac_lim,
-                             NA_pct_lim=NULL,
-                             functY=mean,
-                             functY_args=list(na.rm=TRUE))
-            df_QAdata = res$data
-            df_QAmod = res$mod
-            res_QAtrend = res$analyse
-        }
+            
+        for (iHY in 1:nHydroYear) {
 
-        # QMNA tend
-        if ('QMNA' %in% var) {            
-            res = get_Xtrend(df_data, df_meta,
+            source(file.path('R', var_dir, init_var_file),
+                             encoding='UTF-8')
+            source(file.path(var_to_analyse_dirpath, script),
+                   encoding='UTF-8')
+            
+            if (hydroYear_mode == 'every') {
+                hydroYear = paste0(formatC(iHY, width=2, flag="0"),
+                                   '-01')
+            }
+            monthHydroYear = substr(hydroYear, 1, 2)
+
+            var_analyse = c(var_analyse, var)
+            type_analyse = c(type_analyse, type)
+            glose_analyse = c(glose_analyse, glose)
+
+            res = get_Xtrend(var,
+                             df_data, df_meta,
                              period=trend_period,
-                             perStart=hydroYear['QMNA' == var, i],
+                             hydroYear=hydroYear,
                              alpha=alpha,
                              df_flag=df_flag,
                              sampleSpan=sampleSpan,
                              yearNA_lim=yearNA_lim,
                              dayLac_lim=dayLac_lim,
-                             NA_pct_lim=NULL,
-                             functM=mean,
-                             functM_args=list(na.rm=TRUE),
-                             functY=min,
-                             functY_args=list(na.rm=TRUE))
-            df_QMNAdata = res$data
-            df_QMNAmod = res$mod
-            res_QMNAtrend = res$analyse
-        }
-
-        # VCN10 trend
-        if ('VCN10' %in% var) {            
-            res = get_Xtrend(df_data, df_meta,
-                             period=trend_period,
-                             perStart=hydroYear['VCN10' == var, i],
-                             alpha=alpha,
-                             df_flag=df_flag,
-                             sampleSpan=sampleSpan,
-                             yearNA_lim=yearNA_lim,
-                             dayLac_lim=dayLac_lim,
-                             NA_pct_lim=NULL,
-                             to_roll=TRUE,
-                             functY=min,
-                             functY_args=list(na.rm=TRUE))
-            df_VCN10data = res$data
-            df_VCN10mod = res$mod
-            res_VCN10trend = res$analyse
-        }
-
-        # Start date for low water trend
-        if ('tDEB' %in% var) {
-            res = get_Xtrend(df_data, df_meta, 
-                             period=trend_period,
-                             perStart=hydroYear['tDEB' == var, i],
-                             alpha=alpha,
-                             df_flag=df_flag,
-                             sampleSpan=sampleSpan,
-                             yearNA_lim=yearNA_lim,
-                             dayLac_lim=dayLac_lim,
-                             NA_pct_lim=NULL,
-                             to_roll=TRUE,
-                             functYT_ext=min,
-                             functYT_ext_args=list(na.rm=TRUE),
-                             functYT_sum=max,
-                             functYT_sum_args=list(na.rm=TRUE),
-                             functY=which_underfirst,
-                             functY_args=list(select_longest=TRUE,
-                                              UpLim='*threshold*'),
-                             isDateY=TRUE)
-            df_tDEBdata = res$data
-            df_tDEBmod = res$mod
-            res_tDEBtrend = res$analyse
-        }
-
-        # Center date for low water trend
-        if ('tCEN' %in% var) {
-            res = get_Xtrend(df_data, df_meta, 
-                             period=trend_period,
-                             perStart=hydroYear['tCEN' == var, i],
-                             alpha=alpha,
-                             df_flag=df_flag,
-                             sampleSpan=sampleSpan,
-                             yearNA_lim=yearNA_lim,
-                             dayLac_lim=dayLac_lim,
-                             NA_pct_lim=NULL,
-                             to_roll=TRUE,
-                             functY=which.minNA,
-                             isDateY=TRUE)
-            df_tCENdata = res$data
-            df_tCENmod = res$mod
-            res_tCENtrend = res$analyse
-        }
-
-        DF_DATA = list()
-        DF_TREND = list()
-        # For all the variable
-        for (v in var) {
+                             NA_pct_lim=NA_pct_lim,
+                             day_to_roll=day_to_roll,
+                             functM=functM,
+                             functM_args=functM_args,
+                             isDateM=isDateM,
+                             functY=functY,
+                             functY_args=functY_args,
+                             isDateY=isDateY,
+                             functYT_ext=functYT_ext,
+                             functYT_ext_args=functYT_ext_args,
+                             isDateYT_ext=isDateYT_ext,
+                             functYT_sum=functYT_sum,
+                             functYT_sum_args=functYT_sum_args)
+            
+            df_Xdata = res$data
+            df_Xmod = res$mod
+            res_Xanalyse = res$analyse
             # Gets the extracted data for the variable
-            df_datatmp = get(paste('res_', v, 'trend', sep=''))$data
+            df_XEx = res_Xanalyse$extract
             # Gets the trend results for the variable
-            df_trendtmp = get(paste('res_', v, 'trend', sep=''))$trend
+            df_Xtrend = res_Xanalyse$estimate
 
-            DF_DATA = append(DF_DATA, list(df_datatmp))
-            DF_TREND = append(DF_TREND, list(df_trendtmp))
-        }
+            if ('data' %in% to_assign_out) {
+                assign(paste0('df_', var, 'data'), df_Xdata)
+                assign(paste0('df_', var, 'mod'), df_Xmod)
+            }
+            
+            if ('analyse' %in% to_assign_out) {
+                assign(paste0('res_', var, 'analyse'), res_Xanalyse)
+                assign(paste0('df_', var, 'Ex'), df_XEx)
+                assign(paste0('df_', var, 'trend'), df_Xtrend)
+            }
+
+            df_data_analyse = append(df_data_analyse, list(df_XEx))
+            df_trend_analyse = append(df_trend_analyse, list(df_Xtrend))
 
 ### 1.3. Saving ______________________________________________________
-        if ('meta' %in% saving) {
-            # Sourcing the R file
-            source(file.path('R', 'processing', 'read_write.R'),
-                   encoding='UTF-8')
-            
-            if (fast_format) {
-                write_metaFST(df_meta, resdir,
-                              filedir=file.path('fst'))
+            if ('meta' %in% saving) {
+                if (fast_format) {
+                    write_metaFST(df_meta, resdir,
+                                  filedir=file.path('fst'))
+                }
             }
-        }
 
-        if ('data' %in% saving) {
-            # Sourcing the R file
-            source(file.path('R', 'processing', 'read_write.R'),
-                   encoding='UTF-8')
-            
-            # For all the variable
-            for (v in var) {
-                # Gets the extracted data for the variable
-                df_datatmp = get(paste('df_', v, 'data', sep=''))
-                # Gets the modification file of the data for the variable
-                df_modtmp = get(paste('df_', v, 'mod', sep=''))
-
-                monthStart = substr(hydroYear[v == var, i], 1, 2)
-                
+            if ('data' %in% saving) {
                 # Writes modified data
-                write_data(df_datatmp, df_modtmp, resdir,
+                write_data(df_Xdata, df_Xmod, resdir,
                            filedir=file.path('modified_data',
-                                             v, monthStart))
+                                             var, monthHydroYear))
                 
                 if (fast_format) {
-                    write_dataFST(df_datatmp, resdir,
+                    write_dataFST(df_Xdata, resdir,
                                   filedir='fst',
-                                  filename=paste0('data_', v,
-                                                  '_', monthStart,
+                                  filename=paste0('data_', var,
+                                                  '_', monthHydroYear,
                                                   '.fst'))
                 }
             }
-        }
 
-        if ('analyse' %in% saving) {
-            # Sourcing the R file
-            source(file.path('R', 'processing', 'read_write.R'),
-                   encoding='UTF-8')
-            
-            # For all the variable
-            for (v in var) {
-                # Gets the trend results for the variable
-                res_trendtmp = get(paste('res_', v, 'trend', sep=''))
-
-                monthStart = substr(hydroYear[v == var, i], 1, 2)
-
+            if ('analyse' %in% saving) {                
                 # Writes trend analysis results
-                write_analyse(res_trendtmp, resdir,
+                write_analyse(res_Xanalyse, resdir,
                               filedir=file.path('trend_analyses',
-                                                v, monthStart))
+                                                var, monthHydroYear))
                 
                 if (fast_format) {
                     write_dataFST(res_trendtmp$data,
                                   resdir,
                                   filedir='fst',
-                                  filename=paste0(v, 'Ex_',
-                                                  monthStart,
+                                  filename=paste0(var, 'Ex_',
+                                                  monthHydroYear,
                                                   '.fst'))
                 }
             }
@@ -353,7 +229,7 @@ if ('climate_trend_analyse' %in% to_do) {
     # TA trend
     res = get_Xtrend(df_data_P, df_climate_meta,
                       period=trend_period,
-                      perStart='09-01',
+                      hydroYear='09-01',
                       alpha=alpha,
                       dayLac_lim=dayLac_lim,
                       yearNA_lim=yearNA_lim,
@@ -366,7 +242,7 @@ if ('climate_trend_analyse' %in% to_do) {
     # PA trend
     res = get_Xtrend(df_data_T, df_climate_meta,
                       period=trend_period,
-                      perStart='09-01',
+                      hydroYear='09-01',
                       alpha=alpha,
                       dayLac_lim=dayLac_lim,
                       yearNA_lim=yearNA_lim,
@@ -380,7 +256,7 @@ if ('climate_trend_analyse' %in% to_do) {
     # ETPA trend
     res = get_Xtrend(df_data_ETP, df_climate_meta,
                       period=trend_period,
-                      perStart='09-01',
+                      hydroYear='09-01',
                       alpha=alpha,
                       dayLac_lim=dayLac_lim,
                       yearNA_lim=yearNA_lim,
