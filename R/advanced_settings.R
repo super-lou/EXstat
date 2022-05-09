@@ -171,11 +171,11 @@ hydroYear_mode =
 ### 3.1. Station analysis ____________________________________________
 to_analyse = c(
     # 'QIXA',
-    'tQIXA'
+    # 'tQIXA'
     # 'QA',
     # 'QMNA',
     # 'VCN10',
-    # 'tDEB'
+    'tDEB'
     # 'tCEN'
 )
 

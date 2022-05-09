@@ -52,14 +52,21 @@ source(file.path('R', 'processing', 'correction.R'), encoding='UTF-8')
 get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
                        df_flag=NULL, sampleSpan=NULL, yearNA_lim=NULL,
                        dayLac_lim=NULL, NA_pct_lim=NULL, to_roll=FALSE,
-                       functY=mean, functY_args=NULL, isDateY=FALSE,
                        functM=NULL, functM_args=NULL, isDateM=FALSE,
+                       functYT_ext=NULL, functYT_ext_args=NULL,
+                       isDateYT_ext=FALSE, functYT_sum=NULL,
+                       functYT_sum_args=NULL,
+                       functY=mean, functY_args=NULL, isDateY=FALSE,
+                       name_argYT='',
                        df_mod=tibble()) {
 
     print(paste0('Computes X trend of ',
                  as.character(substitute(funct)),
                  ' function with hydrological month start ',
                  substr(perStart, 1, 2)))
+
+    # Get all different stations code
+    Code = levels(factor(df_meta$code))
     
     if (!is.null(df_flag)) {
         # Local corrections if needed
@@ -118,7 +125,8 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
 
         print(paste0('For period : ', paste0(per, collapse=' / ')))
 
-        if (!is.null(funct_month)) {
+        # Monthly extraction
+        if (!is.null(functM)) {
             df_XEx = do.call(
                 what=extract_Var_WRAP,
                 args=c(list(df_data=df_data,
@@ -127,23 +135,62 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
                             perStart="01",
                             timestep='year-month',
                             isDate=isDateM),
-                       functM_agrs)
-            )
+                       functM_args))
             df_data = df_XEx
         }
 
-        df_XEx = do.call(
-            what=extract_Var_WRAP,
-            args=c(list(df_data=df_data,
-                        funct=functY,
-                        period=per,
-                        perStart=perStart,
-                        timestep='year',
-                        isDate=isDateY),
-                   functY_agrs)
-        )
-
-        if ('NA_filter' %in% correction_to_do) {
+        # Yearly extraction
+        if (!is.null(functYT_ext) & !is.null(functYT_sum)) {
+            df_YTEx = do.call(
+                what=extract_Var_WRAP,
+                args=c(list(df_data=df_data,
+                            funct=functYT_ext,
+                            period=per,
+                            perStart=perStart,
+                            timestep='year',
+                            isDate=isDateYT_ext),
+                       functYT_ext_args))
+            
+            df_YT = summarise(group_by(df_YTEx, code),
+                              threshold=functYT_sum(Value,
+                                                    !!!functYT_sum_args))
+            
+            idT = which(functY_args == '*threshold*')
+            
+            df_XEx = tibble()
+            # For all the code
+            for (code in Code) {
+                # Get the averaged data associated to the code
+                df_data_code = df_data[df_data$code == code,]
+                YT_code = df_YT$threshold[df_YT$code == code]
+                
+                functY_args[idT] = YT_code
+                
+                df_XEx_code = do.call(
+                    what=extract_Var_WRAP,
+                    args=c(list(df_data=df_data_code,
+                                funct=functY,
+                                period=per,
+                                perStart=perStart,
+                                timestep='year',
+                                isDate=isDateY),
+                           functY_args))
+                # Store the results
+                df_XEx = bind_rows(df_XEx, df_XEx_code)
+            }
+        } else {
+            df_XEx = do.call(
+                what=extract_Var_WRAP,
+                args=c(list(df_data=df_data,
+                            funct=functY,
+                            period=per,
+                            perStart=perStart,
+                            timestep='year',
+                            isDate=isDateY),
+                       functY_args))
+        }
+        
+        if (!is.null(NA_pct_lim)) {
             # NA filtering
             res = NA_filter(df_XEx,
                             NA_pct_lim=NA_pct_lim,
@@ -177,337 +224,6 @@ get_Xtrend = function (df_data, df_meta, period, perStart, alpha,
 }
 
 
-
-### 1.1. XA __________________________________________________________
-# Realise the trend analysis of the average annual flow (QA)
-# hydrological variable
-get_XAtrend = function (df_data, df_meta, period, perStart, alpha,
-                        df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
-                        NA_pct_lim, funct=mean, isDate=FALSE,
-                        correction_to_do=c('flag', 'sampling',
-                                           'miss_year', 'miss_day',
-                                           'NA_filter'),
-                        df_mod=tibble(), ...) {
-
-    print(paste0('Computes XA trend of ',
-                 as.character(substitute(funct)),
-                 ' function with hydrological month start ',
-                 substr(perStart, 1, 2)))
-    
-    if ('flag' %in% correction_to_do) {
-        # Local corrections if needed
-        res = flag_data(df_data, df_meta,
-                        df_flag=df_flag,
-                        df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
-    if ('miss_year' %in% correction_to_do) {
-        # Removes older data if there are a too long missing period
-        res = missing_year(df_data, df_meta,
-                           yearNA_lim=yearNA_lim,
-                           df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
-    if ('miss_day' %in% correction_to_do) {
-        # Removes incomplete years if there are too long missing
-        # consecutive days
-        res = missing_day(df_data, df_meta,
-                          dayLac_lim=dayLac_lim,
-                          perStart=perStart,
-                          df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
-    if ('sampling' %in% correction_to_do) {
-        # Samples the data
-        res = sampling_data(df_data, df_meta,
-                            sampleSpan=sampleSpan,
-                            df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-    
-    # Make sure to convert the period to a list
-    period = as.list(period)
-    # Set the max interval period as the minimal possible
-    Imax = 0
-    # Blank tibble for data to return
-    df_XAtrend_all = tibble()
-
-    # For all periods
-    for (per in period) {
-
-        print(paste0('For period : ', paste0(per, collapse=' / ')))
-        
-        df_XAEx = extract_Var_WRAP(df_data=df_data,
-                                   funct=funct,
-                                   period=per,
-                                   perStart=perStart,
-                                   timestep='year',
-                                   isDate=isDate,
-                                   ...)
-
-        if ('NA_filter' %in% correction_to_do) {
-            # NA filtering
-            res = NA_filter(df_XAEx,
-                            NA_pct_lim=NA_pct_lim,
-                            df_mod=df_mod)
-            df_XAEx = res$data
-            df_mod = res$mod
-        }
-
-        # Compute the trend analysis
-        df_XAtrend = Estimate_stats_WRAP(df_XEx=df_XAEx,
-                                         alpha=alpha,
-                                         dep_option='AR1')
-        
-        # Get the associated time interval
-        I = interval(per[1], per[2])
-        # If it is the largest interval       
-        if (I > Imax) {
-            # Store it and the associated data
-            Imax = I
-            df_XAEx_all = df_XAEx
-        }
-        # Store the trend
-        df_XAtrend_all = bind_rows(df_XAtrend_all, df_XAtrend)
-    } 
-
-    # Creates a list of results to return
-    res_analyse = list(data=df_XAEx_all, trend=df_XAtrend_all)
-    res = list(data=df_data, mod=df_mod,
-               analyse=res_analyse)
-    return (res)
-}
-
-### 1.2. QMNA ________________________________________________________
-# Realise the trend analysis of the monthly minimum flow in the
-# year (QMNA) hydrological variable
-get_QMNAtrend = function (df_data, df_meta, period, perStart, alpha,
-                          df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
-                          NA_pct_lim,
-                          correction_to_do=c('flag', 'sampling',
-                                             'miss_year', 'miss_day',
-                                             'NA_filter'),
-                          df_mod=tibble()) {
-
-    print(paste0('Computes QMNA trend with hydrological month start ',
-                 substr(perStart, 1, 2)))
-
-    if ('flag' %in% correction_to_do) {
-        # Local corrections if needed
-        res = flag_data(df_data, df_meta,
-                        df_flag=df_flag,
-                        df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
-    if ('miss_year' %in% correction_to_do) {
-        # Removes older data if there are a too long missing period
-        res = missing_year(df_data, df_meta,
-                           yearNA_lim=yearNA_lim,
-                           df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
-    if ('miss_day' %in% correction_to_do) {
-        # Removes incomplete years if there are too long missing
-        # consecutive days
-        res = missing_day(df_data, df_meta,
-                          dayLac_lim=dayLac_lim,
-                          perStart=perStart,
-                          df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
-    if ('sampling' %in% correction_to_do) {
-        # Samples the data
-        res = sampling_data(df_data, df_meta,
-                            sampleSpan=sampleSpan,
-                            df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-    
-    # Make sure to convert the period to a list
-    period = as.list(period)
-    # Set the max interval period as the minimal possible
-    Imax = 0
-    # Blank tibble for data to return
-    df_QMNAtrend_all = tibble()
-    
-    # For all periods
-    for (per in period) {
-
-        print(paste0('For period : ', paste0(per, collapse=' / ')))
-        
-        df_QMNAEx = extract_Var_WRAP(df_data=df_data,
-                                     funct=mean,
-                                     period=per,
-                                     perStart="01",
-                                     timestep='year-month',
-                                     na.rm=TRUE)
-
-        df_QMNAEx = extract_Var_WRAP(df_data=df_QMNAEx,
-                                     funct=min,
-                                     period=per,
-                                     perStart=perStart,
-                                     timestep='year',
-                                     na.rm=TRUE)
-
-        if ('NA_filter' %in% correction_to_do) {
-            # NA filtering
-            res = NA_filter(df_QMNAEx,
-                            NA_pct_lim=NA_pct_lim,
-                            df_mod=df_mod)
-            df_QMNAEx = res$data
-            df_mod = res$mod
-        }
-        
-        # Compute the trend analysis
-        df_QMNAtrend = Estimate_stats_WRAP(df_XEx=df_QMNAEx,
-                                           alpha=alpha,
-                                           dep_option='AR1')
-
-        # Get the associated time interval
-        I = interval(per[1], per[2])
-        # If it is the largest interval       
-        if (I > Imax) {
-            # Store it and the associated data
-            Imax = I
-            df_QMNAEx_all = df_QMNAEx
-        }
-        # Store the trend
-        df_QMNAtrend_all = bind_rows(df_QMNAtrend_all, df_QMNAtrend)
-    }
-
-    # Creates a list of results to return
-    res_analyse = list(data=df_QMNAEx_all, trend=df_QMNAtrend_all)
-    res = list(data=df_data, mod=df_mod,
-               analyse=res_analyse)
-    return (res)
-}
-
-### 1.3. VCN10 _______________________________________________________
-# Realises the trend analysis of the minimum 10 day average flow
-# over the year (VCN10) hydrological variable
-get_VCN10trend = function (df_data, df_meta, period, perStart, alpha,
-                           df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
-                           NA_pct_lim,
-                           correction_to_do=c('flag', 'sampling',
-                                              'miss_year', 'miss_day',
-                                              'NA_filter'),
-                           df_mod=tibble()) {
-
-    print(paste0('Computes VCN10 trend with hydrological month start at ',
-                 substr(perStart, 1, 2)))
-    
-    # Get all different stations code
-    Code = levels(factor(df_meta$code))
-
-    if ('flag' %in% correction_to_do) {
-        # Local corrections if needed
-        res = flag_data(df_data, df_meta,
-                        df_flag=df_flag,
-                        df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-    
-    # Computes the rolling average by 10 days over the data
-    res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
-    df_data_roll = res$data
-    df_mod = res$mod
-
-    if ('miss_year' %in% correction_to_do) {
-        # Removes older data if there are a too long missing period
-        res = missing_year(df_data_roll, df_meta,
-                           yearNA_lim=yearNA_lim,
-                           df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-
-    if ('miss_day' %in% correction_to_do) {
-        # Removes incomplete years if there are too long missing
-        # consecutive days
-        res = missing_day(df_data_roll, df_meta,
-                          dayLac_lim=dayLac_lim,
-                          perStart=perStart,
-                          df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-
-    if ('sampling' %in% correction_to_do) {
-        # Samples the data
-        res = sampling_data(df_data_roll, df_meta,
-                            sampleSpan=sampleSpan,
-                            df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-    
-    # Make sure to convert the period to a list
-    period = as.list(period)
-    # Set the max interval period as the minimal possible
-    Imax = 0
-    # Blank tibble for data to return
-    df_VCN10trend_all = tibble()
-    
-    # For all periods
-    for (per in period) {
-        
-        print(paste0('For period : ', paste0(per, collapse=' / ')))
-        
-        df_VCN10Ex = extract_Var_WRAP(df_data=df_data_roll,
-                                      funct=min,
-                                      period=per,
-                                      perStart=perStart,
-                                      timestep='year',
-                                      na.rm=TRUE)
-
-        if ('NA_filter' %in% correction_to_do) {
-            # NA filtering
-            res = NA_filter(df_VCN10Ex,
-                            NA_pct_lim=NA_pct_lim,
-                            df_mod=df_mod)
-            df_VCN10Ex = res$data
-            df_mod = res$mod
-        }
-
-        # Compute the trend analysis        
-        df_VCN10trend = Estimate_stats_WRAP(df_XEx=df_VCN10Ex,
-                                            alpha=alpha,
-                                            dep_option='AR1')
-
-        # Get the associated time interval
-        I = interval(per[1], per[2])
-        # If it is the largest interval       
-        if (I > Imax) {
-            # Store it and the associated data
-            Imax = I
-            df_VCN10Ex_all = df_VCN10Ex
-        }
-        # Store the trend
-        df_VCN10trend_all = bind_rows(df_VCN10trend_all, df_VCN10trend)
-    }
-
-    # Creates a list of results to return
-    res_analyse = list(data=df_VCN10Ex_all, trend=df_VCN10trend_all)
-    res = list(data=df_data_roll, mod=df_mod,
-               analyse=res_analyse)
-    return (res)
-}
-
 ### 1.4. tDEB date ___________________________________________________
 get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
                           df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
@@ -523,8 +239,6 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
     
     # Get all different stations code
     Code = levels(factor(df_meta$code))
-    # Gets the number of station
-    nCode = length(Code)
     
     if ('flag' %in% correction_to_do) {
         # Local corrections if needed
@@ -613,7 +327,6 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
                           Thresold=max(Value, na.rm=TRUE))
                 
         df_tDEBEx = tibble()
-        
         # For all the code
         for (code in Code) {
 
@@ -662,118 +375,6 @@ get_tDEBtrend = function (df_data, df_meta, period, perStart, alpha,
 
     # Creates a list of results to return
     res_analyse = list(data=df_tDEBEx_all, trend=df_tDEBtrend_all)
-    res = list(data=df_data_roll, mod=df_mod,
-               analyse=res_analyse)
-    return (res)
-}
-
-### 1.5. tCEN date ___________________________________________________
-# Realises the trend analysis of the date of the minimum 10 day
-# average flow over the year (VCN10) hydrological variable
-get_tCENtrend = function (df_data, df_meta, period, perStart, alpha,
-                          df_flag, sampleSpan, yearNA_lim, dayLac_lim, 
-                          NA_pct_lim,
-                          correction_to_do=c('flag', 'sampling',
-                                             'miss_year', 'miss_day',
-                                             'NA_filter'),
-                          df_mod=tibble()) {
-
-    print(paste0('Computes tCEN trend with hydrological month start ',
-                 substr(perStart, 1, 2)))
-    
-    # Get all different stations code
-    Code = levels(factor(df_meta$code))
-
-    if ('flag' %in% correction_to_do) {
-        # Local corrections if needed
-        res = flag_data(df_data, df_meta,
-                        df_flag=df_flag,
-                        df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-    
-    # Computes the rolling average by 10 days over the data
-    res = rollmean_code(df_data, Code, 10, df_mod=df_mod)
-    df_data_roll = res$data
-    df_mod = res$mod
-
-    if ('miss_year' %in% correction_to_do) {
-        # Removes older data if there are a too long missing period
-        res = missing_year(df_data_roll, df_meta,
-                           yearNA_lim=yearNA_lim,
-                           df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-
-    if ('miss_day' %in% correction_to_do) {
-        # Removes incomplete years if there are too long missing
-        # consecutive days
-        res = missing_day(df_data_roll, df_meta,
-                          dayLac_lim=dayLac_lim,
-                          perStart=perStart,
-                          df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-    
-    if ('sampling' %in% correction_to_do) {
-        # Samples the data
-        res = sampling_data(df_data_roll, df_meta,
-                            sampleSpan=sampleSpan,
-                            df_mod=df_mod)
-        df_data_roll = res$data
-        df_mod = res$mod
-    }
-
-    # Make sure to convert the period to a list
-    period = as.list(period)
-    # Set the max interval period as the minimal possible
-    Imax = 0
-    # Blank tibble for data to return
-    df_tCENtrend_all = tibble()
-
-    # For all periods
-    for (per in period) {
-
-        print(paste0('For period : ', paste0(per, collapse=' / ')))
-        
-        df_tCENEx = extract_Var_WRAP(df_data=df_data_roll,
-                                     funct=which.minNA,
-                                     period=per,
-                                     perStart=perStart,
-                                     timestep='year',
-                                     isDate=TRUE)
-
-        if ('NA_filter' %in% correction_to_do) {
-            # NA filtering
-            res = NA_filter(df_tCENEx,
-                            NA_pct_lim=NA_pct_lim,
-                            df_mod=df_mod)
-            df_tCENEx = res$data
-            df_mod = res$mod
-        }
-        
-        # Compute the trend analysis
-        df_tCENtrend = Estimate_stats_WRAP(df_XEx=df_tCENEx,
-                                           alpha=alpha,
-                                           dep_option='AR1')
-
-        # Get the associated time interval
-        I = interval(per[1], per[2])
-        # If it is the largest interval       
-        if (I > Imax) {
-            # Store it and the associated data
-            Imax = I
-            df_tCENEx_all = df_tCENEx
-        }
-        # Store the trend
-        df_tCENtrend_all = bind_rows(df_tCENtrend_all, df_tCENtrend)
-    }
-
-    # Creates a list of results to return
-    res_analyse = list(data=df_tCENEx_all, trend=df_tCENtrend_all)
     res = list(data=df_data_roll, mod=df_mod,
                analyse=res_analyse)
     return (res)

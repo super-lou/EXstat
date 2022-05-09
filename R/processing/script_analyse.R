@@ -56,14 +56,11 @@ if ('station_trend_analyse' %in% to_do) {
     var = c()
     type = c()
     glose = c()
-    correction = list()
     for (OkVar in to_analyse) {
         Ok = var_all == OkVar
         var = c(var, var_all[Ok])
         type = c(type, type_all[Ok])
         glose = c(glose, glose_all[Ok])
-        correction = append(correction,
-                            list(correction_all[Ok]))
     }
     hydroYear = matrix(hydroYear_all[var_all %in% to_analyse,],
                       nrow=length(var))
@@ -75,17 +72,16 @@ if ('station_trend_analyse' %in% to_do) {
         # QIXA trend
         if ('QIXA' %in% var) {
             res = get_Xtrend(df_data, df_meta,
-                              period=trend_period,
-                              perStart=hydroYear['QIXA' == var, i],
-                              alpha=alpha,
-                              df_flag=df_flag,
-                              sampleSpan=sampleSpan,
-                              yearNA_lim=yearNA_lim,
-                              dayLac_lim=dayLac_lim,
-                              NA_pct_lim=NA_pct_lim,
-                              correction_to_do=unlist(correction['QIXA' == var]),
-                              funct=max,
-                              na.rm=TRUE)
+                             period=trend_period,
+                             perStart=hydroYear['QIXA' == var, i],
+                             alpha=alpha,
+                             df_flag=df_flag,
+                             sampleSpan=NULL,
+                             yearNA_lim=yearNA_lim,
+                             dayLac_lim=dayLac_lim,
+                             NA_pct_lim=NULL,
+                             functY=max,
+                             functY_args=list(na.rm=TRUE))
             df_QIXAdata = res$data
             df_QIXAmod = res$mod
             res_QIXAtrend = res$analyse
@@ -94,17 +90,16 @@ if ('station_trend_analyse' %in% to_do) {
         # tQIXA trend
         if ('tQIXA' %in% var) {
             res = get_Xtrend(df_data, df_meta,
-                              period=trend_period,
-                              perStart=hydroYear['tQIXA' == var, i],
-                              alpha=alpha,
-                              df_flag=df_flag,
-                              sampleSpan=sampleSpan,
-                              yearNA_lim=yearNA_lim,
-                              dayLac_lim=dayLac_lim,
-                              NA_pct_lim=NA_pct_lim,
-                              correction_to_do=unlist(correction['tQIXA' == var]),
-                              funct=which.maxNA,
-                              isDate=TRUE)
+                             period=trend_period,
+                             perStart=hydroYear['tQIXA' == var, i],
+                             alpha=alpha,
+                             df_flag=df_flag,
+                             sampleSpan=NULL,
+                             yearNA_lim=yearNA_lim,
+                             dayLac_lim=dayLac_lim,
+                             NA_pct_lim=NULL,
+                             functY=which.maxNA,
+                             isDateY=TRUE)
             df_tQIXAdata = res$data
             df_tQIXAmod = res$mod
             res_tQIXAtrend = res$analyse
@@ -113,17 +108,16 @@ if ('station_trend_analyse' %in% to_do) {
         # QA trend
         if ('QA' %in% var) {
             res = get_Xtrend(df_data, df_meta,
-                              period=trend_period,
-                              perStart=hydroYear['QA' == var, i],
-                              alpha=alpha,
-                              df_flag=df_flag,
-                              sampleSpan=sampleSpan,
-                              yearNA_lim=yearNA_lim,
-                              dayLac_lim=dayLac_lim,
-                              NA_pct_lim=NA_pct_lim,
-                              correction_to_do=unlist(correction['QA' == var]),
-                              funct=mean,
-                              na.rm=TRUE)
+                             period=trend_period,
+                             perStart=hydroYear['QA' == var, i],
+                             alpha=alpha,
+                             df_flag=df_flag,
+                             sampleSpan=NULL,
+                             yearNA_lim=yearNA_lim,
+                             dayLac_lim=dayLac_lim,
+                             NA_pct_lim=NULL,
+                             functY=mean,
+                             functY_args=list(na.rm=TRUE))
             df_QAdata = res$data
             df_QAmod = res$mod
             res_QAtrend = res$analyse
@@ -131,16 +125,19 @@ if ('station_trend_analyse' %in% to_do) {
 
         # QMNA tend
         if ('QMNA' %in% var) {            
-            res = get_QMNAtrend(df_data, df_meta,
-                                period=trend_period,
-                                perStart=hydroYear['QMNA' == var, i],
-                                alpha=alpha,
-                                df_flag=df_flag,
-                                sampleSpan=sampleSpan,
-                                yearNA_lim=yearNA_lim,
-                                dayLac_lim=dayLac_lim,
-                                NA_pct_lim=NA_pct_lim,
-                                correction_to_do=unlist(correction['QMNA' == var]))
+            res = get_Xtrend(df_data, df_meta,
+                             period=trend_period,
+                             perStart=hydroYear['QMNA' == var, i],
+                             alpha=alpha,
+                             df_flag=df_flag,
+                             sampleSpan=sampleSpan,
+                             yearNA_lim=yearNA_lim,
+                             dayLac_lim=dayLac_lim,
+                             NA_pct_lim=NULL,
+                             functM=mean,
+                             functM_args=list(na.rm=TRUE),
+                             functY=min,
+                             functY_args=list(na.rm=TRUE))
             df_QMNAdata = res$data
             df_QMNAmod = res$mod
             res_QMNAtrend = res$analyse
@@ -148,16 +145,18 @@ if ('station_trend_analyse' %in% to_do) {
 
         # VCN10 trend
         if ('VCN10' %in% var) {            
-            res = get_VCN10trend(df_data, df_meta,
-                                 period=trend_period,
-                                 perStart=hydroYear['VCN10' == var, i],
-                                 alpha=alpha,
-                                 df_flag=df_flag,
-                                 sampleSpan=sampleSpan,
-                                 yearNA_lim=yearNA_lim,
-                                 dayLac_lim=dayLac_lim,
-                                 NA_pct_lim=NA_pct_lim,
-                                 correction_to_do=unlist(correction['VCN10' == var]),)
+            res = get_Xtrend(df_data, df_meta,
+                             period=trend_period,
+                             perStart=hydroYear['VCN10' == var, i],
+                             alpha=alpha,
+                             df_flag=df_flag,
+                             sampleSpan=sampleSpan,
+                             yearNA_lim=yearNA_lim,
+                             dayLac_lim=dayLac_lim,
+                             NA_pct_lim=NULL,
+                             to_roll=TRUE,
+                             functY=min,
+                             functY_args=list(na.rm=TRUE))
             df_VCN10data = res$data
             df_VCN10mod = res$mod
             res_VCN10trend = res$analyse
@@ -165,18 +164,24 @@ if ('station_trend_analyse' %in% to_do) {
 
         # Start date for low water trend
         if ('tDEB' %in% var) {
-            res = get_tDEBtrend(df_data, df_meta, 
-                                period=trend_period,
-                                perStart=hydroYear['tDEB' == var, i],
-                                alpha=alpha,
-                                df_flag=df_flag,
-                                sampleSpan=sampleSpan,
-                                yearNA_lim=yearNA_lim,
-                                dayLac_lim=dayLac_lim,
-                                NA_pct_lim=NA_pct_lim,
-                                correction_to_do=unlist(correction['tDEB' == var]),,
-                                thresold_type='VCN10',
-                                select_longest=TRUE)
+            res = get_Xtrend(df_data, df_meta, 
+                             period=trend_period,
+                             perStart=hydroYear['tDEB' == var, i],
+                             alpha=alpha,
+                             df_flag=df_flag,
+                             sampleSpan=sampleSpan,
+                             yearNA_lim=yearNA_lim,
+                             dayLac_lim=dayLac_lim,
+                             NA_pct_lim=NULL,
+                             to_roll=TRUE,
+                             functYT_ext=min,
+                             functYT_ext_args=list(na.rm=TRUE),
+                             functYT_sum=max,
+                             functYT_sum_args=list(na.rm=TRUE),
+                             functY=which_underfirst,
+                             functY_args=list(select_longest=TRUE,
+                                              UpLim='*threshold*'),
+                             isDateY=TRUE)
             df_tDEBdata = res$data
             df_tDEBmod = res$mod
             res_tDEBtrend = res$analyse
@@ -184,16 +189,18 @@ if ('station_trend_analyse' %in% to_do) {
 
         # Center date for low water trend
         if ('tCEN' %in% var) {
-            res = get_tCENtrend(df_data, df_meta, 
-                                period=trend_period,
-                                perStart=hydroYear['tCEN' == var, i],
-                                alpha=alpha,
-                                df_flag=df_flag,
-                                sampleSpan=sampleSpan,
-                                yearNA_lim=yearNA_lim,
-                                dayLac_lim=dayLac_lim,
-                                NA_pct_lim=NA_pct_lim,
-                                correction_to_do=unlist(correction['tCEN' == var]),)
+            res = get_Xtrend(df_data, df_meta, 
+                             period=trend_period,
+                             perStart=hydroYear['tCEN' == var, i],
+                             alpha=alpha,
+                             df_flag=df_flag,
+                             sampleSpan=sampleSpan,
+                             yearNA_lim=yearNA_lim,
+                             dayLac_lim=dayLac_lim,
+                             NA_pct_lim=NULL,
+                             to_roll=TRUE,
+                             functY=which.minNA,
+                             isDateY=TRUE)
             df_tCENdata = res$data
             df_tCENmod = res$mod
             res_tCENtrend = res$analyse
