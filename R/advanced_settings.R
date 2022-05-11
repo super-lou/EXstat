@@ -115,17 +115,19 @@ TXTlistname =
 init_var_file = 'default.R'
 var_dir = 'variable'
 var_to_analyse_dir =
-    'AEAG_selection'
     # ''
+    # 'AEAG_selection'
+    'shiny'
+    # 'wip'
 
 to_assign_out = c(
     # 'data',
-    'analyse'
+    # 'analyse'
 )
 
 hydroYear_mode =
-    # 'every'
-    'fixed'
+    'every'
+    # 'fixed'
 
 
 ### 3.2. Climate analysis ____________________________________________
@@ -162,7 +164,7 @@ df_flag = data.frame(
 saving = c(
     # 'data',
     # 'meta',
-    # 'analyse'
+    'analyse'
 )
 
 fast_format = TRUE

@@ -176,7 +176,7 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
                 # Store the results
                 df_XEx = bind_rows(df_XEx, df_XEx_code)
             }
-        } else {
+        } else {            
             df_XEx = do.call(
                 what=extract_Var_WRAP,
                 args=c(list(df_data=df_data,

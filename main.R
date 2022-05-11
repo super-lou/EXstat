@@ -71,20 +71,20 @@ computer_work_path =
 # ash\\data\\.
 filedir =
     # ""
-    "AEAG_selection"
-    # "RRSE"
+    # "AEAG_selection"
+    "RRSE"
 
 # Name of the files that will be analysed from the data directory
 # (if "all", all the file of the directory will be chosen)
 filename =
     # ""
-    # "all"
-    c(
+    "all"
+    # c(
         # "S2235610_HYDRO_QJM.txt",
         # "O1484320_HYDRO_QJM.txt", 
         # "Q7002910_HYDRO_QJM.txt",
-        "O0362510_HYDRO_QJM.txt"
-    )
+        # "O0362510_HYDRO_QJM.txt"
+    # )
 
 ## 3. WHAT YOU WANT TO DO ____________________________________________
 # This vector regroups all the different step you want to do. For example if you write 'station_extraction', the extraction of the data for the station will be done. If you add also 'station_analyse', the extraction and then the trend analyse will be done. But if you only write, for example, 'station_plot', without having previously execute the code with 'station_extraction' and 'station_analyse', it will results in a failure.
@@ -102,9 +102,9 @@ filename =
 #    'climate_trend_plot' : Plotting of trend analyses of climate data
 to_do =
     c(
-        'station_extraction',
-        'station_trend_analyse',
-        'station_trend_plot'
+        # 'station_extraction',
+        'station_trend_analyse'
+        # 'station_trend_plot'
     )
 
 ## 4. ANALYSIS PARAMETERS ____________________________________________

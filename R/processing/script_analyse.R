@@ -78,7 +78,7 @@ if ('station_trend_analyse' %in% to_do) {
             var_analyse = c(var_analyse, var)
             type_analyse = c(type_analyse, type)
             glose_analyse = c(glose_analyse, glose)
-
+            
             res = get_Xtrend(var,
                              df_data, df_meta,
                              period=trend_period,
@@ -121,8 +121,10 @@ if ('station_trend_analyse' %in% to_do) {
                 assign(paste0('df_', var, 'trend'), df_Xtrend)
             }
 
-            df_data_analyse = append(df_data_analyse, list(df_XEx))
-            df_trend_analyse = append(df_trend_analyse, list(df_Xtrend))
+            if ('station_trend_plot' %in% to_do) {
+                df_data_analyse = append(df_data_analyse, list(df_XEx))
+                df_trend_analyse = append(df_trend_analyse, list(df_Xtrend))
+            }
 
 ### 1.3. Saving ______________________________________________________
             if ('meta' %in% saving) {
@@ -154,7 +156,7 @@ if ('station_trend_analyse' %in% to_do) {
                                                 var, monthHydroYear))
                 
                 if (fast_format) {
-                    write_dataFST(res_trendtmp$data,
+                    write_dataFST(df_XEx,
                                   resdir,
                                   filedir='fst',
                                   filename=paste0(var, 'Ex_',

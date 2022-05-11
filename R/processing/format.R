@@ -104,7 +104,7 @@ extract_Var_WRAP = function (df_data, funct, period, hydroYear,
     # Stores data and info tibble as a list that match the entry of
     # the 'extract.Var' function
     df_Xlist = list(data=data, info=info)
-    
+
     df_XEx = extract.Var(data.station=df_Xlist,
                          funct=funct,
                          period=period,
