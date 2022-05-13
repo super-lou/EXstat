@@ -1,6 +1,7 @@
-var = "tCNCEN"
+var = "tCENfon"
 type = "saisonnalité"
 glose = "Centre de la crue nivale (50% du volume de fonte est atteint)"
+event = "Crue Nivale"
 hydroYear = "01-01"
 
 sampleSpan = NULL

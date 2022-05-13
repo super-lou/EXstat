@@ -1,6 +1,7 @@
-var = "tDEB"
+var = "tDEBeti"
 type = "saisonnalité"
 glose = "Début d'étiage (jour de l'année de la première moyenne sur 10 jours sous le maximum des VCN10)"
+event = "Étiage"
 hydroYear = "01-01"
 
 sampleSpan = c('05-01', '11-30')

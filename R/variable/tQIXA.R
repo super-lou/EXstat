@@ -1,6 +1,7 @@
 var = "tQIXA"
 type = "saisonnalité"
 glose = "Date du maximum annuel du débit journalier"
+event = "Crue"
 hydroYear = "01-01"
 
 sampleSpan = NULL

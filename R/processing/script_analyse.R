@@ -42,9 +42,26 @@ source(file.path('R', 'processing', 'read_write.R'),
 ## 1. STATION TREND ANALYSIS _________________________________________
 if ('station_trend_analyse' %in% to_do) {
 
-    var_to_analyse_dirpath = file.path('R', var_dir, var_to_analyse_dir)
-    var_to_analyse_script = list.files(var_to_analyse_dirpath,
-                                       pattern="[^default].R$")
+    script_to_analyse_dirpath = file.path('R', var_dir, var_to_analyse_dir)
+    
+    script_to_analyse = list.files(var_to_analyse_dirpath,
+                                   pattern="[^default].R$",
+                                   recursive=TRUE,
+                                   include.dirs=FALSE,
+                                   full.names=FALSE)
+    
+    # scriptNoDir = gsub('.*[/]', '', var_to_analyse_script)
+    # scriptNoNum = gsub('.*_', '', scriptNoDir)
+    # script_duplicate = !duplicated(scriptNoNum)
+
+    # script_to_analyse = var_to_analyse_script[script_duplicate]
+    
+    event_to_analyse = list.dirs(var_to_analyse_dirpath,
+                                 recursive=TRUE, full.names=FALSE)
+    event_to_analyse = event_to_analyse[event_to_analyse != ""]
+
+    structure = replicate(length(event_to_analyse), c())
+    names(structure) = event_to_analyse
     
     var_analyse = c()
     type_analyse = c()
@@ -53,8 +70,7 @@ if ('station_trend_analyse' %in% to_do) {
     df_trend_analyse = list()
     
 ### 1.3. Trend analyses ______________________________________________
-
-    for (script in var_to_analyse_script) {
+    for (script in script_to_analyse) {
 
         if (hydroYear_mode == 'every') {
             nHydroYear = 12
@@ -68,6 +84,32 @@ if ('station_trend_analyse' %in% to_do) {
                              encoding='UTF-8')
             source(file.path(var_to_analyse_dirpath, script),
                    encoding='UTF-8')
+
+            script_path_split = split_path(script)
+
+            for (x in script_path_split) {
+                if (file_ext(x) == ".R") {
+                    
+                    
+                    
+                }
+
+
+                    
+                
+            }
+            
+            if (length(script_path_split) ) {
+                
+                structure
+                
+            }
+
+            
+            
+            if (var %in% var_analyse) {
+                next
+            }
             
             if (hydroYear_mode == 'every') {
                 hydroYear = paste0(formatC(iHY, width=2, flag="0"),
@@ -127,13 +169,6 @@ if ('station_trend_analyse' %in% to_do) {
             }
 
 ### 1.3. Saving ______________________________________________________
-            if ('meta' %in% saving) {
-                if (fast_format) {
-                    write_metaFST(df_meta, resdir,
-                                  filedir=file.path('fst'))
-                }
-            }
-
             if ('data' %in% saving) {
                 # Writes modified data
                 write_data(df_Xdata, df_Xmod, resdir,
@@ -165,6 +200,13 @@ if ('station_trend_analyse' %in% to_do) {
                 }
             }
         }
+    }
+}
+
+if ('meta' %in% saving) {
+    if (fast_format) {
+        write_metaFST(df_meta, resdir,
+                      filedir=file.path('fst'))
     }
 }
 
@@ -267,4 +309,12 @@ if ('climate_trend_analyse' %in% to_do) {
     df_ETPAdata = res$data
     df_ETPAmod = res$mod
     res_ETPAtrend = res$analyse
+}
+
+
+
+## 4. TOOLS __________________________________________________________
+split_path = function (path) {
+  if (dirname(path) %in% c(".", path)) return(basename(path))
+  return(c(basename(path), split_path(dirname(path))))
 }

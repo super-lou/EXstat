@@ -1,6 +1,7 @@
 var = "VCN10"
 type = "sévérité"
 glose = "Minimum annuel de la moyenne sur 10 jours du débit journalier"
+event = "Étiage"
 hydroYear = "01-01"
 
 sampleSpan = c('05-01', '11-30')

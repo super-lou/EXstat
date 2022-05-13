@@ -1,6 +1,7 @@
-var = "tDEB"
+var = "tDEBeti"
 type = "saisonnalité"
 glose = "Début d'étiage (jour de l'année de la première moyenne sur 10 jours sous le maximum des VCN10)"
+event = "Étiage"
 hydroYear = "01-01"
 
 sampleSpan = c('05-01', '11-30')
@@ -12,17 +13,6 @@ day_to_roll = 10
 functM = NULL
 functM_args = NULL
 isDateM = FALSE
-
-functY = which_underfirst
-functY_args = list(select_longest=TRUE,
-                   UpLim='*threshold*')
-isDateY = TRUE
-
-functYT_ext = min
-functYT_ext_args = list(na.rm=TRUE)
-isDateYT_ext = FALSE
-functYT_sum = max
-functYT_sum_args = list(na.rm=TRUE)
 
 
 which_underfirst = function (L, UpLim, select_longest=TRUE) {
@@ -59,3 +49,15 @@ which_underfirst = function (L, UpLim, select_longest=TRUE) {
     }
     return (id)
 }
+
+
+functY = which_underfirst
+functY_args = list(select_longest=TRUE,
+                   UpLim='*threshold*')
+isDateY = TRUE
+
+functYT_ext = min
+functYT_ext_args = list(na.rm=TRUE)
+isDateYT_ext = FALSE
+functYT_sum = max
+functYT_sum_args = list(na.rm=TRUE)

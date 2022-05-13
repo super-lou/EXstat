@@ -1,6 +1,7 @@
 var = ""
 type = ""
 glose = ""
+event = ""
 hydroYear = "01-01"
 
 sampleSpan = NULL

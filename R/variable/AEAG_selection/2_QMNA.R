@@ -1,16 +1,17 @@
-var = "VCN10"
+var = "QMNA"
 type = "sévérité"
-glose = "Minimum annuel de la moyenne sur 10 jours du débit journalier"
+glose = "Minimum annuel de la moyenne mensuelle du débit journalier"
+event = "Étiage"
 hydroYear = "01-01"
 
 sampleSpan = c('05-01', '11-30')
 yearNA_lim = 10
 dayLac_lim = 3
 NA_pct_lim = NULL
-day_to_roll = 10
+day_to_roll = NULL
 
-functM = NULL
-functM_args = NULL
+functM = mean
+functM_args = list(na.rm=TRUE)
 isDateM = FALSE
 
 functY = min

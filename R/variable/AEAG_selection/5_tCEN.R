@@ -1,6 +1,7 @@
-var = "tCEN"
+var = "tCENeti"
 type = "saisonnalité"
 glose = "Centre d'étiage (jour de l'année du VCN10)"
+event = "Étiage"
 hydroYear = "01-01"
 
 sampleSpan = c('05-01', '11-30')

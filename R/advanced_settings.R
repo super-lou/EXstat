@@ -126,8 +126,8 @@ to_assign_out = c(
 )
 
 hydroYear_mode =
-    'every'
-    # 'fixed'
+    # 'every'
+    'fixed'
 
 
 ### 3.2. Climate analysis ____________________________________________
@@ -163,7 +163,7 @@ df_flag = data.frame(
 ### 3.4. Saving option _______________________________________________
 saving = c(
     # 'data',
-    # 'meta',
+    'meta',
     'analyse'
 )
 
@@ -174,7 +174,7 @@ fast_format = TRUE
 alpha = 0.1
 
 
-## 4. PLOTTING OPTIONS _______________________________________________
+## 4. PLOTTING PARAMETERS ____________________________________________
 # If the hydrological network needs to be plot
 show_river = FALSE
 

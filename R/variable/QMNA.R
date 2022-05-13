@@ -1,6 +1,7 @@
 var = "QMNA"
 type = "sévérité"
 glose = "Minimum annuel de la moyenne mensuelle du débit journalier"
+event = "Étiage"
 hydroYear = "01-01"
 
 sampleSpan = c('05-01', '11-30')
