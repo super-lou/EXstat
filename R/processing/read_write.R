@@ -291,9 +291,14 @@ read_FST = function (resdir, filename, filedir='fst') {
 }
 
 
-## 3. OTHER __________________________________________________________
-splitext = function(file) { 
+## 3. TOOLS __________________________________________________________
+splitext = function(file) { # file_ext
     ex = strsplit(basename(file), split="\\.")[[1]]
     res = list(name=ex[1], extension=ex[2])
     return (res)
 } 
+
+split_path = function (path) {
+  if (dirname(path) %in% c(".", path)) return(basename(path))
+  return(c(basename(path), split_path(dirname(path))))
+}

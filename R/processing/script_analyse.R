@@ -44,24 +44,25 @@ if ('station_trend_analyse' %in% to_do) {
 
     script_to_analyse_dirpath = file.path('R', var_dir, var_to_analyse_dir)
     
-    script_to_analyse = list.files(var_to_analyse_dirpath,
+    script_to_analyse = list.files(script_to_analyse_dirpath,
                                    pattern="[^default].R$",
                                    recursive=TRUE,
                                    include.dirs=FALSE,
                                    full.names=FALSE)
     
-    # scriptNoDir = gsub('.*[/]', '', var_to_analyse_script)
+    # scriptNoDir = gsub('.*[/]', '', script_to_analyse)
     # scriptNoNum = gsub('.*_', '', scriptNoDir)
     # script_duplicate = !duplicated(scriptNoNum)
-
-    # script_to_analyse = var_to_analyse_script[script_duplicate]
+    # script_to_analyse = script_to_analyse[script_duplicate]
     
-    event_to_analyse = list.dirs(var_to_analyse_dirpath,
+    event_to_analyse = list.dirs(script_to_analyse_dirpath,
                                  recursive=TRUE, full.names=FALSE)
     event_to_analyse = event_to_analyse[event_to_analyse != ""]
+    event_to_analyse = gsub('.*_', '', event_to_analyse)
 
     structure = replicate(length(event_to_analyse), c())
     names(structure) = event_to_analyse
+    structure = append(list(Recap=c()), structure)
     
     var_analyse = c()
     type_analyse = c()
@@ -82,30 +83,18 @@ if ('station_trend_analyse' %in% to_do) {
 
             source(file.path('R', var_dir, init_var_file),
                              encoding='UTF-8')
-            source(file.path(var_to_analyse_dirpath, script),
+            source(file.path(script_to_analyse_dirpath, script),
                    encoding='UTF-8')
 
-            script_path_split = split_path(script)
-
-            for (x in script_path_split) {
-                if (file_ext(x) == ".R") {
-                    
-                    
-                    
-                }
-
-
-                    
-                
-            }
+            split_script = split_path(script)
             
-            if (length(script_path_split) ) {
-                
-                structure
-                
+            if (length(split_script) == 1) {
+                structure[['Recap']] = c(structure[['Recap']], var)
+            } else if (length(split_script) == 2) {
+                dir = split_script[2]
+                dir = gsub('.*_', '', dir)
+                structure[[dir]] = c(structure[[dir]], var)
             }
-
-            
             
             if (var %in% var_analyse) {
                 next
@@ -309,12 +298,4 @@ if ('climate_trend_analyse' %in% to_do) {
     df_ETPAdata = res$data
     df_ETPAmod = res$mod
     res_ETPAtrend = res$analyse
-}
-
-
-
-## 4. TOOLS __________________________________________________________
-split_path = function (path) {
-  if (dirname(path) %in% c(".", path)) return(basename(path))
-  return(c(basename(path), split_path(dirname(path))))
 }

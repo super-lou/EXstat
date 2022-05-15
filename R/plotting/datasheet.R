@@ -43,8 +43,9 @@ source(file.path('R', 'plotting', 'shortcut.R'), encoding='UTF-8')
 datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             mean_period, linetype_per, axis_xlim,
                             colorForce, info_header, time_header,
-                            foot_note, layout_matrix, info_height,
-                            time_ratio, var_ratio, foot_height,
+                            foot_note, structure, layout_matrix,
+                            info_height, time_height,
+                            var_ratio, foot_height,
                             paper_size, resources_path, df_shapefile,
                             logo_dir, PRlogo_file, AEAGlogo_file,
                             INRAElogo_file, FRlogo_file,
@@ -161,8 +162,9 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         # Number of header (is info and time serie are needed)
         nbh = as.numeric(!is.null(info_header)) + as.numeric(!is.null(time_header))
         nbp = max(layout_matrix, na.rm=TRUE)
+        nbf = as.numeric(foot_note)
         # Actualises the number of plot
-        nbg = nbp + nbh + as.numeric(foot_note)
+        nbg = nbp + nbh + nbf
 
         # Opens a blank list to store plot
         P = vector(mode='list', length=nbg)
@@ -226,6 +228,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
         # Computes the number of column of plot asked on the datasheet
         nbcol = ncol(as.matrix(layout_matrix))
+        var_plot = c()
         # For all variable
         for (i in 1:nbVar) {
             # Extracts the data corresponding to the current variable
@@ -238,6 +241,8 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             missRect = list_df2plot[[i]]$missRect
             # Extract the variable of the plot
             var = list_df2plot[[i]]$var
+            var_plot = c(var_plot, var)
+            
             type = list_df2plot[[i]]$type
             # Extracts the data corresponding to the code
             df_data_code = df_data[df_data$code == code,]
@@ -363,101 +368,127 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                               FRlogo_file, foot_height)
             P[[nbg]] = foot
         }
-        
-        # Convert the 'layout_matrix' to a matrix if it is not already 
-        layout_matrix = as.matrix(layout_matrix)
 
-        # Number of element of the matrix
-        nel = nrow(layout_matrix)*ncol(layout_matrix)
-        # Gets the place where there is NA value
-        idNA = which(is.na(layout_matrix), arr.ind=TRUE)
 
-        LM = layout_matrix
-        # Adds non existing plot is where there is NA
-        LM[idNA] = seq(max(layout_matrix, na.rm=TRUE) + 1,
-                       max(layout_matrix, na.rm=TRUE) + 1 +
-                       nel)
-        # Shifts all plots to be coherent with the adding of header
-        LM = LM + nbh
+        nVar_max = 5
 
-        if (!is.null(time_header)) {
-            id_time = nbh
-            LM = rbind(nbh, LM)
-        } else {
-            id_time = NA
-            time_ratio = 0
+        nCategory = length(structure)
+        for (i in 1:nCategory) {
+            var_to_place = structure[[i]]
+            category = names(structure)[i]
+
+            nVar_to_place = length(var_to_place)
+            nVar_page = as.integer(nVar_to_place/nVar_max) + 1
+
+            # for (page in 1:nVar_page) {}
+
+            place_order = match(var_to_place, var_plot)
+
+            matrix_order = place_order - min(place_order) + 1
+            layout_matrix = matrix(matrix_order,
+                                   ncol=1)
+            
+            P_order = place_order + nbh
+            if (nbh > 0) {
+                P_order = c(1:nbh, P_order, nbg)
+            }
+            Pcategory = P[P_order]
+
+            # Convert the 'layout_matrix' to a matrix if it is not already 
+            layout_matrix = as.matrix(layout_matrix)
+
+            LM = layout_matrix
+            
+            # Shifts all plots to be coherent with the adding of header
+            LM = LM + nbh
+            
+            if (!is.null(time_header)) {
+                id_time = nbh
+                LM = rbind(nbh, LM)
+            } else {
+                id_time = NA
+                time_ratio = 0
+            }
+            if (!is.null(info_header)) {
+                id_info = nbh - as.numeric(!is.null(time_header))
+                LM = rbind(nbh - as.numeric(!is.null(time_header)), LM)
+            } else {
+                id_info = NA
+                info_ratio = 0
+            }
+
+            id_void = NA
+            nGraphMiss = nVar_max - length(place_order)
+
+            LM = rbind(LM, matrix(rep(id_void, times=ncol(LM)*nGraphMiss),
+                                  ncol=ncol(LM)))
+
+            id_foot = max(LM, na.rm=TRUE) + 1
+            if (foot_note) {
+                LM = rbind(LM, id_foot)
+            } else {
+                foot_height = 0
+            }
+            
+            # If paper format is A4
+            if (paper_size == 'A4') {
+                width = 21
+                height = 29.7
+            } else if (is.vector(paper_size) & length(paper_size) > 1) {
+                width = paper_size[1]
+                height = paper_size[2]
+            }
+
+            LMcol = ncol(LM)
+            LMrow = nrow(LM)
+            
+            LM = rbind(rep(99, times=LMcol), LM, rep(99, times=LMcol))
+            LMrow = nrow(LM)
+            LM = cbind(rep(99, times=LMrow), LM, rep(99, times=LMrow))
+            LMcol = ncol(LM)
+
+            margin_height = 0.5
+
+            Norm_ratio = height * var_ratio * nVar_max / (height - 2*margin_height - time_height - foot_height - info_height)
+
+            var_height = height * var_ratio / Norm_ratio
+
+            Hcut = LM[, 2]
+            heightLM = rep(0, times=LMrow)        
+            
+            heightLM[Hcut == id_info] = info_height
+            heightLM[Hcut == id_time] = time_height
+            heightLM[Hcut > nbh & Hcut < id_foot | is.na(Hcut)] = var_height
+            heightLM[Hcut == id_foot] = foot_height
+            heightLM[Hcut == 99] = margin_height
+
+            col_width = (width - 2*margin_height) / (LMcol - 2)
+            
+            Wcut = LM[(nrow(LM)-1),]
+            widthLM = rep(col_width, times=LMcol)
+            widthLM[Wcut == 99] = margin_height
+            
+            # Plot the graph as the layout
+            plot = grid.arrange(grobs=Pcategory, layout_matrix=LM,
+                                heights=heightLM, widths=widthLM)
+
+            categoryName = chartr("áéèà", "aeea", tolower(category))
+            filename = paste0(as.character(code), '_',
+                              gsub(' ', '_', categoryName))
+            
+            # Saving
+            ggsave(plot=plot,
+                   path=outdirTmp_pdf,
+                   filename=paste0(filename, '.pdf'),
+                   width=width, height=height, units='cm', dpi=100)
+            
+            # Saving
+            ggsave(plot=plot, 
+                   path=outdirTmp_png,
+                   filename=paste0(filename, '.png'),
+                   width=width, height=height, units='cm', dpi=400)
+            
         }
-        if (!is.null(info_header)) {
-            id_info = nbh - as.numeric(!is.null(time_header))
-            LM = rbind(nbh - as.numeric(!is.null(time_header)), LM)
-        } else {
-            id_info = NA
-            info_ratio = 0
-        }
-        
-        if (foot_note) {
-            id_foot = length(LM) + 1
-            LM = rbind(LM, id_foot)
-        } else {
-            id_foot = max(LM) + 1
-            foot_height = 0
-        }
-
-        # If paper format is A4
-        if (paper_size == 'A4') {
-            width = 21
-            height = 29.7
-        } else if (is.vector(paper_size) & length(paper_size) > 1) {
-            width = paper_size[1]
-            height = paper_size[2]
-        }
-
-        LMcol = ncol(LM)
-        LMrow = nrow(LM)
-        
-        LM = rbind(rep(99, times=LMcol), LM, rep(99, times=LMcol))
-        LMrow = nrow(LM)
-        LM = cbind(rep(99, times=LMrow), LM, rep(99, times=LMrow))
-        LMcol = ncol(LM)
-
-        margin_size = 0.5
-
-        Norm_ratio = height * (time_ratio + var_ratio*nbp) / (height - 2*margin_size - foot_height - info_height)
-
-        time_height = height * time_ratio / Norm_ratio
-        var_height = height * var_ratio / Norm_ratio
-
-        Hcut = LM[, 2]
-        heightLM = rep(0, times=LMrow)        
-        
-        heightLM[Hcut == id_info] = info_height
-        heightLM[Hcut == id_time] = time_height
-        heightLM[Hcut > nbh & Hcut < id_foot] = var_height
-        heightLM[Hcut == id_foot] = foot_height
-        heightLM[Hcut == 99] = margin_size
-
-        col_width = (width - 2*margin_size) / (LMcol - 2)
-        
-        Wcut = LM[(nrow(LM)-1),]
-        widthLM = rep(col_width, times=LMcol)
-        widthLM[Wcut == 99] = margin_size
-
-        # Plot the graph as the layout
-        plot = grid.arrange(grobs=P, layout_matrix=LM,
-                            heights=heightLM, widths=widthLM)
-        
-        # Saving
-        ggsave(plot=plot, 
-               path=outdirTmp_pdf,
-               filename=paste(as.character(code), '.pdf', sep=''),
-               width=width, height=height, units='cm', dpi=100)
-        
-        # Saving
-        ggsave(plot=plot, 
-               path=outdirTmp_png,
-               filename=paste(as.character(code), '.png', sep=''),
-               width=width, height=height, units='cm', dpi=400)
-        
     }
     return (df_page)
 }
