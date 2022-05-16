@@ -53,9 +53,9 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
 
     # Number of variable/plot
     if (is.null(list_df2plot)) {
-        nbVar = 1
+        nVar = 1
     } else {
-        nbVar = length(list_df2plot)
+        nVar = length(list_df2plot)
     }
     
     # Get all different stations code
@@ -71,7 +71,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
         # Extracts the min and the max of the mean trend
         # for all the station
         res = short_trendExtremes(list_df2plot, Code, nPeriod_trend,
-                                  nbVar, nCode, colorForce)
+                                  nVar, nCode, colorForce)
         minTrendValue = res$min
         maxTrendValue = res$max
     }
@@ -84,7 +84,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
         nPeriod_mean = length(mean_period)
 
         res = short_meanExtremes(list_df2plot, Code,
-                                 nPeriod_mean, nbVar, nCode)
+                                 nPeriod_mean, nVar, nCode)
         minBreakValue = res$min
         maxBreakValue = res$max
         breakValue_code = res$value
@@ -116,7 +116,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
 
     for (j in 1:nMap) {
         # For all variable
-        for (i in 1:nbVar) {
+        for (i in 1:nVar) {
             # If there is a specified station code to highlight (mini map)
             # and there has already been one loop
             condition = (i > 1 | j > 1 ) & (mapType == 'mini' | mapType == 'regime')
@@ -153,7 +153,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 # Prints the name of the map
                 print(paste('Map of ', mapName, ' for : ', var,
                             "   (",
-                            round(i/nbVar*100, 0),
+                            round(i/nVar*100, 0),
                             " %)", 
                             sep=''))
             }
@@ -988,12 +988,13 @@ peu altérés par les activités humaines."
                     subsection = NA
                 }
                 
-                n_page = df_page$n[nrow(df_page)] + 1
+                n_page = df_page$N[nrow(df_page)] + 1
+                N_page = df_page$N[nrow(df_page)] + 1
                 df_page = bind_rows(
                     df_page,
                     tibble(section=section,
                            subsection=subsection,
-                           n=n_page))
+                           n=n_page, N=N_page))
             }
             
             # If there is a foot note

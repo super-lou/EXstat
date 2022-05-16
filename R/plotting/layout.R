@@ -132,8 +132,8 @@ contour = void +
 ## 3. LAYOUT _________________________________________________________
 # Generates a PDF that gather datasheets, map and summarize table about the trend analyses realised on selected stations
 layout_panel = function (df_data, df_meta, structure, layout_matrix,
-                         to_plot=c('datasheet', 'table', 'map'),
-                         map_to_plot=c('regime', 'trend', 'mean'),
+                         to_plot=c('datasheet', 'table', 'map',
+                                   'map_regime', 'map_trend', 'map_mean'),
                          figdir='', filedir_opt='', filename_opt='',
                          variable='', df_trend=NULL,
                          alpha=0.1, unit2day=365.25, var='',
@@ -249,11 +249,10 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         list_df2plot[[i]] = df2plot
     }
 
-    df_page = tibble(section='Sommaire', subsection=NA, n=1)
+    df_page = tibble(section='Sommaire', subsection=NA, n=1, N=1)
     
     # If map needs to be plot
-    if ('map' %in% to_plot) {
-        if ('regime' %in% map_to_plot) {
+    if ('map' %in% to_plot | 'map_regime' %in% to_plot) {
             df_page = map_panel(NULL, 
                                 df_meta,
                                 idPer_trend=length(trend_period),
@@ -274,29 +273,31 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                 outdirTmp_png=outdirTmp_png, 
                                 df_page=df_page,
                                 verbose=FALSE)
-        }
-        if ('trend' %in% map_to_plot) {
-            df_page = map_panel(list_df2plot, 
-                                df_meta,
-                                idPer_trend=length(trend_period),
-                                trend_period=trend_period,
-                                mean_period=mean_period,
-                                colorForce=colorForce,
-                                mapType='trend',
-                                df_shapefile=df_shapefile,
-                                foot_note=foot_note,
-                                foot_height=foot_height,
-                                resources_path=resources_path,
-                                logo_dir=logo_dir,
-                                PRlogo_file=PRlogo_file,
-                                AEAGlogo_file=AEAGlogo_file,
-                                INRAElogo_file=INRAElogo_file,
-                                FRlogo_file=FRlogo_file,
-                                outdirTmp_pdf=outdirTmp_pdf,
-                                outdirTmp_png=outdirTmp_png, 
-                                df_page=df_page)
-        }
-        if ('mean' %in% map_to_plot) {       
+    }
+            
+    if ('map' %in% to_plot | 'map_trend' %in% to_plot) {
+        df_page = map_panel(list_df2plot, 
+                            df_meta,
+                            idPer_trend=length(trend_period),
+                            trend_period=trend_period,
+                            mean_period=mean_period,
+                            colorForce=colorForce,
+                            mapType='trend',
+                            df_shapefile=df_shapefile,
+                            foot_note=foot_note,
+                            foot_height=foot_height,
+                            resources_path=resources_path,
+                            logo_dir=logo_dir,
+                            PRlogo_file=PRlogo_file,
+                            AEAGlogo_file=AEAGlogo_file,
+                            INRAElogo_file=INRAElogo_file,
+                            FRlogo_file=FRlogo_file,
+                            outdirTmp_pdf=outdirTmp_pdf,
+                            outdirTmp_png=outdirTmp_png, 
+                            df_page=df_page)
+    }
+    
+    if ('map' %in% to_plot | 'map_mean' %in% to_plot) {     
             df_page = map_panel(list_df2plot, 
                                 df_meta,
                                 idPer_trend=length(trend_period),
@@ -316,7 +317,6 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                 outdirTmp_pdf=outdirTmp_pdf,
                                 outdirTmp_png=outdirTmp_png, 
                                 df_page=df_page)
-        }
     }
 
     # If summarize table needs to be plot

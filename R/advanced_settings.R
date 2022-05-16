@@ -191,13 +191,18 @@ axis_xlim =
 to_plot_station =
     c(
         'datasheet'
-        # 'table',
+        # 'table'
         # 'map'
+        # 'map_regime'
+        # 'map_trend'
+        # 'map_mean'
     )
 
-map_to_plot =
+logo_to_show =
     c(
-        'regime',
-        'trend',
-        'mean'
+        'PR',
+        'FR',
+        'INRAE',
+        'AEAG'
     )
+

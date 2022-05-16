@@ -47,7 +47,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                         df_page=NULL) {
 
     # Number of variable/plot
-    nbVar = length(list_df2plot)
+    nVar = length(list_df2plot)
     
     # Get all different stations code
     Code = levels(factor(df_meta$code))    
@@ -59,7 +59,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
     nPeriod_trend = length(trend_period)
     
     # Extracts the min and the max of the mean trend for all the station
-    res = short_trendExtremes(list_df2plot, Code, nPeriod_trend, nbVar, nCode, colorForce)
+    res = short_trendExtremes(list_df2plot, Code, nPeriod_trend, nVar, nCode, colorForce)
     minTrendValue = res$min
     maxTrendValue = res$max
 
@@ -81,7 +81,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
             # Gets the code
             code = Code[k]
             # For all variable
-            for (i in 1:nbVar) {
+            for (i in 1:nVar) {
                 # Extracts the data corresponding to the current variable
                 df_data = list_df2plot[[i]]$data
                 # Extracts the trend corresponding to the
@@ -190,7 +190,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
         # Number of mean period
         nPeriod_mean = length(mean_period)
 
-        res = short_meanExtremes(list_df2plot, Code, nPeriod_mean, nbVar, nCode)
+        res = short_meanExtremes(list_df2plot, Code, nPeriod_mean, nVar, nCode)
         minBreakValue = res$min
         maxBreakValue = res$max
     } else {
@@ -210,8 +210,8 @@ table_panel = function (list_df2plot, df_meta, trend_period,
         
         # Blank array to store mean for a temporary period in order
         # to compute the difference of mean with a second period
-        dataMeantmp = array(rep(NA, nbVar*nCode),
-                            dim=c(nbVar, nCode))
+        dataMeantmp = array(rep(NA, nVar*nCode),
+                            dim=c(nVar, nCode))
         
         # For all period of breaking analysis
         for (j in 1:nPeriod_mean) {
@@ -220,7 +220,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                 # Gets the code
                 code = Code[k]
                 # For all variable
-                for (i in 1:nbVar) {
+                for (i in 1:nVar) {
                     # Extracts the data corresponding to
                     # the current variable
                     df_data = list_df2plot[[i]]$data
@@ -303,7 +303,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                 # Gets the code
                 code = Code[k]
                 # For all variable
-                for (i in 1:nbVar) {
+                for (i in 1:nVar) {
                     # Extracts averaged breaking
                     breakValue = BreakValue_mean[ii]
                     # Gets the color associated
@@ -332,13 +332,13 @@ table_panel = function (list_df2plot, df_meta, trend_period,
     }
 
     allType = c()
-    for (i in 1:nbVar) {
+    for (i in 1:nVar) {
         allType = c(allType, list_df2plot[[i]]$type)
     }
     
     countType = rle(sort(allType))
     df_countType = tibble(type=countType$values, n=countType$lengths)
-    nbVarMax = max(df_countType$n)
+    nVarMax = max(df_countType$n)
     
     # Gets all the different type of plots
     Type = levels(factor(allType))
@@ -419,9 +419,9 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     MeanVal = DataMean_trend[OKper]
                     TrendVal = TrendValue_trend[OKper]
                     Alpha = Alpha_trend[OKper]
-                    nbVar_trend = length(Var)
+                    nVar_trend = length(Var)
 
-                    for (i in 1:nbVar_trend) {
+                    for (i in 1:nVar_trend) {
                         varC = paste(Var[i], 'bar_', j, sep='')
                         meanVal = MeanVal[i]
                         if (type == 'sévérité') {
@@ -443,7 +443,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                                              tibble(unit))
                         colnames(df_unit)[ncol(df_unit)] = varC
                     }
-                    for (i in 1:nbVar_trend) {
+                    for (i in 1:nVar_trend) {
                         varC = paste(Var[i], '_', j, sep='')
                         trendVal = TrendVal[i]
                         if (type == 'sévérité') {
@@ -484,8 +484,8 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     start = substr(period, 1, 4)
                     end = substr(period, 8, 11)
                     
-                    startC = paste('start_', j+nbVar_trend, sep='')
-                    endC = paste('end_', j+nbVar_trend, sep='')
+                    startC = paste('start_', j+nVar_trend, sep='')
+                    endC = paste('end_', j+nVar_trend, sep='')
                     
                     df_ligne = bind_cols(df_ligne,
                                          tibble(start,
@@ -507,11 +507,11 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     Var = Var_mean[OKper]
                     MeanVal = DataMean_mean[OKper]
                     BreakVal = BreakValue_mean[OKper]
-                    nbVar_mean = length(Var)
+                    nVar_mean = length(Var)
                     
-                    for (i in 1:nbVar_mean) {
+                    for (i in 1:nVar_mean) {
                         varC = paste(Var[i], 'bar_',
-                                     j+nbVar_trend, sep='')
+                                     j+nVar_trend, sep='')
                         meanVal = MeanVal[i]
                         if (type == 'sévérité') {
                             unit = 'm3.s-1'
@@ -533,9 +533,9 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                         colnames(df_unit)[ncol(df_unit)] = varC
                     }
                     if (j > 1) {
-                        for (i in 1:nbVar_mean) {
+                        for (i in 1:nVar_mean) {
                             varC = paste('d', Var[i], '_',
-                                         j+nbVar_trend, sep='')
+                                         j+nVar_trend, sep='')
                             breakVal = BreakVal[i]
                             if (type == 'sévérité') {
                                 breakVal = breakVal * 100
@@ -675,16 +675,16 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                 
                 # Gets the number of variable to plot in
                 # function of the current type
-                nbVarMod =
+                nVarMod =
                     length(levels(factor(subVar_trend)))                
                 
                 ### Plot ###
                 # Fixes the height and width of the table according to
                 # the number of station and the number of column to draw
                 height = nsubCode
-                # width = nbVarMod * 2 * nPeriod_trend + nPeriod_trend + nPeriod_mean * nbVarMod + nPeriod_mean + nbVarMod
+                # width = nVarMod * 2 * nPeriod_trend + nPeriod_trend + nPeriod_mean * nVarMod + nPeriod_mean + nVarMod
                 
-                width = nbVarMax * 2 * nPeriod_trend + nPeriod_trend + nPeriod_mean * nbVarMax + nPeriod_mean + nbVarMax
+                width = nVarMax * 2 * nPeriod_trend + nPeriod_trend + nPeriod_mean * nVarMax + nPeriod_mean + nVarMax
                 
 
                 # Fixes the size of the plot area to keep proportion right
@@ -706,7 +706,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                 colorBack = 'grey94'
                 radius = 0.43
 
-                if (nbVarMod == 2) {
+                if (nVarMod == 2) {
                     periodSize = 2.8
                 } else {
                     periodSize = 3.5
@@ -756,7 +756,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                         subColor_trend[subNPeriod_trend == j]
 
                     # Converts the variable list into levels for factor
-                    levels = unlist(subVar_trend[1:nbVarMod])
+                    levels = unlist(subVar_trend[1:nVarMod])
                     
                     # Converts the vector of hydrological variable to
                     # a vector of integer associated to those variable
@@ -765,13 +765,13 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     
                     # Computes X position of the column for
                     # the period dates
-                    Xc = j + (j - 1)*nbVarMod*2
+                    Xc = j + (j - 1)*nVarMod*2
                     # Computes X positions of columns for
                     # the mean of variables
-                    Xm = Xtmp + (j - 1)*nbVarMod*2 + j
+                    Xm = Xtmp + (j - 1)*nVarMod*2 + j
                     # Computes X positions of columns for
                     # the averaged trend
-                    X = Xtmp + (j - 1)*nbVarMod*2 + nbVarMod + j
+                    X = Xtmp + (j - 1)*nVarMod*2 + nVarMod + j
                     
                     # Computes Y positions of each line for each station
                     Y = as.integer(factor(Code_trend_per))
@@ -893,7 +893,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                                  size=3, color='grey20')
                     
                     # For all variable
-                    for (i in 1:nbVarMod) {
+                    for (i in 1:nVarMod) {
                         # Extract the variable of the plot
                         var = subVar_trend[i]
                         type = subType_trend[i]
@@ -986,7 +986,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                         subColor_mean[subNPeriod_mean == j]
 
                     # Converts the variable list into levels for factor
-                    levels = unlist(subVar_mean[1:nbVarMod])
+                    levels = unlist(subVar_mean[1:nVarMod])
                     # Converts the vector of hydrological variable to
                     # a vector of integer associated to those variable
                     Xtmp_mean =
@@ -994,15 +994,15 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                                           levels=levels))
                     # Computes X position of the column for
                     # the period dates
-                    Xc_mean = j + (j - 1)*nbVarMod + X[length(X)]
+                    Xc_mean = j + (j - 1)*nVarMod + X[length(X)]
                     # Computes X positions of columns for
                     # the mean of variables
                     Xm_mean =
-                        Xtmp_mean + (j - 1)*nbVarMod + j + X[length(X)]
+                        Xtmp_mean + (j - 1)*nVarMod + j + X[length(X)]
                     # Computes X positions of columns for
                     # the difference of mean between periods (break)
                     Xr_mean =
-                        Xtmp_mean + (j - 1)*nbVarMod*2 + j + X[length(X)]
+                        Xtmp_mean + (j - 1)*nVarMod*2 + j + X[length(X)]
 
                     # Computes Y positions of each line for each station
                     Y_mean = as.integer(factor(Code_mean_per))
@@ -1199,7 +1199,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                                  size=3, color='grey20')
                     
                     # For all variables
-                    for (i in 1:nbVarMod) {
+                    for (i in 1:nVarMod) {
                         # Extract the variable of the plot
                         var = subVar_mean[i]
                         type = subType_mean[i]
@@ -1330,18 +1330,6 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     height = 21
                     dpi = 100
                 }
-
-                if (!is.null(df_page)) {
-                    section = paste('Tableau récapitulatif de ',
-                                    type, sep='')
-                    subsection = title
-                    n_page = df_page$n[nrow(df_page)] + 1
-                    df_page = bind_rows(
-                        df_page,
-                        tibble(section=section,
-                               subsection=subsection,
-                               n=n_page))
-                }
                 
                 # If there is a foot note
                 if (foot_note) {
@@ -1350,6 +1338,8 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     
                     if (is.null(df_page)) {
                         n_page = n_loop
+                    } else {
+                        n_page = df_page$N[nrow(df_page)] + iMat
                     }
                     
                     foot = foot_panel(footName,
@@ -1422,6 +1412,19 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                                       iMat, '.png', sep=''),
                        width=width, height=height,
                        units='cm', dpi=400)
+            }
+
+            if (!is.null(df_page)) {
+                section = paste0('Tableau récapitulatif de ',
+                                 type)
+                subsection = title
+                n_page = df_page$N[nrow(df_page)] + 1
+                N_page = df_page$N[nrow(df_page)] + nMat
+                df_page = bind_rows(
+                    df_page,
+                    tibble(section=section,
+                           subsection=subsection,
+                           n=n_page, N=N_page))
             }
         }           
     }

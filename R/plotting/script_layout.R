@@ -39,13 +39,13 @@ source(file.path('R', 'plotting', 'layout.R'), encoding='UTF-8')
 
 ## 0. SHAPEFILE LOADING ______________________________________________
 # Shapefile importation in order to do it only once time
-df_shapefile = ini_shapefile(resources_path, df_meta,
-                             fr_shpdir, fr_shpname,
-                             bs_shpdir, bs_shpname,
-                             sbs_shpdir, sbs_shpname,
-                             cbs_shpdir, cbs_shpname, cbs_coord,
-                             rv_shpdir, rv_shpname,
-                             show_river=show_river)
+df_shapefile = load_shapefile(resources_path, df_meta,
+                              fr_shpdir, fr_shpname,
+                              bs_shpdir, bs_shpname,
+                              sbs_shpdir, sbs_shpname,
+                              cbs_shpdir, cbs_shpname, cbs_coord,
+                              rv_shpdir, rv_shpname,
+                              show_river=show_river)
 
 
 ## 1. HYDROMETRIC STATIONS LAYOUT ____________________________________
@@ -77,7 +77,6 @@ if ('station_serie_plot' %in% to_do) {
 ### 1.2. Analyses layout _____________________________________________
 if ('station_trend_plot' %in% to_do) {    
     layout_panel(to_plot=to_plot_station,
-                 map_to_plot=map_to_plot,
                  df_meta=df_meta,
                  df_data=df_data_analyse,
                  df_trend=df_trend_analyse,
