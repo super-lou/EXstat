@@ -179,9 +179,18 @@ alpha = 0.1
 river_selection =
     # "none"
     # "all"
-    c("La Seine", "La Loire", "Le Rhône", "La Garonne",
-      "La Meuse", "La Dordogne", "La Charente",
-      "L’Adour", "La Somme", "La Vilaine")
+    c(
+        # "La Seine",
+        "^La Loire$", "^la Loire$"
+        # "Le Rhône",
+        # "La Garonne",
+        # "La Meuse",
+        # "La Dordogne",
+        # "La Charente",
+        # "L’Adour",
+        # "La Somme",
+        # "La Vilaine"
+    )
 
 # Graphical selection of period
 axis_xlim =
@@ -195,10 +204,10 @@ axis_xlim =
 #          'map' : map about trend analyses
 to_plot_station =
     c(
-        'datasheet'
+        # 'datasheet'
         # 'table'
         # 'map'
-        # 'map_regime'
+        'map_regime'
         # 'map_trend'
         # 'map_mean'
     )

@@ -226,7 +226,8 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                  color=color, fill=NA, size=sizecbs)
             }
 
-            if (mapType != 'mini') {
+            if (zone_to_show == 'Adour-Garonne') {
+                if (mapType != 'mini') {
                 xBasin = c(410000, 520000, 630000,
                            620000, 510000, 450000,
                            390000, 390000)
@@ -247,9 +248,8 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                     color="grey85",
                                     bg.colour="grey97",
                                     hjust=0.5, vjust=0.5, size=5)
-            }
-
-            if (zone_to_show == 'Adour-Garonne') {
+                }
+                            
                 # If the sea needs to be shown
                 if (showSea) {
                     # Leaves space around the France

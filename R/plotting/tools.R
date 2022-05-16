@@ -413,7 +413,9 @@ load_shapefile = function (resources_path, df_meta,
         if ('all' %in% river_selection) {
             river = river[which(river$Classe == 1),]
         } else {
-            river = river[river$NomEntiteH %in% river_selection,]
+            river = river[grepl(paste(river_selection, collapse='|'),
+                                river$NomEntiteH),]
+            river = river[river$Classe == 1,]
         }
         df_river = tibble(fortify(river))
     } else {
