@@ -38,9 +38,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                       colorForce=FALSE, codeLight=NULL,
                       mapType='trend', margin=NULL, showSea=TRUE,  
                       foot_note=FALSE, foot_height=0,
-                      resources_path=NULL, logo_dir=NULL,
-                      PRlogo_file=NULL, AEAGlogo_file=NULL,
-                      INRAElogo_file=NULL, FRlogo_file=NULL,
+                      logo_path=NULL, zone_to_show='France',
                       df_page=NULL, outdirTmp_pdf='',
                       outdirTmp_png='', verbose=TRUE) {
     
@@ -181,6 +179,8 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
             # Open a new plot with the personalise theme
             map = ggplot() + theme_void() +
                 
+                # theme(panel.background=element_rect(color = "#EC4899")) + 
+                
                 # Fixed coordinate system (remove useless warning)
                 cf +
                 # Plot the background of France
@@ -200,11 +200,17 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 # Plot the hydrological basin
                 geom_polygon(data=df_basin,
                              aes(x=long, y=lat, group=group),
-                             color="grey70", fill=NA, size=sizebs) +
-                # Plot the hydrological sub-basin
-                geom_polygon(data=df_subBasin,
-                             aes(x=long, y=lat, group=group),
-                             color="grey70", fill=NA, size=sizebs) +
+                             color="grey70", fill=NA, size=sizebs)
+
+            if (zone_to_show == 'Adour-Garonne') {
+                map = map +
+                    # Plot the hydrological sub-basin
+                    geom_polygon(data=df_subBasin,
+                                 aes(x=long, y=lat, group=group),
+                                 color="grey70", fill=NA, size=sizebs)
+            }
+            
+            map = map +
                 # Plot the countour of France
                 geom_polygon(data=df_france,
                              aes(x=long, y=lat, group=group),
@@ -243,43 +249,77 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                     hjust=0.5, vjust=0.5, size=5)
             }
 
-            # If the sea needs to be shown
-            if (showSea) {
+            if (zone_to_show == 'Adour-Garonne') {
+                # If the sea needs to be shown
+                if (showSea) {
+                    # Leaves space around the France
+                    xlim = c(295000, 790000)
+                    ylim = c(6125000, 6600000)
+                    # Otherwise
+                } else {
+                    # Leaves minimal space around France
+                    xlim = c(305000, 790000)
+                    ylim = c(6135000, 6600000)
+                }
+
+                # If there is no specified station code to
+                # highlight (mini map)
+                if (mapType != 'mini') {
+                    # Sets a legend scale start
+                    xmin = gpct(4, xlim, shift=TRUE)
+                    # Sets graduations
+                    xint = c(0, 10*1E3, 50*1E3, 100*1E3)
+                    # Sets the y postion
+                    ymin = gpct(5, ylim, shift=TRUE)
+                    # Sets the height of graduations
+                    ymax = ymin + gpct(1, ylim)
+                    # Size of the value
+                    size = 3
+                    # Size of the 'km' unit
+                    sizekm = 2.5
+                    # If there is a specified station code
+                } else {
+                    # Same but with less graduation and smaller size
+                    xmin = gpct(2, xlim, shift=TRUE)
+                    xint = c(0, 100*1E3)
+                    ymin = gpct(1, ylim, shift=TRUE)
+                    ymax = ymin + gpct(3, ylim)
+                    size = 2
+                    sizekm = 1.5
+                }
+                
+            } else if (zone_to_show == 'France') {
                 # Leaves space around the France
-                xlim = c(295000, 790000)
-                ylim = c(6125000, 6600000)
-                # Otherwise
-            } else {
-                # Leaves minimal space around France
-                xlim = c(305000, 790000)
-                ylim = c(6135000, 6600000)
+                xlim = c(90000, 1250000)
+                ylim = c(6040000, 7120000)
+
+                # If there is no specified station code to
+                # highlight (mini map)
+                if (mapType != 'mini') {
+                    # Sets a legend scale start
+                    xmin = gpct(4, xlim, shift=TRUE)
+                    # Sets graduations
+                    xint = c(0, 50*1E3, 100*1E3, 250*1E3)
+                    # Sets the y postion
+                    ymin = gpct(5, ylim, shift=TRUE)
+                    # Sets the height of graduations
+                    ymax = ymin + gpct(1, ylim)
+                    # Size of the value
+                    size = 3
+                    # Size of the 'km' unit
+                    sizekm = 2.5
+                    # If there is a specified station code
+                } else {
+                    # Same but with less graduation and smaller size
+                    xmin = gpct(2, xlim, shift=TRUE)
+                    xint = c(0, 250*1E3)
+                    ymin = gpct(1, ylim, shift=TRUE)
+                    ymax = ymin + gpct(3, ylim)
+                    size = 2
+                    sizekm = 1.5
+                }
             }
 
-            # If there is no specified station code to
-            # highlight (mini map)
-            if (mapType != 'mini') {
-                # Sets a legend scale start
-                xmin = gpct(4, xlim, shift=TRUE)
-                # Sets graduations
-                xint = c(0, 10*1E3, 50*1E3, 100*1E3)
-                # Sets the y postion
-                ymin = gpct(5, ylim, shift=TRUE)
-                # Sets the height of graduations
-                ymax = ymin + gpct(1, ylim)
-                # Size of the value
-                size = 3
-                # Size of the 'km' unit
-                sizekm = 2.5
-                # If there is a specified station code
-            } else {
-                # Same but with less graduation and smaller size
-                xmin = gpct(2, xlim, shift=TRUE)
-                xint = c(0, 100*1E3)
-                ymin = gpct(1, ylim, shift=TRUE)
-                ymax = ymin + gpct(3, ylim)
-                size = 2
-                sizekm = 1.5
-            }
             
             map = map +
                 # Adds the base line of the scale
@@ -1011,11 +1051,8 @@ peu altérés par les activités humaines."
                     n_page = i
                 }
                 
-                foot = foot_panel(footName,
-                                  n_page, resources_path,
-                                  logo_dir, PRlogo_file,
-                                  AEAGlogo_file, INRAElogo_file,
-                                  FRlogo_file, foot_height)
+                foot = foot_panel(footName, n_page,
+                                  foot_height, logo_path)
 
                 # Stores the map, the title and the colorbar in a list
                 P = list(map, leg, ann, foot)

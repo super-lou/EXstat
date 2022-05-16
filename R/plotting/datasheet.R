@@ -46,9 +46,8 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             foot_note, structure, layout_matrix,
                             info_height, time_height,
                             var_ratio, foot_height,
-                            paper_size, resources_path, df_shapefile,
-                            logo_dir, PRlogo_file, AEAGlogo_file,
-                            INRAElogo_file, FRlogo_file,
+                            paper_size, df_shapefile, logo_path,
+                            zone_to_show,
                             outdirTmp_pdf, outdirTmp_png,
                             df_page=NULL) {
 
@@ -192,7 +191,8 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                df_shapefile=df_shapefile,
                                codeLight=code,
                                df_data_code=info_header_code,
-                               to_do=to_do)
+                               to_do=to_do,
+                               zone_to_show=zone_to_show)
             
             # Stores it
             P[[1]] = Hinfo
@@ -372,10 +372,8 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                         n_page = df_page$N[nrow(df_page)] + page_code
                     }
                     
-                    foot = foot_panel(footName, n_page, resources_path,
-                                      logo_dir, PRlogo_file,
-                                      AEAGlogo_file, INRAElogo_file,
-                                      FRlogo_file, foot_height)
+                    foot = foot_panel(footName, n_page,
+                                      foot_height, logo_path)
                     P[[nbg]] = foot
                 }
 
@@ -1400,7 +1398,8 @@ time_panel = function (df_data_code, df_trend_code, var, type,
 info_panel = function(list_df2plot, df_meta, trend_period=NULL,
                       mean_period=NULL, periodHyd=NULL,
                       df_shapefile=NULL, codeLight=NULL,
-                      df_data_code=NULL, to_do='all') {
+                      df_data_code=NULL, to_do='all',
+                      zone_to_show='France') {
     
     # If there is a data serie for the given code
     if (!is.null(df_data_code)) {
@@ -1426,6 +1425,7 @@ info_panel = function(list_df2plot, df_meta, trend_period=NULL,
                          margin=margin(t=0, r=-12, b=0, l=0,
                                        unit="mm"),
                          showSea=FALSE,
+                         zone_to_show=zone_to_show,
                          verbose=FALSE)
     # Otherwise
     } else {

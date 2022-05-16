@@ -45,7 +45,11 @@ df_shapefile = load_shapefile(resources_path, df_meta,
                               sbs_shpdir, sbs_shpname,
                               cbs_shpdir, cbs_shpname, cbs_coord,
                               rv_shpdir, rv_shpname,
-                              show_river=show_river)
+                              river_selection=river_selection)
+
+logo_path = load_logo(resources_path, logo_dir, PRlogo_file,
+                      AEAGlogo_file, INRAElogo_file, FRlogo_file,
+                      logo_to_show)
 
 
 ## 1. HYDROMETRIC STATIONS LAYOUT ____________________________________
@@ -66,12 +70,8 @@ if ('station_serie_plot' %in% to_do) {
                  info_header=df_data,
                  df_shapefile=df_shapefile,
                  figdir=figdir,
-                 resources_path=resources_path,
-                 logo_dir=logo_dir,
-                 PRlogo_file=PRlogo_file,
-                 AEAGlogo_file=AEAGlogo_file,
-                 INRAElogo_file=INRAElogo_file,
-                 FRlogo_file=FRlogo_file)
+                 logo_path=logo_path,
+                 pdf_chunk=pdf_chunk)
 }
 
 ### 1.2. Analyses layout _____________________________________________
@@ -102,12 +102,9 @@ if ('station_trend_plot' %in% to_do) {
                  figdir=figdir,
                  filename_opt='',
                  resdir=resdir,
-                 resources_path=resources_path,
-                 logo_dir=logo_dir,
-                 PRlogo_file=PRlogo_file,
-                 AEAGlogo_file=AEAGlogo_file,
-                 INRAElogo_file=INRAElogo_file,
-                 FRlogo_file=FRlogo_file)
+                 logo_path=logo_path,
+                 zone_to_show=zone_to_show,
+                 pdf_chunk=pdf_chunk)
 }
 
 
@@ -153,5 +150,6 @@ if ('climate_trend_plot' %in% to_do) {
         time_header=NULL,
         foot_note=FALSE,
         paper_size=c(21, 18),
-        figdir=figdir)
+        figdir=figdir,
+        pdf_chunk=pdf_chunk)
 }

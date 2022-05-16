@@ -39,10 +39,8 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                         mean_period, colorForce=FALSE, slice=NULL,
                         title=NULL, paper_size='A3',
                         foot_note=FALSE, foot_height=0, resdir=NULL,
-                        resources_path=NULL,
-                        logo_dir=NULL, PRlogo_file=NULL,
-                        AEAGlogo_file=NULL, INRAElogo_file=NULL,
-                        FRlogo_file=NULL, outdirTmp_pdf='',
+                        logo_path=NULL,
+                        outdirTmp_pdf='',
                         outdirTmp_png='',
                         df_page=NULL) {
 
@@ -1342,12 +1340,8 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                         n_page = df_page$N[nrow(df_page)] + iMat
                     }
                     
-                    foot = foot_panel(footName,
-                                      n_page,
-                                      resources_path,
-                                      logo_dir, PRlogo_file,
-                                      AEAGlogo_file, INRAElogo_file,
-                                      FRlogo_file, foot_height)
+                    foot = foot_panel(footName, n_page,
+                                      foot_height, logo_path)
                     
                     # Stores the map, the title and the colorbar
                     # in a list

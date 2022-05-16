@@ -176,7 +176,12 @@ alpha = 0.1
 
 ## 4. PLOTTING PARAMETERS ____________________________________________
 # If the hydrological network needs to be plot
-show_river = FALSE
+river_selection =
+    # "none"
+    # "all"
+    c("La Seine", "La Loire", "Le Rhône", "La Garonne",
+      "La Meuse", "La Dordogne", "La Charente",
+      "L’Adour", "La Somme", "La Vilaine")
 
 # Graphical selection of period
 axis_xlim =
@@ -200,9 +205,18 @@ to_plot_station =
 
 logo_to_show =
     c(
-        'PR',
+        # 'PR',
         'FR',
-        'INRAE',
-        'AEAG'
+        'INRAE'
+        # 'AEAG'
     )
 
+zone_to_show =
+    'France'
+    # 'Adour-Garonne'
+
+pdf_chunk =
+    c(
+        'all',
+        'by_code'
+    )

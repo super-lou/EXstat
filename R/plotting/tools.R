@@ -350,7 +350,8 @@ load_shapefile = function (resources_path, df_meta,
                            bs_shpdir, bs_shpname,
                            sbs_shpdir, sbs_shpname,
                            cbs_shpdir, cbs_shpname, cbs_coord,
-                           rv_shpdir, rv_shpname, show_river=TRUE) {
+                           rv_shpdir, rv_shpname,
+                           river_selection=c('all')) {
 
     Code = levels(factor(df_meta$code))
     
@@ -406,10 +407,14 @@ load_shapefile = function (resources_path, df_meta,
     df_codeBasin = df_codeBasin[order(df_codeBasin$code),]
     
     # If the river shapefile needs to be load
-    if (show_river) {
+    if (!("none" %in% river_selection)) {
         # Hydrographic network
         river = readOGR(dsn=rv_shppath, verbose=FALSE) ### trop long ###
-        river = river[which(river$Classe == 1),]
+        if ('all' %in% river_selection) {
+            river = river[which(river$Classe == 1),]
+        } else {
+            river = river[river$NomEntiteH %in% river_selection,]
+        }
         df_river = tibble(fortify(river))
     } else {
         df_river = NULL   
@@ -422,9 +427,32 @@ load_shapefile = function (resources_path, df_meta,
 }
 
 ### 4.2. Logo loading ________________________________________________
-load_logo = function () {
+load_logo = function (resources_path, logo_dir, PRlogo_file, AEAGlogo_file,
+                      INRAElogo_file, FRlogo_file, logo_to_show) {
 
+    logo_path = c()
+    if ('PR' %in% logo_to_show) {
+        path = file.path(resources_path, logo_dir, PRlogo_file)
+        logo_path = c(logo_path, path)
+        names(logo_path)[length(logo_path)] = 'PR'
+    }
+    if ('FR' %in% logo_to_show) {
+        path = file.path(resources_path, logo_dir, FRlogo_file)
+        logo_path = c(logo_path, path)
+        names(logo_path)[length(logo_path)] = 'FR'
+    }
+    if ('INRAE' %in% logo_to_show) {
+        path = file.path(resources_path, logo_dir, INRAElogo_file)
+        logo_path = c(logo_path, path)
+        names(logo_path)[length(logo_path)] = 'INRAE'
+    }
+    if ('AEAG' %in% logo_to_show) {
+        path = file.path(resources_path, logo_dir, AEAGlogo_file)
+        logo_path = c(logo_path, path)
+        names(logo_path)[length(logo_path)] = 'AEAG'
+    }
     
+    return (logo_path)
 }
 
 

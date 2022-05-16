@@ -2,7 +2,7 @@ var = "QIXA"
 type = "sévérité"
 glose = "Maximum annuel du débit journalier"
 event = "Crue"
-hydroYear = "01-01"
+hydroYear = "09-01"
 
 sampleSpan = NULL
 yearNA_lim = 10

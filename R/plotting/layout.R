@@ -150,15 +150,12 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                          var_ratio=3, foot_height=1.25,
                          df_shapefile=NULL,
                          resdir=NULL,
-                         resources_path=NULL,
-                         logo_dir=NULL,
-                         PRlogo_file=NULL,
-                         AEAGlogo_file=NULL,
-                         INRAElogo_file=NULL,
-                         FRlogo_file=NULL) {
+                         logo_path=NULL,
+                         zone_to_show=NULL,
+                         pdf_chunk=c('all')) {
 
     # Name of the document
-    outfile = "Panels"
+    outfile = "ASH"
     # If there is an option to mention in the filename it adds it
     if (filename_opt != '') {
         outfile = paste(outfile, '_', filename_opt, sep='')
@@ -167,9 +164,15 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
     outfile = paste(outfile, '.pdf', sep='')
 
     # If there is not a dedicated figure directory it creats one
-    outdir = file.path(figdir, filedir_opt, sep='')
+    outdir = file.path(figdir, filedir_opt)
     if (!(file.exists(outdir))) {
         dir.create(outdir)
+    }
+
+    # If there is not a dedicated figure directory it creats one
+    outdir_code = file.path(figdir, filedir_opt, 'ASH')
+    if (!(file.exists(outdir_code))) {
+        dir.create(outdir_code)
     }
 
     # Names of a temporary directory to store all the independent pages
@@ -263,12 +266,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                 df_shapefile=df_shapefile,
                                 foot_note=foot_note,
                                 foot_height=foot_height,
-                                resources_path=resources_path,
-                                logo_dir=logo_dir,
-                                PRlogo_file=PRlogo_file,
-                                AEAGlogo_file=AEAGlogo_file,
-                                INRAElogo_file=INRAElogo_file,
-                                FRlogo_file=FRlogo_file,
+                                logo_path=logo_path,
                                 outdirTmp_pdf=outdirTmp_pdf,
                                 outdirTmp_png=outdirTmp_png, 
                                 df_page=df_page,
@@ -286,12 +284,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                             df_shapefile=df_shapefile,
                             foot_note=foot_note,
                             foot_height=foot_height,
-                            resources_path=resources_path,
-                            logo_dir=logo_dir,
-                            PRlogo_file=PRlogo_file,
-                            AEAGlogo_file=AEAGlogo_file,
-                            INRAElogo_file=INRAElogo_file,
-                            FRlogo_file=FRlogo_file,
+                            logo_path=logo_path,
                             outdirTmp_pdf=outdirTmp_pdf,
                             outdirTmp_png=outdirTmp_png, 
                             df_page=df_page)
@@ -308,12 +301,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                 df_shapefile=df_shapefile,
                                 foot_note=foot_note,
                                 foot_height=foot_height,
-                                resources_path=resources_path,
-                                logo_dir=logo_dir,
-                                PRlogo_file=PRlogo_file,
-                                AEAGlogo_file=AEAGlogo_file,
-                                INRAElogo_file=INRAElogo_file,
-                                FRlogo_file=FRlogo_file,
+                                logo_path=logo_path,
                                 outdirTmp_pdf=outdirTmp_pdf,
                                 outdirTmp_png=outdirTmp_png, 
                                 df_page=df_page)
@@ -331,12 +319,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                               foot_note=foot_note,
                               foot_height=foot_height,
                               resdir=resdir,
-                              resources_path=resources_path,
-                              logo_dir=logo_dir,
-                              PRlogo_file=PRlogo_file,
-                              AEAGlogo_file=AEAGlogo_file,
-                              INRAElogo_file=INRAElogo_file,
-                              FRlogo_file=FRlogo_file,
+                              logo_path=logo_path,
                               outdirTmp_pdf=outdirTmp_pdf,
                               outdirTmp_png=outdirTmp_png, 
                               df_page=df_page)
@@ -361,13 +344,9 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                   var_ratio=var_ratio,
                                   foot_height=foot_height,
                                   paper_size=paper_size,
-                                  resources_path=resources_path,
                                   df_shapefile=df_shapefile,
-                                  logo_dir=logo_dir,
-                                  PRlogo_file=PRlogo_file,
-                                  AEAGlogo_file=AEAGlogo_file,
-                                  INRAElogo_file=INRAElogo_file,
-                                  FRlogo_file=FRlogo_file,
+                                  logo_path=logo_path,
+                                  zone_to_show=zone_to_show,
                                   outdirTmp_pdf=outdirTmp_pdf,
                                   outdirTmp_png=outdirTmp_png, 
                                   df_page=df_page)
@@ -377,12 +356,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         summary_panel(df_page,
                       foot_note,
                       foot_height,
-                      resources_path,
-                      logo_dir=logo_dir,
-                      PRlogo_file=PRlogo_file,
-                      AEAGlogo_file,
-                      INRAElogo_file,
-                      FRlogo_file,
+                      logo_path=logo_path,
                       outdirTmp_pdf=outdirTmp_pdf,
                       outdirTmp_png=outdirTmp_png)
     }
@@ -397,17 +371,30 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         listfile_path = listfile_path[-length(listfile_path)]
         listfile_path = c(summary_path, listfile_path)
     }
+
+    if ('all' %in% pdf_chunk) {
+        pdf_combine(input=listfile_path,
+                    output=file.path(outdir, outfile))
+    }
+
+    if ('by_code' %in% pdf_chunk) {
+        # Get all different stations code
+        Code = levels(factor(df_meta$code))
+        for (code in Code) {
+            listfile_code_path = listfile_path[grepl(code, listfile_path)]
+            pdf_combine(input=listfile_code_path,
+                        output=file.path(outdir_code, paste0(code, '.pdf')))
+        }
+    }
+
     
-    pdf_combine(input=listfile_path,
-                output=file.path(outdir, outfile))
 } 
 
 
 ## 4. PDF ORGANISATION PANEL _________________________________________
 ### 4.1. Summary _____________________________________________________
 summary_panel = function (df_page, foot_note, foot_height,
-                          resources_path, logo_dir, PRlogo_file,
-                          AEAGlogo_file, INRAElogo_file, FRlogo_file,
+                          logo_path,
                           outdirTmp_pdf, outdirTmp_png) {
     
     text_title = paste(
@@ -531,10 +518,7 @@ summary_panel = function (df_page, foot_note, foot_height,
     if (foot_note) {
         footName = 'sommaire'
         foot = foot_panel(footName,
-                          1, resources_path,
-                          logo_dir, PRlogo_file,
-                          AEAGlogo_file, INRAElogo_file,
-                          FRlogo_file, foot_height)
+                          1, foot_height, logo_path)
 
         P = list(gtitle, gsubtitle, gsum1, gpage1, gsum2, gpage2, foot)
         LM = matrix(c(1, 1, 1, 1,
@@ -604,10 +588,51 @@ summary_panel = function (df_page, foot_note, foot_height,
 }
 
 ### 4.2. Foot note panel______________________________________________
-foot_panel = function (name, n_page, resources_path, logo_dir,
-                       PRlogo_file, AEAGlogo_file, INRAElogo_file,
-                       FRlogo_file, foot_height) {
+foot_panel = function (name, n_page, foot_height, logo_path) {
     
+    nLogo = length(logo_path)
+    nbg = nLogo + 3
+    P = vector(mode='list', length=nbg)
+    P[[1]] = void
+    LM_row = c(1)
+    widths = c(1)
+
+    for (i in 1:nLogo) {
+        path = logo_path[i]
+        logo = names(logo_path)[i]
+        img = readPNG(path)
+        
+        if (logo == 'PR') {
+            grob = rasterGrob(img,
+                              x=0, hjust=0,
+                              width=unit(0.8*foot_height, "cm"))
+            width = 0.2
+        }
+        if (logo == 'FR') { 
+            grob = rasterGrob(img,
+                              x=0, hjust=0,
+                              width=unit(1*foot_height, "cm"))
+            width = 0.2
+        }
+        if (logo == 'INRAE') {
+            grob = rasterGrob(img,
+                              y=0.565,
+                              vjust=0.5,
+                              width=unit(1.08*foot_height, "cm"))
+            width = 0.25
+        }
+        if (logo == 'AEAG') {
+            grob = rasterGrob(img,
+                              y=0.49,
+                              vjust=0.5,
+                              width=unit(0.7*foot_height, "cm"))
+            width = 0.2
+        }
+        P[[i+1]] = grob
+        LM_row = c(LM_row, i+1)
+        widths = c(widths, width)
+    }
+
     text_page = paste(
         name, "  <b>p. ", n_page, "</b>",
         sep='')
@@ -628,52 +653,18 @@ foot_panel = function (name, n_page, resources_path, logo_dir,
                                margin=unit(c(t=0, r=0, b=0, l=0), "mm"),
                                hjust=1, vjust=0.5,
                                gp=gpar(col="#00A3A8", fontsize=6))
-    
 
-    PRlogo_path = file.path(resources_path, logo_dir, PRlogo_file)
-    FRlogo_path = file.path(resources_path, logo_dir, FRlogo_file)
-    INRAElogo_path = file.path(resources_path, logo_dir, INRAElogo_file)
-    AEAGlogo_path = file.path(resources_path, logo_dir, AEAGlogo_file)
-
+    P[[nLogo+2]] = gtext_page
+    LM_row1 = c(LM_row, nLogo+2)
+    P[[nLogo+3]] = gtext_date
+    LM_row2 = c(LM_row, nLogo+3)
+    widths = c(widths, 1)
     
-    PRlogo_img = readPNG(PRlogo_path)
-    PRlogo_grob = rasterGrob(PRlogo_img,
-                             x=0, hjust=0,
-                             width=unit(0.8*foot_height, "cm"))
-    
-    FRlogo_img = readPNG(FRlogo_path)
-    FRlogo_grob = rasterGrob(FRlogo_img,
-                             x=0, hjust=0,
-                             width=unit(1*foot_height, "cm"))
-
-    INRAElogo_img = readPNG(INRAElogo_path)
-    INRAElogo_grob = rasterGrob(INRAElogo_img,
-                                y=0.565,
-                                vjust=0.5,
-                                width=unit(1.08*foot_height, "cm"))
-    
-    AEAGlogo_img = readPNG(AEAGlogo_path)
-    AEAGlogo_grob = rasterGrob(AEAGlogo_img,
-                               y=0.49,
-                               vjust=0.5,
-                               width=unit(0.7*foot_height, "cm"))
-    
-    P = list(void, PRlogo_grob, FRlogo_grob,
-             INRAElogo_grob, AEAGlogo_grob,
-             gtext_page, gtext_date)
-
     # Creates the matrix layout
-    LM = matrix(c(1, 2, 3, 4, 5, 6,
-                  1, 2, 3, 4, 5, 7),
+    LM = matrix(c(LM_row1,
+                  LM_row2),
                 nrow=2, 
                 byrow=TRUE)
-
-    # And sets the relative width of each plot
-    widths = rep(1, times=ncol(LM))
-    widths[2] = 0.2
-    widths[3] = 0.2
-    widths[4] = 0.25
-    widths[5] = 0.2
     
     # Arranges all the graphical objetcs
     plot = grid.arrange(grobs=P,
