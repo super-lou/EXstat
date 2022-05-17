@@ -109,9 +109,62 @@ if ('station_trend_analyse' %in% to_do) {
             var_analyse = c(var_analyse, var)
             type_analyse = c(type_analyse, type)
             glose_analyse = c(glose_analyse, glose)
-            
+
+            okCode = c()
+            if (read_results) {
+                trend_path = file.path(trend_dir, var, monthHydroYear)
+                isExtract = file.exists(file.path(resdir, trend_path,
+                                                  'extract.txt'))
+                isEstimate = file.exists(file.path(resdir, trend_path,
+                                                   'estimate.txt'))
+
+                if (isExtract & isEstimate) {
+                    res_Xanalyse = read_analyse(resdir, trend_path)
+                    df_XEx = res_Xanalyse$extract
+                    df_Xtrend = res_Xanalyse$estimate
+                    
+                    # Get all different stations code
+                    Code = levels(factor(df_meta$code))
+
+                    modified_data_path = file.path(trend_dir, var,
+                                                   monthHydroYear)
+                    
+                    for (code in Code) {
+                        nameDataMod = paste0(code, '.txt')
+                        isDataMod = file.exists(
+                            file.path(resdir,
+                                      modified_data_path,
+                                      nameDataMod))
+                        
+                        nameMod = paste0(code, '_modification.txt')
+                        isMod = file.exists(
+                            file.path(resdir,
+                                      modified_data_path,
+                                      nameMod))
+
+                        if (isDataMod & isMod) {
+                            df_Xdata = read_data(resdir,
+                                                 modified_data_path,
+                                                 nameDataMod)
+                            df_Xmod = read_data(resdir,
+                                                modified_data_path,
+                                                nameMod)
+                        }
+
+                        isCodeExtract = any(code %in% df_XEx$code)
+                        isCodeEstimate = any(code %in% df_Xtrend$code)
+                        if (isDataMod & isMod & isCodeExtract & isCodeEstimate) {
+                            okCode = c(okCode, code)
+                        }
+                    }
+                }
+            }
+
+            df_data_missing = df_data[!(df_data$code %in% okCode),]
+            df_meta_missing = df_meta[!(df_meta$code %in% okCode),]
+                
             res = get_Xtrend(var,
-                             df_data, df_meta,
+                             df_data_missing, df_meta_missing,
                              period=trend_period,
                              hydroYear=hydroYear,
                              alpha=alpha,
@@ -133,13 +186,21 @@ if ('station_trend_analyse' %in% to_do) {
                              functYT_sum=functYT_sum,
                              functYT_sum_args=functYT_sum_args)
             
-            df_Xdata = res$data
-            df_Xmod = res$mod
-            res_Xanalyse = res$analyse
+            df_Xdata_missing = res$data
+            df_Xmod_missing = res$mod
+            res_Xanalyse_missing = res$analyse
             # Gets the extracted data for the variable
-            df_XEx = res_Xanalyse$extract
+            df_XEx_missing = res_Xanalyse$extract
             # Gets the trend results for the variable
-            df_Xtrend = res_Xanalyse$estimate
+            df_Xtrend_missing = res_Xanalyse$estimate
+
+
+            df_Xdata = rbind()
+                df_Xmod =
+                    df_XEx = 
+                        df_Xtrend =
+                            res_Xanalyse = list(extract=df_XEx, estimate=df_Xtrend)
+            
 
             if ('data' %in% to_assign_out) {
                 assign(paste0('df_', var, 'data'), df_Xdata)
@@ -161,7 +222,7 @@ if ('station_trend_analyse' %in% to_do) {
             if ('data' %in% saving) {
                 # Writes modified data
                 write_data(df_Xdata, df_Xmod, resdir,
-                           filedir=file.path('modified_data',
+                           filedir=file.path(modified_data_dir,
                                              var, monthHydroYear))
                 
                 if (fast_format) {
@@ -176,7 +237,7 @@ if ('station_trend_analyse' %in% to_do) {
             if ('analyse' %in% saving) {                
                 # Writes trend analysis results
                 write_analyse(res_Xanalyse, resdir,
-                              filedir=file.path('trend_analyses',
+                              filedir=file.path(trend_dir,
                                                 var, monthHydroYear))
                 
                 if (fast_format) {

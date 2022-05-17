@@ -132,7 +132,7 @@ write_metaFST = function (df_meta, resdir, filedir='fst',
 
 ## 2. READING ________________________________________________________
 ### 2.1. List of dataframe ___________________________________________
-read_listofdf = function (resdir, filedir) {
+read_analyse = function (resdir, filedir) {
 
     outdir = file.path(resdir, filedir)
     files = list.files(outdir)
@@ -220,7 +220,7 @@ read_data = function (resdir, filedir, filename, verbose=TRUE) {
 
     # Print metadata if asked
     if (verbose) {
-        print(paste("reading of extracted data for file :", filename))
+        print(paste("reading of data for file :", filename))
     }
 
     # Get the file path to the data

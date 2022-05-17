@@ -411,11 +411,10 @@ load_shapefile = function (resources_path, df_meta,
         # Hydrographic network
         river = readOGR(dsn=rv_shppath, verbose=FALSE) ### trop long ###
         if ('all' %in% river_selection) {
-            river = river[which(river$Classe == 1),]
+            river = river[river$Classe == 1,]
         } else {
             river = river[grepl(paste(river_selection, collapse='|'),
                                 river$NomEntiteH),]
-            river = river[river$Classe == 1,]
         }
         df_river = tibble(fortify(river))
     } else {

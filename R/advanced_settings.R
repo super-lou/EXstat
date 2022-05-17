@@ -89,6 +89,10 @@ if (!(file.exists(figdir))) {
 print(paste('figdir :', figdir))
 
 
+modified_data_dir = 'modified_data'
+trend_dir = 'trend_analyses'
+
+
 ## 2. STATION SELECTION BY LIST ______________________________________
 ### 2.1. Selection with '.docx' file _________________________________
 # Path to a '.docx' list file of station that will be analysed
@@ -169,6 +173,9 @@ saving = c(
 
 fast_format = TRUE
 
+read_results = TRUE
+
+
 ### 3.5. Statistical option __________________________________________
 # The risk of the Mann-Kendall trend detection test
 alpha = 0.1
@@ -180,16 +187,19 @@ river_selection =
     # "none"
     # "all"
     c(
-        # "La Seine",
-        "^La Loire$", "^la Loire$"
-        # "Le Rhône",
-        # "La Garonne",
-        # "La Meuse",
-        # "La Dordogne",
-        # "La Charente",
-        # "L’Adour",
-        # "La Somme",
-        # "La Vilaine"
+        "La Seine$",
+        "'Yonne$",
+        "La Marne$",
+        "La Meuse",
+        "La Moselle$",
+        "^La Loire$", "^la Loire$",
+        "^le cher$",
+        "^La Creuse$", "^la Creuse$",
+        "^La Vienne$", "^la Vienne$",
+        "La Garonne$",
+        "Le Tarn$",
+        "Le Rhône$",
+        "La Saône$"
     )
 
 # Graphical selection of period
@@ -204,10 +214,10 @@ axis_xlim =
 #          'map' : map about trend analyses
 to_plot_station =
     c(
-        # 'datasheet'
+        'datasheet'
         # 'table'
         # 'map'
-        'map_regime'
+        # 'map_regime'
         # 'map_trend'
         # 'map_mean'
     )
