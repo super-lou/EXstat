@@ -50,11 +50,6 @@ if ('station_trend_analyse' %in% to_do) {
                                    include.dirs=FALSE,
                                    full.names=FALSE)
     
-    # scriptNoDir = gsub('.*[/]', '', script_to_analyse)
-    # scriptNoNum = gsub('.*_', '', scriptNoDir)
-    # script_duplicate = !duplicated(scriptNoNum)
-    # script_to_analyse = script_to_analyse[script_duplicate]
-    
     event_to_analyse = list.dirs(script_to_analyse_dirpath,
                                  recursive=TRUE, full.names=FALSE)
     event_to_analyse = event_to_analyse[event_to_analyse != ""]
@@ -110,7 +105,7 @@ if ('station_trend_analyse' %in% to_do) {
             type_analyse = c(type_analyse, type)
             glose_analyse = c(glose_analyse, glose)
 
-            okCode = c()
+            missingCode = c()
             if (read_results) {
                 trend_path = file.path(trend_dir, var, monthHydroYear)
                 isExtract = file.exists(file.path(resdir, trend_path,
@@ -119,88 +114,114 @@ if ('station_trend_analyse' %in% to_do) {
                                                    'estimate.txt'))
 
                 if (isExtract & isEstimate) {
-                    res_Xanalyse = read_analyse(resdir, trend_path)
-                    df_XEx = res_Xanalyse$extract
-                    df_Xtrend = res_Xanalyse$estimate
-                    
-                    # Get all different stations code
-                    Code = levels(factor(df_meta$code))
+                    res_Xanalyse_read = read_analyse(resdir, trend_path)
+                    df_XEx_read = res_Xanalyse_read$extract
+                    df_Xtrend_read = res_Xanalyse_read$estimate
 
-                    modified_data_path = file.path(trend_dir, var,
+                    df_XEx_read = df_XEx_read[df_XEx_read$code %in% Code,]
+                    df_Xtrend_read = df_Xtrend_read[df_Xtrend_read$code %in% Code,]
+                    df_Xtrend_read = df_Xtrend_read[df_Xtrend_read$input_period %in% input_trend_period,]
+                    res_Xanalyse_read = list(extract=df_XEx_read, estimate=df_Xtrend_read)
+                    
+                    modified_data_path = file.path(modified_data_dir, var,
                                                    monthHydroYear)
                     
+                    df_Xdata_read = tibble()
+                    df_Xmod_read = tibble()
                     for (code in Code) {
                         nameDataMod = paste0(code, '.txt')
-                        isDataMod = file.exists(
+                        isCodeDataMod = file.exists(
                             file.path(resdir,
                                       modified_data_path,
                                       nameDataMod))
                         
                         nameMod = paste0(code, '_modification.txt')
-                        isMod = file.exists(
+                        isCodeMod = file.exists(
                             file.path(resdir,
                                       modified_data_path,
                                       nameMod))
 
-                        if (isDataMod & isMod) {
-                            df_Xdata = read_data(resdir,
-                                                 modified_data_path,
-                                                 nameDataMod)
-                            df_Xmod = read_data(resdir,
-                                                modified_data_path,
-                                                nameMod)
+                        if (isCodeDataMod & isCodeMod) {
+                            df_Xdata_code = read_data(resdir,
+                                                      modified_data_path,
+                                                      nameDataMod)
+                            df_Xmod_code = read_data(resdir,
+                                                     modified_data_path,
+                                                     nameMod)
+                            df_Xdata_read = rbind(df_Xdata_read, df_Xdata_code)
+                            df_Xmod_read = rbind(df_Xmod_read, df_Xmod_code)
                         }
 
-                        isCodeExtract = any(code %in% df_XEx$code)
-                        isCodeEstimate = any(code %in% df_Xtrend$code)
-                        if (isDataMod & isMod & isCodeExtract & isCodeEstimate) {
-                            okCode = c(okCode, code)
+                        isCodeExtract = any(code %in% df_XEx_read$code)
+                        isCodeEstimate = any(code %in% df_Xtrend_read$code)
+
+                        for (per in input_trend_period) {
+                            df_Xtrend_code =
+                                df_Xtrend_read[df_Xtrend_read$code == code,]
+                            isPerEstimate = any(per %in% df_Xtrend_code$input_period)
+
+                            if (!isCodeDataMod | !isCodeMod | !isCodeExtract | !isCodeEstimate | !isPerEstimate) {
+                                missingCode = c(missingCode, code)
+                            }
                         }
                     }
-                }
+                    
+                } else {
+                    missingCode = Code
+                }                
             }
 
-            df_data_missing = df_data[!(df_data$code %in% okCode),]
-            df_meta_missing = df_meta[!(df_meta$code %in% okCode),]
+
+            if (!is.null(missingCode)) {
+                df_data_missing = df_data[df_data$code %in% missingCode,]
+                df_meta_missing = df_meta[df_meta$code %in% missingCode,]
                 
-            res = get_Xtrend(var,
-                             df_data_missing, df_meta_missing,
-                             period=trend_period,
-                             hydroYear=hydroYear,
-                             alpha=alpha,
-                             df_flag=df_flag,
-                             sampleSpan=sampleSpan,
-                             yearNA_lim=yearNA_lim,
-                             dayLac_lim=dayLac_lim,
-                             NA_pct_lim=NA_pct_lim,
-                             day_to_roll=day_to_roll,
-                             functM=functM,
-                             functM_args=functM_args,
-                             isDateM=isDateM,
-                             functY=functY,
-                             functY_args=functY_args,
-                             isDateY=isDateY,
-                             functYT_ext=functYT_ext,
-                             functYT_ext_args=functYT_ext_args,
-                             isDateYT_ext=isDateYT_ext,
-                             functYT_sum=functYT_sum,
-                             functYT_sum_args=functYT_sum_args)
-            
-            df_Xdata_missing = res$data
-            df_Xmod_missing = res$mod
-            res_Xanalyse_missing = res$analyse
-            # Gets the extracted data for the variable
-            df_XEx_missing = res_Xanalyse$extract
-            # Gets the trend results for the variable
-            df_Xtrend_missing = res_Xanalyse$estimate
+                res = get_Xtrend(var,
+                                 df_data_missing, df_meta_missing,
+                                 period=trend_period,
+                                 hydroYear=hydroYear,
+                                 alpha=alpha,
+                                 df_flag=df_flag,
+                                 sampleSpan=sampleSpan,
+                                 yearNA_lim=yearNA_lim,
+                                 dayLac_lim=dayLac_lim,
+                                 NA_pct_lim=NA_pct_lim,
+                                 day_to_roll=day_to_roll,
+                                 functM=functM,
+                                 functM_args=functM_args,
+                                 isDateM=isDateM,
+                                 functY=functY,
+                                 functY_args=functY_args,
+                                 isDateY=isDateY,
+                                 functYT_ext=functYT_ext,
+                                 functYT_ext_args=functYT_ext_args,
+                                 isDateYT_ext=isDateYT_ext,
+                                 functYT_sum=functYT_sum,
+                                 functYT_sum_args=functYT_sum_args)
 
+                df_Xdata = res$data
+                df_Xmod = res$mod
+                res_Xanalyse = res$analyse
+                # Gets the extracted data for the variable
+                df_XEx = res_Xanalyse$extract
+                # Gets the trend results for the variable
+                df_Xtrend = res_Xanalyse$estimate
 
-            df_Xdata = rbind()
-                df_Xmod =
-                    df_XEx = 
-                        df_Xtrend =
-                            res_Xanalyse = list(extract=df_XEx, estimate=df_Xtrend)
-            
+                if (!all(Code %in% missingCode)) {
+                    df_Xdata = rbind(df_Xdata_read, df_Xdata)
+                    df_Xmod = rbind(df_Xmod_read, df_Xmod)
+                    df_XEx = rbind(df_XEx_read, df_XEx)
+                    df_Xtrend = rbind(df_Xtrend_read, df_Xtrend)
+                    res_Xanalyse = list(extract=df_XEx, estimate=df_Xtrend)
+                }
+                
+            } else {
+                df_Xdata = df_Xdata_read
+                df_Xmod = df_Xmod_read
+                res_Xanalyse = res_Xanalyse_read
+                df_XEx = df_XEx_read
+                df_Xtrend = df_Xtrend_read
+            }
 
             if ('data' %in% to_assign_out) {
                 assign(paste0('df_', var, 'data'), df_Xdata)

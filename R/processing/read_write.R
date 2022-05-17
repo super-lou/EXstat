@@ -152,15 +152,14 @@ read_analyse = function (resdir, filedir) {
         for (j in 1:ncol(df)) {
             if (is.factor(df[[j]])) {
                 d = try(as.Date(df[[1, j]], format="%Y-%m-%d"))
-                if("try-error" %in% class(d) || is.na(d)) {
+                test = nchar(as.character(df[[1, j]])) > 10
+                if("try-error" %in% class(d) || is.na(d) | test) {
                     df[j] = as.character(df[[j]])
                 } else {
                     df[j] = as.Date(df[[j]])
                 }
             }
         }
-        # OkFact = sapply(df, is.factor)
-        # df[OkFact] = lapply(df[OkFact], as.character)
         
         Ldf = append(Ldf, list(df))
         names(Ldf)[length(Ldf)] = name

@@ -155,9 +155,16 @@ Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
     colnames(df_Xtrend)[1] = 'group'
     df_Xtrend = tibble(code=info$code[df_Xtrend$group],
                        df_Xtrend[-1])
-        
-    df_Xtrend = get_intercept(df_Xtrend, df_XEx)
-    df_Xtrend = get_period(df_Xtrend, df_XEx)
+
+
+    print('')
+    print(period)
+    print(paste(period, collapse='/'))
+    print('')
+    
+    df_Xtrend = get_intercept(df_XEx, df_Xtrend)
+    df_Xtrend = get_period(df_XEx, df_Xtrend)
+    df_Xtrend$input_period = paste(period, collapse='/')
     
     return (df_Xtrend)
 }
@@ -224,24 +231,28 @@ convert_dateEx = function(df_XEx, df_data, hydroYear="01-01") {
 #### 2.3.2. Period of trend analysis _________________________________
 # Compute the start and the end of the period for a trend analysis
 # according to the accessible data 
-get_period = function (df_Xtrend, df_XEx) {
+get_period = function (df_XEx, df_Xtrend=NULL) {
 
     df_Start = summarise(group_by(df_XEx, code),
                          Start=min(Date, na.rm=TRUE))
     
     df_End = summarise(group_by(df_XEx, code),
                        End=max(Date, na.rm=TRUE))
-    
-    df_Xtrend$period_start = df_Start$Start
-    df_Xtrend$period_end = df_End$End
-    
-    return (df_Xtrend)
+
+    if (!is.null(df_Xtrend)) {
+        df_Xtrend$period_start = df_Start$Start
+        df_Xtrend$period_end = df_End$End
+        return (df_Xtrend)
+    } else {
+        res = list(Start=df_Start, End=df_End)
+        return (res)
+    }
 }
 
 #### 2.3.3. Intercept of trend _______________________________________
 # Compute intercept values of linear trends with first order values
 # of trends and the data on which analysis is performed.
-get_intercept = function (df_Xtrend, df_XEx, unit2day=365.25) {
+get_intercept = function (df_XEx, df_Xtrend, unit2day=365.25) {
 
     df_mu_X = summarise(group_by(df_XEx, code),
                         mu_X=mean(Value, na.rm=TRUE))

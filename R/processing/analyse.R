@@ -200,6 +200,7 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
         # Compute the trend analysis
         df_Xtrend = Estimate_stats_WRAP(df_XEx=df_XEx,
                                         alpha=alpha,
+                                        period=per,
                                         dep_option='AR1')
         
         # Get the associated time interval

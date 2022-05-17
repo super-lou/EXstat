@@ -121,8 +121,8 @@ var_dir = 'variable'
 var_to_analyse_dir =
     # ''
     # 'AEAG_selection'
-    'shiny'
-    # 'wip'
+    # 'shiny'
+    'wip'
 
 to_assign_out = c(
     # 'data',
@@ -166,7 +166,7 @@ df_flag = data.frame(
 
 ### 3.4. Saving option _______________________________________________
 saving = c(
-    # 'data',
+    'data',
     'meta',
     'analyse'
 )

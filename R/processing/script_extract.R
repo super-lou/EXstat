@@ -103,8 +103,11 @@ if ('station_extraction' %in% to_do) {
                              list_from=list('docx', 'txt', 'manual'))
     df_data = df_join$data
     df_meta = df_join$meta
+
+    # Get all different stations code
+    Code = levels(factor(df_meta$code))
     
-### 1.5. Computes other info about stations __________________________
+### 1.5. Add other info about stations _______________________________
     # Time gap
     df_meta = get_lacune(df_data, df_meta)
     # Hydrograph
