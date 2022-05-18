@@ -39,13 +39,15 @@ source(file.path('R', 'plotting', 'layout.R'), encoding='UTF-8')
 
 ## 0. SHAPEFILE LOADING ______________________________________________
 # Shapefile importation in order to do it only once time
-df_shapefile = load_shapefile(resources_path, df_meta,
-                              fr_shpdir, fr_shpname,
-                              bs_shpdir, bs_shpname,
-                              sbs_shpdir, sbs_shpname,
-                              cbs_shpdir, cbs_shpname, cbs_coord,
-                              rv_shpdir, rv_shpname,
-                              river_selection=river_selection)
+if (!exists("df_shapefile")) {
+    df_shapefile = load_shapefile(resources_path, df_meta,
+                                  fr_shpdir, fr_shpname,
+                                  bs_shpdir, bs_shpname,
+                                  sbs_shpdir, sbs_shpname,
+                                  cbs_shpdir, cbs_shpname, cbs_coord,
+                                  rv_shpdir, rv_shpname,
+                                  river_selection=river_selection)
+}
 
 logo_path = load_logo(resources_path, logo_dir, PRlogo_file,
                       AEAGlogo_file, INRAElogo_file, FRlogo_file,
@@ -104,7 +106,8 @@ if ('station_trend_plot' %in% to_do) {
                  resdir=resdir,
                  logo_path=logo_path,
                  zone_to_show=zone_to_show,
-                 pdf_chunk=pdf_chunk)
+                 pdf_chunk=pdf_chunk,
+                 show_colorEvent=show_colorEvent)
 }
 
 

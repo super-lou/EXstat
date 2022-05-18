@@ -47,7 +47,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             info_height, time_height,
                             var_ratio, foot_height,
                             paper_size, df_shapefile, logo_path,
-                            zone_to_show,
+                            zone_to_show, show_colorEvent,
                             outdirTmp_pdf, outdirTmp_png,
                             df_page=NULL) {
 
@@ -344,6 +344,16 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             P[[i+nbh]] = p
         }
 
+
+        # If paper format is A4
+        if (paper_size == 'A4') {
+            width = 21
+            height = 29.7
+        } else if (is.vector(paper_size) & length(paper_size) > 1) {
+            width = paper_size[1]
+            height = paper_size[2]
+        }
+        
         nVar_max = 5
 
         nEvent = length(structure)
@@ -359,6 +369,13 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             for (page in 1:nVar_page) {
 
                 page_code = page_code + 1
+
+                if (event != 'Recap') {
+                    space = 0.7
+                    Hevent = event_panel(event, colorEvent, colorTextEvent)
+                    P[[1]] = merge_panel(add=Hevent, to=Hinfo,
+                                         widths=c(space, width-space))
+                }
                 
                 if (foot_note) {
                     if (event != 'Recap') {
@@ -426,15 +443,6 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                     LM = rbind(LM, id_foot)
                 } else {
                     foot_height = 0
-                }
-                
-                # If paper format is A4
-                if (paper_size == 'A4') {
-                    width = 21
-                    height = 29.7
-                } else if (is.vector(paper_size) & length(paper_size) > 1) {
-                    width = paper_size[1]
-                    height = paper_size[2]
                 }
 
                 LMcol = ncol(LM)
@@ -1393,7 +1401,40 @@ time_panel = function (df_data_code, df_trend_code, var, type,
     return(p)
 }
 
-### 2.2. Info panel __________________________________________________
+### 2.2. Event panel _________________________________________________
+event_panel = function(event, colorEvent, colorTextEvent) {
+
+    if (event != 'Recap') {
+        plot = ggplot() + theme_void() +
+            
+            theme(plot.margin=margin(t=0, r=3, b=0, l=0, unit="mm")) + 
+            
+            annotate("rect",
+                     xmin=0, xmax=1,
+                     ymin=0, ymax=5,
+                     fill=colorEvent[event]) +
+            
+            annotate("text",
+                     x=0.5, y=0.1,
+                     vjust=0.5, hjust=0,
+                     label=toupper(event),
+                     color=colorTextEvent[event],
+                     fontface="bold",
+                     size=2.9,
+                     angle=90) +
+            
+            scale_x_continuous(limits=c(0, 1),
+                               expand=c(0, 0)) +
+            
+            scale_y_continuous(limits=c(0, 5),
+                               expand=c(0, 0))
+    } else {
+        plot = void
+    }
+    return (plot)
+}
+
+### 2.3. Info panel __________________________________________________
 # Plots the header that regroups all the info on the station
 info_panel = function(list_df2plot, df_meta, trend_period=NULL,
                       mean_period=NULL, periodHyd=NULL,

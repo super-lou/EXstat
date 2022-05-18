@@ -114,43 +114,43 @@ if ('station_trend_analyse' %in% to_do) {
                                                    'estimate.txt'))
 
                 if (isExtract & isEstimate) {
-                    res_Xanalyse_read = read_analyse(resdir, trend_path)
-                    df_XEx_read = res_Xanalyse_read$extract
-                    df_Xtrend_read = res_Xanalyse_read$estimate
+                    res_Xanalyse_save = read_analyse(resdir, trend_path)
+                    df_XEx_save = res_Xanalyse_save$extract
+                    df_Xtrend_save = res_Xanalyse_save$estimate
 
-                    df_XEx_read = df_XEx_read[df_XEx_read$code %in% Code,]
-                    df_Xtrend_read = df_Xtrend_read[df_Xtrend_read$code %in% Code,]
+                    df_XEx_read = df_XEx_save[df_XEx_save$code %in% Code,]
+                    df_Xtrend_read = df_Xtrend_save[df_Xtrend_save$code %in% Code,]
                     df_Xtrend_read = df_Xtrend_read[df_Xtrend_read$input_period %in% input_trend_period,]
                     res_Xanalyse_read = list(extract=df_XEx_read, estimate=df_Xtrend_read)
                     
-                    modified_data_path = file.path(modified_data_dir, var,
-                                                   monthHydroYear)
+                    # modified_data_path = file.path(modified_data_dir, var,
+                                                   # monthHydroYear)
                     
-                    df_Xdata_read = tibble()
-                    df_Xmod_read = tibble()
+                    # df_Xdata_read = tibble()
+                    # df_Xmod_read = tibble()
                     for (code in Code) {
-                        nameDataMod = paste0(code, '.txt')
-                        isCodeDataMod = file.exists(
-                            file.path(resdir,
-                                      modified_data_path,
-                                      nameDataMod))
+                        # nameDataMod = paste0(code, '.txt')
+                        # isCodeDataMod = file.exists(
+                        #     file.path(resdir,
+                        #               modified_data_path,
+                        #               nameDataMod))
                         
-                        nameMod = paste0(code, '_modification.txt')
-                        isCodeMod = file.exists(
-                            file.path(resdir,
-                                      modified_data_path,
-                                      nameMod))
+                        # nameMod = paste0(code, '_modification.txt')
+                        # isCodeMod = file.exists(
+                        #     file.path(resdir,
+                        #               modified_data_path,
+                        #               nameMod))
 
-                        if (isCodeDataMod & isCodeMod) {
-                            df_Xdata_code = read_data(resdir,
-                                                      modified_data_path,
-                                                      nameDataMod)
-                            df_Xmod_code = read_data(resdir,
-                                                     modified_data_path,
-                                                     nameMod)
-                            df_Xdata_read = rbind(df_Xdata_read, df_Xdata_code)
-                            df_Xmod_read = rbind(df_Xmod_read, df_Xmod_code)
-                        }
+                        # if (isCodeDataMod & isCodeMod) {
+                        #     df_Xdata_code = read_data(resdir,
+                        #                               modified_data_path,
+                        #                               nameDataMod)
+                        #     df_Xmod_code = read_data(resdir,
+                        #                              modified_data_path,
+                        #                              nameMod)
+                        #     df_Xdata_read = rbind(df_Xdata_read, df_Xdata_code)
+                        #     df_Xmod_read = rbind(df_Xmod_read, df_Xmod_code)
+                        # }
 
                         isCodeExtract = any(code %in% df_XEx_read$code)
                         isCodeEstimate = any(code %in% df_Xtrend_read$code)
@@ -160,7 +160,8 @@ if ('station_trend_analyse' %in% to_do) {
                                 df_Xtrend_read[df_Xtrend_read$code == code,]
                             isPerEstimate = any(per %in% df_Xtrend_code$input_period)
 
-                            if (!isCodeDataMod | !isCodeMod | !isCodeExtract | !isCodeEstimate | !isPerEstimate) {
+                            # if (!isCodeDataMod | !isCodeMod | !isCodeExtract | !isCodeEstimate | !isPerEstimate) {
+                            if (!isCodeExtract | !isCodeEstimate | !isPerEstimate) {
                                 missingCode = c(missingCode, code)
                             }
                         }
@@ -169,6 +170,8 @@ if ('station_trend_analyse' %in% to_do) {
                 } else {
                     missingCode = Code
                 }                
+            } else {
+                missingCode = Code
             }
 
 
@@ -208,22 +211,26 @@ if ('station_trend_analyse' %in% to_do) {
                 df_Xtrend = res_Xanalyse$estimate
 
                 if (!all(Code %in% missingCode)) {
-                    df_Xdata = rbind(df_Xdata_read, df_Xdata)
-                    df_Xmod = rbind(df_Xmod_read, df_Xmod)
+                    # df_Xdata = rbind(df_Xdata_read, df_Xdata)
+                    # df_Xmod = rbind(df_Xmod_read, df_Xmod)
+                    df_Xdata = 'analyse read'
+                    df_Xmod = 'analyse read'
                     df_XEx = rbind(df_XEx_read, df_XEx)
                     df_Xtrend = rbind(df_Xtrend_read, df_Xtrend)
                     res_Xanalyse = list(extract=df_XEx, estimate=df_Xtrend)
                 }
                 
             } else {
-                df_Xdata = df_Xdata_read
-                df_Xmod = df_Xmod_read
+                # df_Xdata = df_Xdata_read
+                # df_Xmod = df_Xmod_read
+                df_Xdata = 'analyse read'
+                df_Xmod = 'analyse read'
                 res_Xanalyse = res_Xanalyse_read
                 df_XEx = df_XEx_read
                 df_Xtrend = df_Xtrend_read
             }
 
-            if ('data' %in% to_assign_out) {
+            if ('modified_data' %in% to_assign_out) {
                 assign(paste0('df_', var, 'data'), df_Xdata)
                 assign(paste0('df_', var, 'mod'), df_Xmod)
             }
@@ -240,7 +247,7 @@ if ('station_trend_analyse' %in% to_do) {
             }
 
 ### 1.3. Saving ______________________________________________________
-            if ('data' %in% saving) {
+            if ('modified_data' %in% saving & !read_results) {
                 # Writes modified data
                 write_data(df_Xdata, df_Xmod, resdir,
                            filedir=file.path(modified_data_dir,

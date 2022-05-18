@@ -103,6 +103,11 @@ palette_perso = c('#0f3b57', # cold
                   '#d08363',
                   '#7e392f') # hot
 
+colorEvent = c("#423089", "#9ed6e3", "#9dc544", "#ed6e6c")
+colorTextEvent = c("#9687d5", "#d8eff4", "#cee2a2", "#f6b6b5")
+names(colorEvent) = c("Crue", "Crue Nivale", "Moyennes Eaux", "Étiage")
+names(colorTextEvent) = c("Crue", "Crue Nivale", "Moyennes Eaux", "Étiage")
+
 
 ## 2. USEFUL GENERICAL PLOT __________________________________________
 ### 2.1. Void plot ___________________________________________________
@@ -152,7 +157,8 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                          resdir=NULL,
                          logo_path=NULL,
                          zone_to_show=NULL,
-                         pdf_chunk=c('all')) {
+                         pdf_chunk=c('all'),
+                         show_colorEvent=FALSE) {
 
     # Name of the document
     outfile = "ASH"
@@ -347,6 +353,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                   df_shapefile=df_shapefile,
                                   logo_path=logo_path,
                                   zone_to_show=zone_to_show,
+                                  show_colorEvent=show_colorEvent,
                                   outdirTmp_pdf=outdirTmp_pdf,
                                   outdirTmp_png=outdirTmp_png, 
                                   df_page=df_page)
@@ -372,11 +379,6 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         listfile_path = c(summary_path, listfile_path)
     }
 
-    if ('all' %in% pdf_chunk) {
-        pdf_combine(input=listfile_path,
-                    output=file.path(outdir, outfile))
-    }
-
     if ('by_code' %in% pdf_chunk) {
         # Get all different stations code
         Code = levels(factor(df_meta$code))
@@ -386,6 +388,13 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                         output=file.path(outdir_code, paste0(code, '.pdf')))
         }
     }
+    
+    if ('all' %in% pdf_chunk) {
+        pdf_combine(input=listfile_path,
+                    output=file.path(outdir, outfile))
+    }
+
+
 
     
 } 

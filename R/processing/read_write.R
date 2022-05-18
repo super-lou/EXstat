@@ -295,7 +295,7 @@ splitext = function(file) { # file_ext
     ex = strsplit(basename(file), split="\\.")[[1]]
     res = list(name=ex[1], extension=ex[2])
     return (res)
-} 
+}
 
 split_path = function (path) {
   if (dirname(path) %in% c(".", path)) return(basename(path))

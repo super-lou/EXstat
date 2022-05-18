@@ -253,6 +253,14 @@ gg_circle = function(r, xc, yc, color="black", fill=NA, ...) {
              fill=fill, ...)
 }
 
+### 2.2. Merge _______________________________________________________
+merge_panel = function (add, to, widths=NULL, heights=NULL) {
+    # Plot the graph as the layout
+    plot = grid.arrange(grobs=list(add, to),
+                        heights=heights, widths=widths)
+    return (plot)
+}
+
 
 ## 3. NUMBER MANAGEMENT ______________________________________________
 ### 3.1. Number formatting ___________________________________________
