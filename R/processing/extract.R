@@ -356,6 +356,24 @@ get_selection_DOCX = function (computer_data_path, listdir, listname,
 
 
 ## 3. EXTRACTION _____________________________________________________
+convert_regexp = function (computer_data_path, filedir, filename) {
+    # Get all the filename in the data directory selected
+    filelist_dir = list.files(file.path(computer_data_path,
+                                        filedir))
+    filelist = c()
+    for (f in filename) {
+        # Get the file path to the data
+        file_path = file.path(computer_data_path, filedir, f)
+        if (file.exists(file_path)) {
+            filelist = c(filelist, file_path) 
+        } else {
+            filelist = c(filelist,
+                         filelist_dir[grepl(f, filelist_dir)])
+        }
+    }
+    return (filelist)
+}
+
 ### 3.1. Extraction of metadata ______________________________________
 #' @title Extract metadata
 #' @description Extraction of metadata of stations.
@@ -375,9 +393,9 @@ extract_meta = function (computer_data_path, filedir, filename,
     
     # Convert the filename in vector
     filename = c(filename)
-    
+
     # If the filename is 'all' or regroup more than one filename
-    if (all(filename == 'all') | length(filename) > 1) {
+    if (all(filename == 'all') | length(filename) > 1 ) {
 
         # If the filename is 'all'
         if (all(filename == 'all')) {

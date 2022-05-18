@@ -71,8 +71,8 @@ computer_work_path =
 # ash\\data\\.
 filedir =
     # ""
-    "AEAG_selection"
-    # "RRSE"
+    # "AEAG_selection"
+    "RRSE"
 
 # Name of the files that will be analysed from the data directory
 # (if "all", all the file of the directory will be chosen)
@@ -83,7 +83,8 @@ filename =
         # "S2235610_HYDRO_QJM.txt",
         # "O1484320_HYDRO_QJM.txt", 
         # "Q7002910_HYDRO_QJM.txt",
-        "O0362510_HYDRO_QJM.txt"
+        # "O0362510_HYDRO_QJM.txt",
+        "^[A-I]"
     )
 
 ## 3. WHAT YOU WANT TO DO ____________________________________________
@@ -103,7 +104,7 @@ filename =
 to_do =
     c(
         # 'station_extraction',
-        # 'station_trend_analyse',
+        # 'station_trend_analyse'
         'station_trend_plot'
     )
 
@@ -122,8 +123,12 @@ periodSub =
 # - periodRef tends to represent the reference period of the climate
 # - periodCur tends to represent the current period
 # flow data
-periodRef = c("1968-01-01", "1988-12-31")
-periodCur = c("2000-01-01", "2020-12-31")
+periodRef =
+    NULL
+    # c("1968-01-01", "1988-12-31")
+periodCur =
+    NULL
+    # c("2000-01-01", "2020-12-31")
 
 
 ## 5. ADVANCED SETTINGS ______________________________________________
@@ -142,7 +147,7 @@ modify_advanced_settings = FALSE
 setwd(computer_work_path)
 
 # Creates list of period for trend analysis
-trend_period = list()
+trend_period = NULL
 if (!is.null(periodAll)) {
     trend_period = append(trend_period, list(periodAll))
 }
@@ -150,7 +155,7 @@ if (!is.null(periodSub)) {
     trend_period = append(trend_period, list(periodSub))
 }
 # Creates list of period for average analysis
-mean_period = list()
+mean_period = NULL
 if (!is.null(periodRef)) {
     mean_period = append(mean_period, list(periodRef))
 }

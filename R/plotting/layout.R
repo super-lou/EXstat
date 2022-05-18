@@ -160,14 +160,16 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                          pdf_chunk=c('all'),
                          show_colorEvent=FALSE) {
 
+    dateFile = format(Sys.Date(), "%Y%m%d")
+
     # Name of the document
     outfile = "ASH"
     # If there is an option to mention in the filename it adds it
     if (filename_opt != '') {
-        outfile = paste(outfile, '_', filename_opt, sep='')
+        outfile = paste0(outfile, '_', filename_opt)
     }
     # Add the 'pdf' extensionto the name
-    outfile = paste(outfile, '.pdf', sep='')
+    outfile = paste0(outfile, '_', dateFile, '.pdf')
 
     # If there is not a dedicated figure directory it creats one
     outdir = file.path(figdir, filedir_opt)
@@ -176,7 +178,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
     }
 
     # If there is not a dedicated figure directory it creats one
-    outdir_code = file.path(figdir, filedir_opt, 'ASH')
+    outdir_code = file.path(figdir, filedir_opt, paste0('ASH_', dateFile))
     if (!(file.exists(outdir_code))) {
         dir.create(outdir_code)
     }
@@ -189,8 +191,10 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
     # If it already exists it deletes the pre-existent directory
     # and recreates one
     } else {
-        unlink(outdirTmp, recursive=TRUE)
-        dir.create(outdirTmp)
+        if (!is.null(to_plot)) {
+            unlink(outdirTmp, recursive=TRUE)
+            dir.create(outdirTmp)
+        }
     }
 
     outdirTmp_pdf = file.path(outdirTmp, 'pdf')
@@ -379,7 +383,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         listfile_path = c(summary_path, listfile_path)
     }
 
-    if ('by_code' %in% pdf_chunk) {
+    if (pdf_chunk == 'by_code') {
         # Get all different stations code
         Code = levels(factor(df_meta$code))
         for (code in Code) {
@@ -389,7 +393,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         }
     }
     
-    if ('all' %in% pdf_chunk) {
+    if (pdf_chunk == 'all') {
         pdf_combine(input=listfile_path,
                     output=file.path(outdir, outfile))
     }

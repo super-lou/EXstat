@@ -87,6 +87,7 @@ if ('station_extraction' %in% to_do) {
 
 ### 1.3. Manual selection ____________________________________________
     if (all(filename != "")) {
+        filename = convert_regexp(computer_data_path, filedir, filename)
         # Extract metadata about selected stations
         df_meta_MAN = extract_meta(computer_data_path, filedir, filename)
         # Extract data about selected stations
@@ -111,12 +112,18 @@ if ('station_extraction' %in% to_do) {
     # Time gap
     df_meta = get_lacune(df_data, df_meta)
     # Hydrograph
+
+    if (!is.null(mean_period[[1]])) {
+        period = mean_period[[1]]
+    } else {
+       period = trend_period[[1]] 
+    }
     df_meta = get_hydrograph(df_data, df_meta,
-                             period=mean_period[[1]])$meta
+                             period=period)$meta
 }
 
 
-## 2. EXTRACTION OF CLIMATE DATA
+## 2. EXTRACTION OF CLIMATE DATA______________________________________
 if ('climate_extraction' %in% to_do) {
     res = extract_climate_data(computer_data_path, 'climate',
                               colNames=c('Date', 'PRCP_mm',

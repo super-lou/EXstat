@@ -241,7 +241,7 @@ if ('station_trend_analyse' %in% to_do) {
                 assign(paste0('df_', var, 'trend'), df_Xtrend)
             }
 
-            if ('station_trend_plot' %in% to_do) {
+            if ('station_trend_plot' %in% to_do | is.null(saving)) {
                 df_data_analyse = append(df_data_analyse, list(df_XEx))
                 df_trend_analyse = append(df_trend_analyse, list(df_Xtrend))
             }

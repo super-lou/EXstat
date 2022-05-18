@@ -155,7 +155,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         code = Code[k]
         # Print code of the station for the current plotting
         print(paste("Datasheet for station : ", code,
-                    "   (", round(k/nCode*100, 0), " %)", 
+                    "   (", round(k/nCode*100, 1), " %)", 
                     sep=''))
         
         # Number of header (is info and time serie are needed)
@@ -370,7 +370,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
                 page_code = page_code + 1
 
-                if (event != 'Recap') {
+                if (event != 'Recap' & show_colorEvent) {
                     space = 0.7
                     Hevent = event_panel(event, colorEvent, colorTextEvent)
                     P[[1]] = merge_panel(add=Hevent, to=Hinfo,
