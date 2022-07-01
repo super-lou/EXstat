@@ -1,4 +1,4 @@
-var = "QIXA"
+var = "QJXA"
 type = "sévérité"
 glose = "Maximum annuel du débit journalier"
 event = "Crue"

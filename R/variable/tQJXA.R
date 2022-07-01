@@ -1,4 +1,4 @@
-var = "tQIXA"
+var = "tQJXA"
 type = "saisonnalité"
 glose = "Date du maximum annuel du débit journalier"
 event = "Crue"

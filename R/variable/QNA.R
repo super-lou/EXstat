@@ -1,8 +1,8 @@
-var = "QIXA"
+var = "QNA"
 type = "sévérité"
-glose = "Maximum annuel du débit journalier"
-event = "Crue"
-hydroYear = "09-01"
+glose = "Minimum annuel du débit journalier"
+event = "Étiage"
+hydroYear = "01-01"
 
 sampleSpan = NULL
 yearNA_lim = 10
@@ -14,7 +14,7 @@ functM = NULL
 functM_args = NULL
 isDateM = FALSE
 
-functY = max
+functY = min
 functY_args = list(na.rm=TRUE)
 isDateY = FALSE
 

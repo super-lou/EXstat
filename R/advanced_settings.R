@@ -121,8 +121,8 @@ var_dir = 'variable'
 var_to_analyse_dir =
     # ''
     # 'AEAG_selection'
-    'shiny'
-    # 'wip'
+    # 'shiny'
+    'wip'
 
 to_assign_out = c(
     # 'modified_data',
@@ -184,9 +184,9 @@ alpha = 0.1
 ## 4. PLOTTING PARAMETERS ____________________________________________
 # If the hydrological network needs to be plot
 river_selection =
-    # "none"
+    "none"
     # "all"
-    c("La Seine$", "'Yonne$", "La Marne$", "La Meuse", "La Moselle$", "^La Loire$", "^la Loire$", "^le cher$", "^La Creuse$", "^la Creuse$", "^La Vienne$", "^la Vienne$", "La Garonne$", "Le Tarn$", "Le Rhône$", "La Saône$")
+    # c("La Seine$", "'Yonne$", "La Marne$", "La Meuse", "La Moselle$", "^La Loire$", "^la Loire$", "^le cher$", "^La Creuse$", "^la Creuse$", "^La Vienne$", "^la Vienne$", "La Garonne$", "Le Tarn$", "Le Rhône$", "La Saône$")
 
 # Graphical selection of period
 axis_xlim =
@@ -221,7 +221,7 @@ zone_to_show =
     # 'Adour-Garonne'
 
 pdf_chunk =
-    'by_code'
-    # 'all'
+    # 'by_code'
+    'all'
     
 show_colorEvent = TRUE

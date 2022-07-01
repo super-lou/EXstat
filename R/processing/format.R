@@ -155,12 +155,6 @@ Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
     colnames(df_Xtrend)[1] = 'group'
     df_Xtrend = tibble(code=info$code[df_Xtrend$group],
                        df_Xtrend[-1])
-
-
-    print('')
-    print(period)
-    print(paste(period, collapse='/'))
-    print('')
     
     df_Xtrend = get_intercept(df_XEx, df_Xtrend)
     df_Xtrend = get_period(df_XEx, df_Xtrend)

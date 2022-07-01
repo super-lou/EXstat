@@ -114,28 +114,43 @@ missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL
             NJump = length(idJump)
 
             for (i in 1:NJump) {
-                idStart = idJump[i]
+                idStartNA = idJump[i]
                 
                 if (i < NJump) {
-                    idEnd = idJump[i+1] - 1
+                    idEndNA = idJump[i+1] - 1
                 } else {
-                    idEnd = length(DateNA)
+                    idEndNA = length(DateNA)
                 }
 
-                Start = DateNA[idStart]
-                End = DateNA[idEnd]
+                StartNA = DateNA[idStartNA]
+                EndNA = DateNA[idEndNA]
 
-                duration = (End - Start)/365.25
+                duration = (EndNA - StartNA)/365.25
                 if (duration >= yearNA_lim) {
-                    df_data_code$Value[df_data_code$Date <= End] = NA
+
+                    Start = min(df_data_code$Date, na.rm=TRUE)
+                    End = max(df_data_code$Date, na.rm=TRUE)
+                    
+                    Before = StartNA - Start
+                    After = End - EndNA
+                    if (Before < After) {
+                        df_data_code$Value[df_data_code$Date <= StartNA] = NA
+                        start = Start
+                        end = StartNA
+                    } else {
+                        df_data_code$Value[df_data_code$Date >= EndNA] = NA
+                        start = EndNA
+                        end = End
+                    }
                     
                     if (!is.null(df_mod)) {
                         df_mod =
                             add_mod(df_mod, code,
                                     type='Missing data management',
                                     fun_name='NA assignment',
-                                    comment=paste('From the start of measurements',
-                                                  ' to ', End, sep=''))
+                                    comment=paste('From ', start,
+                                                  ' of measurements',
+                                                  ' to ', end, sep=''))
                     }
                 }
             }

@@ -193,14 +193,13 @@ copy_selection = function (select_dir, select_file, from_dir, to_dir,
 #     codeCol='Num',
 #     codeSwipe=list(c("H78335XX", "H7833520"),
 #                    c("H21220XX", "H2122010")),
-#     codeRm=c("H2342020", "J8433010", "K0673310"))
+#     codeRm=c("H2342020", "J8433010"))
 
 # missing : K0010010, H78335XX, K7414010, H21220XX
 # H78335XX becomes H7833520
 # H21220XX becomes H2122010
 # H2342020 removed (too short period)
 # J8433010 removed (too short period)
-# K0673310 removed (to many missing data)
 
 
 ### 2.1. Creation of a selection _____________________________________
@@ -218,7 +217,7 @@ copy_selection = function (select_dir, select_file, from_dir, to_dir,
 #' @return Writes a selection '.txt' file of data filename of
 #' stations.
 #' @export
-create_selection <- function (computer_data_path, filedir, outname,
+create_selection = function (computer_data_path, filedir, outname,
                              optname='_HYDRO_QJM') {
 
     # Out file for store results
@@ -365,7 +364,7 @@ convert_regexp = function (computer_data_path, filedir, filename) {
         # Get the file path to the data
         file_path = file.path(computer_data_path, filedir, f)
         if (file.exists(file_path)) {
-            filelist = c(filelist, file_path) 
+            filelist = c(filelist, f) 
         } else {
             filelist = c(filelist,
                          filelist_dir[grepl(f, filelist_dir)])
