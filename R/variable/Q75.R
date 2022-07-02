@@ -1,6 +1,6 @@
-var = "QA"
+var = "Q75"
 type = "sévérité"
-glose = "Moyenne annuelle du débit journalier"
+glose = "Décile Q75 (débits classés)"
 event = "Moyennes Eaux"
 hydroYear = "09-01"
 
@@ -14,11 +14,13 @@ functM = NULL
 functM_args = NULL
 isDateM = FALSE
 
+compute_Qp = function (Q, p) {
+    Qp = quantile(Q[!is.na(Q)], p)
+    return (Qp)
+}
 
-quantile(Q, p)
-
-functY = mean
-functY_args = list(na.rm=TRUE)
+functY = compute_Qp
+functY_args = list(p=0.75)
 isDateY = FALSE
 
 functYT_ext = NULL

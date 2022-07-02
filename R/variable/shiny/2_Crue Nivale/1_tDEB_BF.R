@@ -1,8 +1,8 @@
-var = "tCENfon"
+var = "tDEB_BF"
 type = "saisonnalité"
-glose = "Centre de la crue nivale (50% du volume de fonte est atteint)"
+glose = "Début des écoulements lents (date lorsque 10% de l’intégrale sous la courbe du débit de base est atteinte)"
 event = "Crue Nivale"
-hydroYear = "01-01"
+hydroYear = "09-01"
 
 sampleSpan = NULL
 yearNA_lim = 10
@@ -22,14 +22,13 @@ which.minNA = function (x) {
     return (idMin)
 }
 
-compute_VolSnowmelt = function (X, p) {
+compute_tVolSnowmelt = function (X, p) {
     BF = BFS(X)
     VolSnowmelt = cumsum(BF)
     pVolSnowmelt = VolSnowmelt/max(VolSnowmelt, na.rm=TRUE)
     idp = which.minNA(abs(pVolSnowmelt - p))
     return (idp)
 }
-
 
 BFS = function (Q, d=5, w=0.9) {
 
@@ -69,8 +68,8 @@ BFS = function (Q, d=5, w=0.9) {
 }
 
 
-functY = compute_VolSnowmelt
-functY_args = list(p=0.5)
+functY = compute_tVolSnowmelt
+functY_args = list(p=0.1)
 isDateY = TRUE
 
 functYT_ext = NULL

@@ -2,7 +2,7 @@ var = "tDEB_BF"
 type = "saisonnalité"
 glose = "Début des écoulements lents (date lorsque 10% de l’intégrale sous la courbe du débit de base est atteinte)"
 event = "Crue Nivale"
-hydroYear = "01-01"
+hydroYear = "09-01"
 
 sampleSpan = NULL
 yearNA_lim = 10

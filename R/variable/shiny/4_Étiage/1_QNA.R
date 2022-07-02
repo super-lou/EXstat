@@ -1,8 +1,8 @@
-var = "QA"
+var = "QNA"
 type = "sévérité"
-glose = "Moyenne annuelle du débit journalier"
-event = "Moyennes Eaux"
-hydroYear = "09-01"
+glose = "Minimum annuel du débit journalier"
+event = "Étiage"
+hydroYear = "01-01"
 
 sampleSpan = NULL
 yearNA_lim = 10
@@ -14,10 +14,7 @@ functM = NULL
 functM_args = NULL
 isDateM = FALSE
 
-
-quantile(Q, p)
-
-functY = mean
+functY = min
 functY_args = list(na.rm=TRUE)
 isDateY = FALSE
 
