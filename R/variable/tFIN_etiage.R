@@ -1,13 +1,15 @@
 var = "tFIN_etiage"
 type = "saisonnalité"
+unit = "jour de l'année"
 glose = "Fin d'étiage (jour de l'année de la dernière moyenne sur 10 jours sous le maximum des VCN10)"
 event = "Étiage"
 hydroYear = "01-01"
+hydroPeriod = c('05-01', '11-30')
 
 sampleSpan = c('05-01', '11-30')
 yearNA_lim = 10
-dayLac_lim = 3
-NA_pct_lim = NULL
+dayLac_lim = NULL
+NA_pct_lim = 1
 day_to_roll = 10
 
 functM = NULL

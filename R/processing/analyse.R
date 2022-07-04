@@ -49,7 +49,8 @@ source(file.path('R', 'processing', 'correction.R'), encoding='UTF-8')
 
 ## 1. TREND ANALYSIS _________________________________________________
 ### 1.0. X ___________________________________________________________
-get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
+get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
+                       hydroPeriod, alpha,
                        df_flag=NULL, sampleSpan=NULL, yearNA_lim=NULL,
                        dayLac_lim=NULL, NA_pct_lim=NULL,
                        day_to_roll=NULL,
@@ -131,6 +132,7 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
                             funct=functM,
                             period=per,
                             hydroYear="01",
+                            hydroPeriod=hydroPeriod,
                             timestep='year-month',
                             isDate=isDateM),
                        functM_args))
@@ -145,6 +147,7 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
                             funct=functYT_ext,
                             period=per,
                             hydroYear=hydroYear,
+                            hydroPeriod=hydroPeriod,
                             timestep='year',
                             isDate=isDateYT_ext),
                        functYT_ext_args))
@@ -170,6 +173,7 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
                                 funct=functY,
                                 period=per,
                                 hydroYear=hydroYear,
+                                hydroPeriod=hydroPeriod,
                                 timestep='year',
                                 isDate=isDateY),
                            functY_args))
@@ -183,6 +187,7 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
                             funct=functY,
                             period=per,
                             hydroYear=hydroYear,
+                            hydroPeriod=hydroPeriod,
                             timestep='year',
                             isDate=isDateY),
                        functY_args))
@@ -213,7 +218,7 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear, alpha,
         }
         # Store the trend
         df_Xtrend_all = bind_rows(df_Xtrend_all, df_Xtrend)
-    } 
+    }
 
     # Creates a list of results to return
     res_analyse = list(extract=df_XEx_all, estimate=df_Xtrend_all)

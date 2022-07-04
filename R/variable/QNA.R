@@ -1,13 +1,15 @@
 var = "QNA"
 type = "sévérité"
+unit = "m^{3}.s^{-1}"
 glose = "Minimum annuel du débit journalier"
 event = "Étiage"
 hydroYear = "01-01"
+hydroPeriod = c("01-01", "12-31")
 
 sampleSpan = NULL
 yearNA_lim = 10
-dayLac_lim = 3
-NA_pct_lim = NULL
+dayLac_lim = NULL
+NA_pct_lim = 1
 day_to_roll = NULL
 
 functM = NULL

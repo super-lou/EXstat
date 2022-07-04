@@ -1,14 +1,15 @@
 var = "vDEF_etiage"
 type = "Volume"
-unit = "m^3"
+unit = "m^{3}"
 glose = "Volume de déficite de l'étiage (intégrale de la courbe de la moyenne sur 10 jours sous le maximum des VCN10)"
 event = "Étiage"
 hydroYear = "01-01"
+hydroPeriod = c('05-01', '11-30')
 
 sampleSpan = c('05-01', '11-30')
 yearNA_lim = 10
-dayLac_lim = 3
-NA_pct_lim = NULL
+dayLac_lim = NULL
+NA_pct_lim = 1
 day_to_roll = 10
 
 functM = NULL

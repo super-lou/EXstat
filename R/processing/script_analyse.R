@@ -45,11 +45,14 @@ if ('station_trend_analyse' %in% to_do) {
     script_to_analyse_dirpath = file.path('R', var_dir, var_to_analyse_dir)
     
     script_to_analyse = list.files(script_to_analyse_dirpath,
-                                   pattern="[^default].R$",
+                                   pattern=".R$",
                                    recursive=TRUE,
                                    include.dirs=FALSE,
                                    full.names=FALSE)
-    
+
+    script_to_analyse = script_to_analyse[!grepl("default.R",
+                                                 script_to_analyse)]
+
     event_to_analyse = list.dirs(script_to_analyse_dirpath,
                                  recursive=TRUE, full.names=FALSE)
     event_to_analyse = event_to_analyse[event_to_analyse != ""]
@@ -61,6 +64,7 @@ if ('station_trend_analyse' %in% to_do) {
     
     var_analyse = c()
     type_analyse = c()
+    unit_analyse = c()
     glose_analyse = c()
     df_data_analyse = list()
     df_trend_analyse = list()
@@ -103,6 +107,7 @@ if ('station_trend_analyse' %in% to_do) {
 
             var_analyse = c(var_analyse, var)
             type_analyse = c(type_analyse, type)
+            unit_analyse = c(unit_analyse, unit)
             glose_analyse = c(glose_analyse, glose)
 
             missingCode = c()
@@ -183,6 +188,7 @@ if ('station_trend_analyse' %in% to_do) {
                                  df_data_missing, df_meta_missing,
                                  period=trend_period,
                                  hydroYear=hydroYear,
+                                 hydroPeriod=hydroPeriod,
                                  alpha=alpha,
                                  df_flag=df_flag,
                                  sampleSpan=sampleSpan,

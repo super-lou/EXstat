@@ -88,75 +88,92 @@ flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 
 ## 2. MANAGES MISSING DATA ___________________________________________
 ### 2.1. Long missing period over several years ______________________
-missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
+apply_missing_year = function (Date, Value, Code, yearNA_lim) {
 
-    print('.. Checking for missing years')
-    
-    if (is.null(Code)) {
-        # Get all different stations code
-        Code = levels(factor(df_meta$code))
-        nCode = length(Code)
-    } else {
-        nCode = length(Code)
-    }
+    DateNA = Date[is.na(Value)]
+    dDateNA = diff(DateNA)
+    if (any(dDateNA != 1)) {
+        
+        dDateNA = c(10, dDateNA)
+        idJump = which(dDateNA != 1)
+        NJump = length(idJump)
 
-    for (code in Code) {        
-        # Extracts the data corresponding to the code
-        df_data_code = df_data[df_data$code == code,]
-
-        DateNA = df_data_code$Date[is.na(df_data_code$Value)]
-
-        dDateNA = diff(DateNA)
-        if (any(dDateNA != 1)) {
+        for (i in 1:NJump) {
+            idStartNA = idJump[i]
             
-            dDateNA = c(10, dDateNA)
-            idJump = which(dDateNA != 1)
-            NJump = length(idJump)
+            if (i < NJump) {
+                idEndNA = idJump[i+1] - 1
+            } else {
+                idEndNA = length(DateNA)
+            }
 
-            for (i in 1:NJump) {
-                idStartNA = idJump[i]
+            StartNA = DateNA[idStartNA]
+            EndNA = DateNA[idEndNA]
+
+            duration = (EndNA - StartNA)/365.25
+            if (duration >= yearNA_lim) {
                 
-                if (i < NJump) {
-                    idEndNA = idJump[i+1] - 1
+                Start = min(Date, na.rm=TRUE)
+                End = max(Date, na.rm=TRUE)
+                
+                Before = StartNA - Start
+                After = End - EndNA
+                if (Before < After) {
+                    Value[Date <= StartNA] = NA
+                    start = Start
+                    end = StartNA
                 } else {
-                    idEndNA = length(DateNA)
-                }
-
-                StartNA = DateNA[idStartNA]
-                EndNA = DateNA[idEndNA]
-
-                duration = (EndNA - StartNA)/365.25
-                if (duration >= yearNA_lim) {
-
-                    Start = min(df_data_code$Date, na.rm=TRUE)
-                    End = max(df_data_code$Date, na.rm=TRUE)
-                    
-                    Before = StartNA - Start
-                    After = End - EndNA
-                    if (Before < After) {
-                        df_data_code$Value[df_data_code$Date <= StartNA] = NA
-                        start = Start
-                        end = StartNA
-                    } else {
-                        df_data_code$Value[df_data_code$Date >= EndNA] = NA
-                        start = EndNA
-                        end = End
-                    }
-                    
-                    if (!is.null(df_mod)) {
-                        df_mod =
-                            add_mod(df_mod, code,
-                                    type='Missing data management',
-                                    fun_name='NA assignment',
-                                    comment=paste('From ', start,
-                                                  ' of measurements',
-                                                  ' to ', end, sep=''))
-                    }
+                    Value[Date >= EndNA] = NA
+                    start = EndNA
+                    end = End
                 }
             }
         }
-        df_data[df_data$code == code,] = df_data_code        
     }
+    res = tibble(Date=Date, Value=Value, code=Code)
+    return (res)
+}
+
+missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
+
+    print('.. Checking for missing years')
+
+    df_Value = summarise(group_by(df_data, code),
+                         apply_missing_year(Date,
+                                            Value,
+                                            Code,
+                                            yearNA_lim))
+
+    if (!is.null(df_mod)) {
+        
+        isCorr = is.na(df_Value$Value) != is.na(df_data$Value)
+        CodeCorr = df_Value$code[isCorr]
+        CodeCorr = CodeCorr[!duplicated(CodeCorr)]
+
+        for (code in CodeCorr) {
+
+            df_Value_code = df_Value[df_Value$code == code,]
+            df_data_code = df_data[df_data$code == code,]
+
+            isCorr_code = is.na(df_Value_code$Value) != is.na(df_data_code$Value)
+
+            DateCorr_code = df_Value_code$Date[isCorr_code]
+
+            start = min(DateCorr_code)
+            end = max(DateCorr_code)
+            
+            df_mod =
+                add_mod(df_mod, code,
+                        type='Missing data management',
+                        fun_name='NA assignment',
+                        comment=paste('From ', start,
+                                      ' of measurements',
+                                      ' to ', end, sep=''))
+        }
+    }
+    
+    df_data$Value = df_Value$Value
+    
     if (!is.null(df_mod)) {
         res = list(data=df_data, mod=df_mod)
         return (res)
@@ -164,6 +181,7 @@ missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL
         return (df_data)
     }
 }
+
 
 ### 2.2. Missing period over several days ____________________________
 missing_day = function (df_data, df_meta, dayLac_lim=3, hydroYear='01-01', Code=NULL, df_mod=NULL) {
@@ -268,10 +286,11 @@ NA_filter = function (df_XEx, NA_pct_lim=1, df_mod=NULL) {
     
     df_XEx$Value[filter] = NA
     codeFilter = df_XEx$code[filter]
+    codeFilter = codeFilter[!duplicated(codeFilter)]
     dateFilter = format(df_XEx$Date[filter], "%Y")
     Nmod = length(codeFilter)
-    
-    if (!is.null(df_mod)) {
+
+    if (!is.null(df_mod) & !identical(codeFilter, character(0))) {
         for (i in 1:Nmod) {
             df_mod =
                 add_mod(df_mod, codeFilter[i],

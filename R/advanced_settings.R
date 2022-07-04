@@ -173,7 +173,7 @@ saving = c(
 
 fast_format = TRUE
 
-read_results = TRUE
+read_results = FALSE
 
 
 ### 3.5. Statistical option __________________________________________
@@ -221,7 +221,7 @@ zone_to_show =
     # 'Adour-Garonne'
 
 pdf_chunk =
-    # 'by_code'
-    'all'
+    'by_code'
+    # 'all'
     
 show_colorEvent = TRUE

@@ -71,8 +71,8 @@ computer_work_path =
 # ash\\data\\.
 filedir =
     # ""
-    # "AEAG_selection"
-    "RRSE"
+    "AEAG_selection"
+    # "RRSE"
 
 # Name of the files that will be analysed from the data directory
 # (if "all", all the file of the directory will be chosen)
@@ -80,13 +80,11 @@ filename =
     # ""
     # "all"
     c(
-        # "K0673310_HYDRO_QJM.txt",
-        "B5322010_HYDRO_QJM.txt"
-        
-        # "S2235610_HYDRO_QJM.txt",
-        # "O1484320_HYDRO_QJM.txt",
-        # "Q7002910_HYDRO_QJM.txt",
-        # "O0362510_HYDRO_QJM.txt"
+        # "P0364010_HYDRO_QJM.txt",
+        # "S2235610_HYDRO_QJM.txt"
+        # "O1484320_HYDRO_QJM.txt"
+        # "Q7002910_HYDRO_QJM.txt"
+        "O0362510_HYDRO_QJM.txt"
         # "^[A-I]"
     )
 
@@ -106,8 +104,8 @@ filename =
 #    'climate_trend_plot' : Plotting of trend analyses of climate data
 to_do =
     c(
-        'station_extraction',
-        'station_trend_analyse',
+        # 'station_extraction',
+        # 'station_trend_analyse',
         'station_trend_plot'
     )
 

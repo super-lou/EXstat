@@ -1,19 +1,20 @@
-var = "tCENeti"
+var = "tCEN_etiage"
 type = "saisonnalité"
+unit = "jour de l'année"
 glose = "Centre d'étiage (jour de l'année du VCN10)"
 event = "Étiage"
 hydroYear = "01-01"
+hydroPeriod = c('05-01', '11-30')
 
-sampleSpan = c('05-01', '11-30')
+# sampleSpan = c('05-01', '11-30')
 yearNA_lim = 10
-dayLac_lim = 3
-NA_pct_lim = NULL
+dayLac_lim = NULL
+NA_pct_lim = 1
 day_to_roll = 10
 
 functM = NULL
 functM_args = NULL
 isDateM = FALSE
-
 
 which.minNA = function (x) {
     idMin = which.min(x)
@@ -22,7 +23,6 @@ which.minNA = function (x) {
     }
     return (idMin)
 }
-
 
 functY = which.minNA
 functY_args = NULL

@@ -72,6 +72,7 @@ install.packages("shadowtext")
 install.packages("qpdf")
 install.packages("gridExtra")
 install.packages("CircStats")
+install.packages('latex2exp')
 
 ### 1.2. On git ______________________________________________________
 library(devtools)

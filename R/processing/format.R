@@ -84,7 +84,8 @@ join_selection = function (list_data, list_meta, list_from) {
 ## 2. WRAP OF TREND ANALYSE __________________________________________
 ### 2.1. extract.Var _________________________________________________
 extract_Var_WRAP = function (df_data, funct, period, hydroYear,
-                             timestep, isDate=FALSE, ...) {
+                             hydroPeriod, timestep,
+                             isDate=FALSE, ...) {
 
     print('... Extraction of data')
     

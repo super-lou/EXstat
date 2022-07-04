@@ -98,6 +98,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 df_data = list_df2plot[[i]]$data
                 # Extracts the type corresponding to the current variable
                 type = list_df2plot[[i]]$type
+                unit = list_df2plot[[i]]$unit
                 # Extracts the data corresponding to the code
                 df_data_code = df_data[df_data$code == code,]
             }
@@ -216,6 +217,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                trend_period=trend_period,
                                axis_xlim=axis_xlim_code, missRect=TRUE,
                                unit2day=365.25, var='Q', type='sévérité',
+                               unit="m^{3}.s^{-1}",
                                grid=TRUE, ymin_lim=0,
                                NspaceMax=NspaceMax[k],
                                first=TRUE, lim_pct=lim_pct)
@@ -243,6 +245,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             var_plot = c(var_plot, var)
             
             type = list_df2plot[[i]]$type
+            unit = list_df2plot[[i]]$unit
             # Extracts the data corresponding to the code
             df_data_code = df_data[df_data$code == code,]
             # Extracts the trend corresponding to the code
@@ -329,7 +332,8 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
             # Computes the time panel associated to the current variable
             p = time_panel(df_data_code, df_trend_code, var=var, 
-                           type=type, linetype_per=linetype_per,
+                           type=type, unit=unit,
+                           linetype_per=linetype_per,
                            alpha=alpha, colorForce=colorForce,
                            missRect=missRect, trend_period=trend_period,
                            mean_period=mean_period,
@@ -518,7 +522,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
 ## 2. PANEL FOR THE DATASHEET __________________________________
 ### 2.1. Time panel __________________________________________________
-time_panel = function (df_data_code, df_trend_code, var, type,
+time_panel = function (df_data_code, df_trend_code, var, type, unit,
                        linetype_per='solid', alpha=0.1,
                        colorForce=FALSE, missRect=FALSE,
                        unit2day=365.25, trend_period=NULL,
@@ -1246,23 +1250,45 @@ time_panel = function (df_data_code, df_trend_code, var, type,
 
     # Y axis title
     # If it is a flow variable
+    varF = gsub("etiage", "étiage", var)
+    varNorm = gsub("[_].*", "", varF)
+    varSub = ""
+    if (grepl("[_]", varF)) {
+        varSub = gsub(".*[_]", "", varF)
+    }
+
+    unitF = gsub(" ", "~", unit)
+    unitF = gsub("[']", "*' '*", unitF)
+    unitF = gsub("[.]", "*'.'*", unitF)
+    # unitF = gsub("é", "e", unitF)
+
+    # print(unitF)
+    
     if (type == 'sévérité' | var == 'Q') {
         p = p +
-            ylab(bquote(bold(.(var))~~'['*m^{3}*'.'*s^{-1}*']'))
+            ylab(bquote(bold(.(varNorm)[.(varSub)])~~'['*.(unit)*']'))
     } else if (var == 'sqrt(Q)') {
         p = p +
-            ylab(bquote(bold(.(var))~~'['*m^{3/2}*'.'*s^{-1/2}*']'))
+            ylab(bquote(bold(.(varNorm)[.(varSub)])~~'['*m^{3/2}*'.'*s^{-1/2}*']'))
     # If it is a date variable
     } else if (type == 'saisonnalité') {
         p = p +
-            ylab(bquote(bold(.(var))~~"[jour de l'année]"))
+            ylab(bquote(bold(.(varNorm)[.(varSub)])~~"[jour de l'année]"))
     } else if (type == 'pluviométrie' | type == 'évapotranspiration') {
         p = p +
-            ylab(bquote(bold(.(var))~~'[mm]'))
+            ylab(bquote(bold(.(varNorm)[.(varSub)])~~'[mm]'))
     } else if (type == 'température') {
         p = p +
-            ylab(bquote(bold(.(var))~~"[°C]"))
+            ylab(bquote(bold(.(varNorm)[.(varSub)])~~"[°C]"))
     }
+
+    ylabel = paste0("$\textbf{", varF, "}", " [", unit, "]$")
+
+    print(ylabel)
+    
+    p = p +
+        ylab(TeX(ylabel))
+    
     
     if (!last & !first) {
         p = p + 
