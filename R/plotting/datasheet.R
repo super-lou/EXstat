@@ -84,7 +84,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         NspaceMax_code = 0
 
         # If the time header is given it adds one to the number of plot
-        nVarMod = nVar + as.numeric(!is.null(time_header))
+        nVarMod = nVar + as.numeric(!is.null(time_header))*2
 
         # For all type of graph
         for (i in 1:nVarMod) {
@@ -92,24 +92,28 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             if (i > nVar) {
                 # Extracts the data serie corresponding to the code
                 df_data_code = time_header[time_header$code == code,]
-                type = 'sévérité'
+                if (i > nVar+1) {
+                    df_data_code = compute_sqrt(df_data_code)
+                }
+                unit = 'm^{3}.s^{-1}'
             } else {
                 # Extracts the data corresponding to the current variable
                 df_data = list_df2plot[[i]]$data
                 # Extracts the type corresponding to the current variable
                 type = list_df2plot[[i]]$type
+                event = list_df2plot[[i]]$event
                 unit = list_df2plot[[i]]$unit
                 # Extracts the data corresponding to the code
                 df_data_code = df_data[df_data$code == code,]
             }
 
-            # If variable type is date 
-            if (type == 'saisonnalité') {
+            # If variable unit is date 
+            if (unit == "jour de l'année") {
                 # The number of digit is 6 because months are display
                 # with 3 characters
                 Nspace = 6
             # If it is a flow variable
-            } else if (type == 'sévérité' | type == 'data' | type == 'pluviométrie' | type == 'température' | type == 'évapotranspiration') {
+            } else if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'jour') {
                 # Gets the max number of digit on the label
                 maxtmp = max(df_data_code$Value, na.rm=TRUE)
                 # Taking into account of the augmentation of
@@ -160,7 +164,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                     sep=''))
         
         # Number of header (is info and time serie are needed)
-        nbh = as.numeric(!is.null(info_header)) + as.numeric(!is.null(time_header))
+        nbh = as.numeric(!is.null(info_header)) + as.numeric(!is.null(time_header))*3
         nbf = as.numeric(foot_note)
         # Actualises the number of plot
         nbg = nbh + nVar + nbf
@@ -202,27 +206,55 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         # If the time header is given
         if (!is.null(time_header)) {
             # Extracts the data serie corresponding to the code
-            time_header_code = time_header[time_header$code == code,]
+            df_Q_code = time_header[time_header$code == code,]
+            df_sqrtQ_code = compute_sqrt(df_Q_code)
             
             if (is.null(axis_xlim)) {
                 # Gets the limits of the time serie
-                axis_xlim_code = c(min(time_header_code$Date),
-                                   max(time_header_code$Date))
+                axis_xlim_code = c(min(df_Q_code$Date),
+                                   max(df_Q_code$Date))
             } else {
                 axis_xlim_code = axis_xlim
             }
 
             # Gets the time serie plot
-            Htime = time_panel(time_header_code, df_trend_code=NULL,
-                               trend_period=trend_period,
-                               axis_xlim=axis_xlim_code, missRect=TRUE,
-                               unit2day=365.25, var='Q', type='sévérité',
-                               unit="m^{3}.s^{-1}",
-                               grid=TRUE, ymin_lim=0,
-                               NspaceMax=NspaceMax[k],
-                               first=TRUE, lim_pct=lim_pct)
+            HQ = time_panel(df_Q_code, df_trend_code=NULL,
+                            trend_period=trend_period,
+                            axis_xlim=axis_xlim_code, missRect=TRUE,
+                            unit2day=365.25, var='Q', type='sévérité',
+                            unit="m^{3}.s^{-1}",
+                            grid=TRUE, ymin_lim=0,
+                            NspaceMax=NspaceMax[k],
+                            first=TRUE, lim_pct=lim_pct)
             # Stores it
-            P[[2]] = Htime
+            P[[2]] = HQ
+
+            # Gets the time serie plot
+            HsqrtQ = time_panel(df_sqrtQ_code, df_trend_code=NULL,
+                                trend_period=trend_period,
+                                axis_xlim=axis_xlim_code, missRect=TRUE,
+                                unit2day=365.25,
+                                var='sqrt(Q)', type='sévérité',
+                                unit="m^{3/2}.s^{-1/2}",
+                                grid=TRUE, ymin_lim=0,
+                                NspaceMax=NspaceMax[k],
+                                first=TRUE, lim_pct=lim_pct)
+            # Stores it
+            P[[3]] = HsqrtQ
+
+            # Gets the time serie plot
+            HsqrtQmid = time_panel(df_sqrtQ_code, df_trend_code=NULL,
+                                trend_period=trend_period,
+                                axis_xlim=axis_xlim_code, missRect=TRUE,
+                                unit2day=365.25,
+                                var='sqrt(Q)', type='sévérité',
+                                unit="m^{3/2}.s^{-1/2}",
+                                grid=TRUE, ymin_lim=0,
+                                NspaceMax=NspaceMax[k],
+                                first=FALSE, lim_pct=lim_pct)
+            # Stores it
+            P[[4]] = HsqrtQmid
+            
         } else {
             axis_xlim_code = axis_xlim
         }
@@ -245,6 +277,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             var_plot = c(var_plot, var)
             
             type = list_df2plot[[i]]$type
+            event = list_df2plot[[i]]$event
             unit = list_df2plot[[i]]$unit
             # Extracts the data corresponding to the code
             df_data_code = df_data[df_data$code == code,]
@@ -283,7 +316,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                         }
 
                         # If it is a flow variable
-                        if (type == 'sévérité') {
+                        if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
                             # Computes the mean of the data on the period
                             dataMean = mean(df_data_code_per$Value,
                                             na.rm=TRUE)
@@ -291,7 +324,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             # of the data
                             trendValue = df_trend_code_per$trend / dataMean
                             # If it is a date variable
-                        } else if (type == 'saisonnalité' | type == 'pluviométrie' | type == 'température' | type == 'évapotranspiration') {
+                        } else if (unit == "jour de l'année" | unit == 'jour') {
                             trendValue = df_trend_code_per$trend
                         }
                         
@@ -357,8 +390,6 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             width = paper_size[1]
             height = paper_size[2]
         }
-        
-        nVar_max = 5
 
         nEvent = length(structure)
         page_code = 0
@@ -367,6 +398,12 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             var_to_place = structure[[i]]
             event = names(structure)[i]
 
+            if (event == 'Resume') {
+                nVar_max = 4
+            } else {
+                nVar_max = 5
+            }
+
             nVar_to_place = length(var_to_place)
             nVar_page = as.integer(nVar_to_place/nVar_max) + 1
             
@@ -374,7 +411,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
                 page_code = page_code + 1
 
-                if (event != 'Recap' & show_colorEvent) {
+                if (event != 'Resume' & show_colorEvent) {
                     space = 0.7
                     Hevent = event_panel(event, colorEvent, colorTextEvent)
                     P[[1]] = merge_panel(add=Hevent, to=Hinfo,
@@ -382,7 +419,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 }
                 
                 if (foot_note) {
-                    if (event != 'Recap') {
+                    if (event != 'Resume') {
                         footName = paste0('fiche station : ', event)
                     } else {
                         footName = 'fiche station'
@@ -408,32 +445,75 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                        ncol=1)
                 
                 P_order = place_order + nbh
-                if (nbh > 0) {
-                    P_order = c(1:nbh, P_order, nbg)
+
+                if (!is.null(info_header)) {
+                    P_i = 1
+                    nbi = 1
+                } else {
+                    P_i = NULL
+                    nbi = 0
                 }
+                
+                if (!is.null(time_header)) {
+                    if (event == "Resume") {
+                        P_t = c(nbi+1, nbi+3)
+                        nbt = 2
+                    } else if (event == "Étiage")  {
+                        P_t = c(nbi+2)
+                        nbt = 1
+                    } else {
+                        P_t = c(nbi+1)
+                        nbt = 1
+                    }
+                } else {
+                    P_t = NULL
+                }
+
+                if (foot_note) {
+                    P_f = nbg
+                    nbf = 1
+                } else {
+                    P_f = NULL
+                    nbf = 0
+                }
+                
+                P_order = c(P_i, P_t, P_order, P_f)
+                # print(P_order)
                 Pevent = P[P_order]
 
-                # Convert the 'layout_matrix' to a matrix if it is not already 
+                # Convert the 'layout_matrix' to a matrix
+                # if it is not already 
                 layout_matrix = as.matrix(layout_matrix)
-
                 LM = layout_matrix
                 
                 # Shifts all plots to be coherent with the adding of header
-                LM = LM + nbh
+                LM = LM + nbt + nbi
                 
                 if (!is.null(time_header)) {
-                    id_time = nbh
-                    LM = rbind(nbh, LM)
+                    if (event == "Resume") {
+                        id_Q = nbi+1
+                        id_sqrtQ = nbi+2
+                        LM = rbind(id_sqrtQ, LM)
+                        LM = rbind(id_Q, LM)
+                    } else if (event == "Étiage")  {
+                        id_Q = NA
+                        id_sqrtQ = nbi+1
+                        LM = rbind(id_sqrtQ, LM)
+                    } else {
+                        id_Q = nbi+1
+                        id_sqrtQ = NA
+                        LM = rbind(id_Q, LM)
+                    }
+                    
                 } else {
-                    id_time = NA
-                    time_ratio = 0
+                    id_Q = NA
+                    id_sqrtQ = NA
                 }
                 if (!is.null(info_header)) {
-                    id_info = nbh - as.numeric(!is.null(time_header))
-                    LM = rbind(nbh - as.numeric(!is.null(time_header)), LM)
+                    id_info = nbh - as.numeric(!is.null(time_header))*3
+                    LM = rbind(id_info, LM)
                 } else {
                     id_info = NA
-                    info_ratio = 0
                 }
 
                 id_void = NA
@@ -445,8 +525,6 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 id_foot = max(LM, na.rm=TRUE) + 1
                 if (foot_note) {
                     LM = rbind(LM, id_foot)
-                } else {
-                    foot_height = 0
                 }
 
                 LMcol = ncol(LM)
@@ -459,7 +537,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
                 margin_height = 0.5
 
-                Norm_ratio = height * var_ratio * nVar_max / (height - 2*margin_height - time_height - foot_height - info_height)
+                Norm_ratio = height * var_ratio * nVar_max / (height - 2*margin_height - time_height*nbt - foot_height*nbf - info_height*nbi)
 
                 var_height = height * var_ratio / Norm_ratio
 
@@ -467,10 +545,16 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 heightLM = rep(0, times=LMrow)        
                 
                 heightLM[Hcut == id_info] = info_height
-                heightLM[Hcut == id_time] = time_height
-                heightLM[Hcut > nbh & Hcut < id_foot | is.na(Hcut)] = var_height
+                heightLM[Hcut == id_Q] = time_height
+                heightLM[Hcut == id_sqrtQ] = time_height
+                heightLM[Hcut > nbt+nbi & Hcut < id_foot | is.na(Hcut)] = var_height
                 heightLM[Hcut == id_foot] = foot_height
                 heightLM[Hcut == 99] = margin_height
+
+                # print(event)
+                # print(LM)
+                # print(heightLM)
+                # print("")
 
                 col_width = (width - 2*margin_height) / (LMcol - 2)
                 
@@ -534,11 +618,11 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
     # Issue for negative values in the y axis ticks : if Value is a
     # number of days that can be negative, it adds a year in order
     # to always be positive
-    if (type == 'saisonnalité') {
+    if (unit == "jour de l'année") {
         df_data_code$Value = df_data_code$Value + 365
         df_trend_code$intercept = df_trend_code$intercept + 365
     }
-    
+        
     # Compute max and min of flow
     maxQ = max(df_data_code$Value, na.rm=TRUE)
     minQ = min(df_data_code$Value, na.rm=TRUE)
@@ -1077,10 +1161,10 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             xminR = x - gpct(1, codeDate)
             yminR = y - gpct(5, codeValue, min_lim=ymin_lim)
             # If it is a flow variable
-            if (type == 'sévérité') {
+            if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
                 xmaxR = x + gpct(32.5, codeDate)
             # If it is a date variable
-            } else if (type == 'saisonnalité' | type == 'pluviométrie' | type == 'température' | type == 'évapotranspiration') {
+            } else if (unit == "jour de l'année" | unit == 'jour') {
                 xmaxR = x + gpct(20.5, codeDate)
             }
             ymaxR = y + gpct(5, codeValue, min_lim=ymin_lim)
@@ -1108,7 +1192,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             if (powerC >= 0) {
                 # Adds a space in order to compensate for the minus
                 # sign that sometimes is present for the other periods
-                spaceC = '  '
+                spaceC = ' '
             # Otherwise
             } else {
                 # No space is added
@@ -1122,7 +1206,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                                          nsmall=2))
             # If the trend is positive
             if (trendC >= 0) {
-                # Adds two space in order to compensate for the minus
+                # Adds two spaces in order to compensate for the minus
                 # sign that sometimes is present for the other periods
                 trendC = paste('  ', trendC, sep='')
             }
@@ -1130,7 +1214,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             trendMeanC = as.character(format(round(trendMean*100, 2),
                                              nsmall=2))
             if (trendMeanC >= 0) {
-                # Adds two space in order to compensate for the minus
+                # Adds two spaces in order to compensate for the minus
                 # sign that sometimes is present for the other periods
                 trendMeanC = paste('  ', trendMeanC, sep='')
             }
@@ -1183,21 +1267,37 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             spaceC = leg_trend_per$spaceC
             trendMeanC = leg_trend_per$trendMeanC
 
-            # If it is a flow variable
-            if (type == 'sévérité') {
-                # Create the name of the trend
-                label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'['*m^{3}*'.'*s^{-1}*'.'*an^{-1}*']'~~bold(.(trendMeanC))~'[%.'*an^{-1}*']')
+            # # If it is a flow variable
+            # if (type == 'sévérité') {
+            #     # Create the name of the trend
+            #     label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'['*m^{3}*'.'*s^{-1}*'.'*an^{-1}*']'~~bold(.(trendMeanC))~'[%.'*an^{-1}*']')
                     
-            # If it is a date variable
-            } else if (type == 'saisonnalité') {
-                # Create the name of the trend
-                label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[jour.'*an^{-1}*']')
-            } else if (type == 'pluviométrie' | type == 'évapotranspiration') {
-                # Create the name of the trend
-                label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[mm.'*an^{-1}*']')
-            } else if (type == 'température') {
-                # Create the name of the trend
-                label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[°C.'*an^{-1}*']')
+            # # If it is a date variable
+            # } else if (type == 'saisonnalité') {
+            #     # Create the name of the trend
+            #     label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[jour.'*an^{-1}*']')
+            # } else if (type == 'pluviométrie' | type == 'évapotranspiration') {
+            #     # Create the name of the trend
+            #     label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[mm.'*an^{-1}*']')
+            # } else if (type == 'température') {
+            #     # Create the name of the trend
+            #     label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[°C.'*an^{-1}*']')
+            # }
+
+            unitF = gsub(" ", "\\\\,", unit)
+            if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
+                label = paste0("\\textbf{", trendC,
+                               " x 10$^{$", powerC,"}}",
+                               spaceC,
+                               " ", "\\[$", unitF, ".an^{-1}$", "\\]",
+                               "\\;", "\\textbf{", trendMeanC, "}",
+                               " ", "\\[%$.an^{-1}$\\]")
+                
+            } else if (unit == "jour de l'année" | unit == "jour") {
+                label = paste0("\\textbf{", trendC,
+                               " x 10$^{$", powerC,"}}",
+                               spaceC,
+                               " ", "\\[", "jour$.an^{-1}$", "\\]")
             }
 
             # Plot the trend symbole and value of the legend
@@ -1211,7 +1311,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                          lineend="round") +
 
                 annotate("text",
-                         label=label, size=2.8,
+                         label=TeX(label), size=2.8,
                          x=leg_trend_per$xt, y=leg_trend_per$y, 
                          hjust=0, vjust=0.5,
                          color=colorLabel)
@@ -1250,45 +1350,34 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
 
     # Y axis title
     # If it is a flow variable
-    varF = gsub("etiage", "étiage", var)
-    varNorm = gsub("[_].*", "", varF)
-    varSub = ""
+    varF = gsub("etiage", "étiage", var)    
     if (grepl("[_]", varF)) {
-        varSub = gsub(".*[_]", "", varF)
+        varF = gsub("[_]", "_{", varF)
+        varF = paste0(varF, "}")
     }
-
-    unitF = gsub(" ", "~", unit)
-    unitF = gsub("[']", "*' '*", unitF)
-    unitF = gsub("[.]", "*'.'*", unitF)
-    # unitF = gsub("é", "e", unitF)
-
-    # print(unitF)
+    unitF = gsub(" ", "\\\\,", unit)
+    ylabel = paste0("$\\textbf{", varF, "}", "\\;", "\\[", unitF, "\\]$")
     
-    if (type == 'sévérité' | var == 'Q') {
-        p = p +
-            ylab(bquote(bold(.(varNorm)[.(varSub)])~~'['*.(unit)*']'))
-    } else if (var == 'sqrt(Q)') {
-        p = p +
-            ylab(bquote(bold(.(varNorm)[.(varSub)])~~'['*m^{3/2}*'.'*s^{-1/2}*']'))
-    # If it is a date variable
-    } else if (type == 'saisonnalité') {
-        p = p +
-            ylab(bquote(bold(.(varNorm)[.(varSub)])~~"[jour de l'année]"))
-    } else if (type == 'pluviométrie' | type == 'évapotranspiration') {
-        p = p +
-            ylab(bquote(bold(.(varNorm)[.(varSub)])~~'[mm]'))
-    } else if (type == 'température') {
-        p = p +
-            ylab(bquote(bold(.(varNorm)[.(varSub)])~~"[°C]"))
-    }
-
-    ylabel = paste0("$\textbf{", varF, "}", " [", unit, "]$")
-
-    print(ylabel)
+    # if (type == 'sévérité' | var == 'Q') {
+    #     p = p +
+    #         ylab(bquote(bold(.(varNorm)[.(varSub)])~~'['*.(unit)*']'))
+    # } else if (var == 'sqrt(Q)') {
+    #     p = p +
+    #         ylab(bquote(bold(.(varNorm)[.(varSub)])~~'['*m^{3/2}*'.'*s^{-1/2}*']'))
+    # # If it is a date variable
+    # } else if (type == 'saisonnalité') {
+    #     p = p +
+    #         ylab(bquote(bold(.(varNorm)[.(varSub)])~~"[jour de l'année]"))
+    # } else if (type == 'pluviométrie' | type == 'évapotranspiration') {
+    #     p = p +
+    #         ylab(bquote(bold(.(varNorm)[.(varSub)])~~'[mm]'))
+    # } else if (type == 'température') {
+    #     p = p +
+    #         ylab(bquote(bold(.(varNorm)[.(varSub)])~~"[°C]"))
+    # }
     
     p = p +
-        ylab(TeX(ylabel))
-    
+        ylab(TeX(ylabel))   
     
     if (!last & !first) {
         p = p + 
@@ -1332,7 +1421,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                      expand=c(0, 0))    
     
     # If it is a date variable 
-    if (type == 'saisonnalité') {
+    if (unit == "jour de l'année") {
         # The number of digit is 6 because months are display
         # with 3 characters
         Nspace = 6
@@ -1341,7 +1430,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
         accuracy = NULL
         
     # If it is a flow variable
-    } else if (type == 'sévérité' | type == 'data' | type == 'pluviométrie' | type == 'température' | type == 'évapotranspiration') {
+    } else if (unit == 'jour' | unit == 'm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}') {
         # Gets the max number of digit on the label
         maxtmp = max(df_data_code$Value, na.rm=TRUE)
         # Taking into account of the augmentation of
@@ -1388,7 +1477,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
     
     # Parameters of the y axis
     # If it is a flow variable
-    if (type == 'sévérité' | type == 'data' | type == 'pluviométrie' | type == 'température' | type == 'évapotranspiration') {        
+    if (unit == 'jour' | unit == 'm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}') {        
         p = p +
             scale_y_continuous(breaks=seq(minQ_lim, maxQ_lim, breakQ),
                                limits=c(minQ_win, maxQ_win),
@@ -1396,7 +1485,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                                labels=number_format(accuracy=accuracy,
                                                     prefix=prefix))
     # If it is a date variable
-    } else if (type == 'saisonnalité') {
+    } else if (unit == "jour de l'année") {
         monthStart = as.Date(paste(substr(as.Date(minQ_lim), 1, 7),
                                    '-01', sep=''))
         monthEnd = as.Date(paste(substr(as.Date(maxQ_lim), 1, 7),
@@ -1430,7 +1519,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
 ### 2.2. Event panel _________________________________________________
 event_panel = function(event, colorEvent, colorTextEvent) {
 
-    if (event != 'Recap') {
+    if (event != 'Resume' & event != 'None') {
         plot = ggplot() + theme_void() +
             
             theme(plot.margin=margin(t=0, r=3, b=0, l=0, unit="mm")) + 

@@ -143,7 +143,8 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                          figdir='', filedir_opt='', filename_opt='',
                          variable='', df_trend=NULL,
                          alpha=0.1, unit2day=365.25, var='',
-                         type='', unit='', glose=NULL, trend_period=NULL,
+                         type='', event='', unit='',
+                         glose=NULL, trend_period=NULL,
                          mean_period=NULL, colorForce=FALSE,
                          linetype_per='solid',
                          axis_xlim=NULL,
@@ -242,6 +243,10 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         type = rep(type[1], nbp)
     }
 
+    if (length(event) != nbp) {
+        event = rep(event[1], nbp)
+    }
+
     if (length(unit) != nbp) {
         unit = rep(unit[1], nbp)
     }
@@ -260,7 +265,9 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                        trend=df_trend[[i]],
                        alpha=alpha[[i]],
                        unit2day=unit2day[[i]],
-                       var=var[[i]], type=type[[i]],
+                       var=var[[i]],
+                       type=type[[i]],
+                       event=event[[i]],
                        unit=unit[[i]],
                        glose=glose[[i]],
                        missRect=missRect[[i]])

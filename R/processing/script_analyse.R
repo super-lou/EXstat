@@ -60,10 +60,11 @@ if ('station_trend_analyse' %in% to_do) {
 
     structure = replicate(length(event_to_analyse), c())
     names(structure) = event_to_analyse
-    structure = append(list(Recap=c()), structure)
+    # structure = append(list(Recap=c()), structure)
     
     var_analyse = c()
     type_analyse = c()
+    event_analyse = c()
     unit_analyse = c()
     glose_analyse = c()
     df_data_analyse = list()
@@ -88,7 +89,10 @@ if ('station_trend_analyse' %in% to_do) {
             split_script = split_path(script)
             
             if (length(split_script) == 1) {
-                structure[['Recap']] = c(structure[['Recap']], var)
+                if ('None' %in% names(structure)) {
+                    structure = append(list(None=c()), structure)
+                }
+                structure[['None']] = c(structure[['None']], var)
             } else if (length(split_script) == 2) {
                 dir = split_script[2]
                 dir = gsub('.*_', '', dir)
@@ -107,6 +111,7 @@ if ('station_trend_analyse' %in% to_do) {
 
             var_analyse = c(var_analyse, var)
             type_analyse = c(type_analyse, type)
+            event_analyse = c(event_analyse, event)
             unit_analyse = c(unit_analyse, unit)
             glose_analyse = c(glose_analyse, glose)
 
