@@ -3,12 +3,9 @@ type = "sévérité"
 unit = "m^{3}.s^{-1}"
 glose = "Minimum annuel de la moyenne sur 10 jours du débit journalier"
 event = "Étiage"
-hydroYear = "01-01"
 hydroPeriod = c('05-01', '11-30')
 
-sampleSpan = c('05-01', '11-30')
 yearNA_lim = 10
-dayLac_lim = NULL
 NA_pct_lim = 1
 day_to_roll = 10
 

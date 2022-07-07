@@ -3,12 +3,9 @@ type = "saisonnalité"
 unit = "jour de l'année"
 glose = "Fin des écoulements lents (date lorsque 90% de l’intégrale sous la courbe du débit de base est atteinte)"
 event = "Crue Nivale"
-hydroYear = "09-01"
 hydroPeriod = c("09-01", "08-31")
 
-sampleSpan = NULL
 yearNA_lim = 10
-dayLac_lim = NULL
 NA_pct_lim = 1
 day_to_roll = NULL
 

@@ -3,12 +3,9 @@ type = "saisonnalité"
 unit = "jour"
 glose = "Durée de l'étiage (durée de la plus longue période continue de la moyenne sur 10 jours sous le maximum des VCN10)"
 event = "Étiage"
-hydroYear = "01-01"
 hydroPeriod = c('05-01', '11-30')
 
-sampleSpan = c('05-01', '11-30')
 yearNA_lim = 10
-dayLac_lim = NULL
 NA_pct_lim = 1
 day_to_roll = 10
 

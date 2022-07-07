@@ -73,6 +73,7 @@ install.packages("qpdf")
 install.packages("gridExtra")
 install.packages("CircStats")
 install.packages('latex2exp')
+install.packages("accelerometry")
 
 ### 1.2. On git ______________________________________________________
 library(devtools)

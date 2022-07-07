@@ -3,12 +3,9 @@ type = "sévérité"
 unit = "an^{-1}"
 glose = "Fréquence annuelle (Q > Q90)"
 event = "Crue"
-hydroYear = "09-01"
 hydroPeriod = c("09-01", "08-31")
 
-sampleSpan = NULL
 yearNA_lim = 10
-dayLac_lim = NULL
 NA_pct_lim = 1
 day_to_roll = NULL
 

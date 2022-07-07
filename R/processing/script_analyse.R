@@ -73,13 +73,13 @@ if ('station_trend_analyse' %in% to_do) {
 ### 1.3. Trend analyses ______________________________________________
     for (script in script_to_analyse) {
 
-        if (hydroYear_mode == 'every') {
-            nHydroYear = 12
+        if (hydroPeriod_mode == 'every') {
+            nHydroPeriod = 12
         } else {
-            nHydroYear = 1
+            nHydroPeriod = 1
         }
             
-        for (iHY in 1:nHydroYear) {
+        for (iHY in 1:nHydroPeriod) {
 
             source(file.path('R', var_dir, init_var_file),
                              encoding='UTF-8')
@@ -89,7 +89,7 @@ if ('station_trend_analyse' %in% to_do) {
             split_script = split_path(script)
             
             if (length(split_script) == 1) {
-                if ('None' %in% names(structure)) {
+                if (!('None' %in% names(structure))) {
                     structure = append(list(None=c()), structure)
                 }
                 structure[['None']] = c(structure[['None']], var)
@@ -103,11 +103,11 @@ if ('station_trend_analyse' %in% to_do) {
                 next
             }
             
-            if (hydroYear_mode == 'every') {
-                hydroYear = paste0(formatC(iHY, width=2, flag="0"),
+            if (hydroPeriod_mode == 'every') {
+                hydroPeriod = paste0(formatC(iHY, width=2, flag="0"),
                                    '-01')
             }
-            monthHydroYear = substr(hydroYear, 1, 2)
+            monthHydroPeriod = substr(hydroPeriod[1], 1, 2)
 
             var_analyse = c(var_analyse, var)
             type_analyse = c(type_analyse, type)
@@ -117,7 +117,7 @@ if ('station_trend_analyse' %in% to_do) {
 
             missingCode = c()
             if (read_results) {
-                trend_path = file.path(trend_dir, var, monthHydroYear)
+                trend_path = file.path(trend_dir, var, monthHydroPeriod)
                 isExtract = file.exists(file.path(resdir, trend_path,
                                                   'extract.txt'))
                 isEstimate = file.exists(file.path(resdir, trend_path,
@@ -134,7 +134,7 @@ if ('station_trend_analyse' %in% to_do) {
                     res_Xanalyse_read = list(extract=df_XEx_read, estimate=df_Xtrend_read)
                     
                     # modified_data_path = file.path(modified_data_dir, var,
-                                                   # monthHydroYear)
+                                                   # monthHydroPeriod)
                     
                     # df_Xdata_read = tibble()
                     # df_Xmod_read = tibble()
@@ -192,11 +192,9 @@ if ('station_trend_analyse' %in% to_do) {
                 res = get_Xtrend(var,
                                  df_data_missing, df_meta_missing,
                                  period=trend_period,
-                                 hydroYear=hydroYear,
                                  hydroPeriod=hydroPeriod,
                                  alpha=alpha,
                                  df_flag=df_flag,
-                                 sampleSpan=sampleSpan,
                                  yearNA_lim=yearNA_lim,
                                  dayLac_lim=dayLac_lim,
                                  NA_pct_lim=NA_pct_lim,
@@ -262,13 +260,13 @@ if ('station_trend_analyse' %in% to_do) {
                 # Writes modified data
                 write_data(df_Xdata, df_Xmod, resdir,
                            filedir=file.path(modified_data_dir,
-                                             var, monthHydroYear))
+                                             var, monthHydroPeriod))
                 
                 if (fast_format) {
                     write_dataFST(df_Xdata, resdir,
                                   filedir='fst',
                                   filename=paste0('data_', var,
-                                                  '_', monthHydroYear,
+                                                  '_', monthHydroPeriod,
                                                   '.fst'))
                 }
             }
@@ -277,14 +275,14 @@ if ('station_trend_analyse' %in% to_do) {
                 # Writes trend analysis results
                 write_analyse(res_Xanalyse, resdir,
                               filedir=file.path(trend_dir,
-                                                var, monthHydroYear))
+                                                var, monthHydroPeriod))
                 
                 if (fast_format) {
                     write_dataFST(df_XEx,
                                   resdir,
                                   filedir='fst',
                                   filename=paste0(var, 'Ex_',
-                                                  monthHydroYear,
+                                                  monthHydroPeriod,
                                                   '.fst'))
                 }
             }

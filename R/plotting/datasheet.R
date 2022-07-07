@@ -398,7 +398,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             var_to_place = structure[[i]]
             event = names(structure)[i]
 
-            if (event == 'Resume') {
+            if (event == 'Resume' & event != 'None') {
                 nVar_max = 4
             } else {
                 nVar_max = 5
@@ -411,7 +411,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
                 page_code = page_code + 1
 
-                if (event != 'Resume' & show_colorEvent) {
+                if (event != 'Resume' & event != 'None' & show_colorEvent) {
                     space = 0.7
                     Hevent = event_panel(event, colorEvent, colorTextEvent)
                     P[[1]] = merge_panel(add=Hevent, to=Hinfo,
@@ -419,7 +419,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 }
                 
                 if (foot_note) {
-                    if (event != 'Resume') {
+                    if (event != 'Resume' & event != 'None') {
                         footName = paste0('fiche station : ', event)
                     } else {
                         footName = 'fiche station'
@@ -455,7 +455,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 }
                 
                 if (!is.null(time_header)) {
-                    if (event == "Resume") {
+                    if (event == "Resume" & event != 'None') {
                         P_t = c(nbi+1, nbi+3)
                         nbt = 2
                     } else if (event == "Étiage")  {
@@ -490,7 +490,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 LM = LM + nbt + nbi
                 
                 if (!is.null(time_header)) {
-                    if (event == "Resume") {
+                    if (event == "Resume" & event != 'None') {
                         id_Q = nbi+1
                         id_sqrtQ = nbi+2
                         LM = rbind(id_sqrtQ, LM)

@@ -3,12 +3,9 @@ type = "Volume"
 unit = "m^{3}"
 glose = "Volume des écoulements lents (volume de l’intégrale sous la courbe du débit de base)"
 event = "Crue Nivale"
-hydroYear = "09-01"
 hydroPeriod = c("09-01", "08-31")
 
-sampleSpan = NULL
 yearNA_lim = 10
-dayLac_lim = NULL
 NA_pct_lim = 1
 day_to_roll = NULL
 

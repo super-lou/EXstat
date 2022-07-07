@@ -34,6 +34,7 @@
 
 # Usefull library
 library(dplyr)
+library(lubridate)
 library(Hmisc)
 
 
@@ -58,8 +59,8 @@ flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
 
             for (i in 1:nbFlag) {
                 newValue = df_flag_code$newValue[i]
-                date = df_flag_code$Date[i]
-                OKcor = df_data$code == code & df_data$Date == date
+                flagDate = as.Date(df_flag_code$Date[i])
+                OKcor = df_data$code == code & df_data$Date == flagDate
                 oldValue = df_data$Value[OKcor]
                 df_data$Value[OKcor] = newValue
 
@@ -68,7 +69,7 @@ flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
                         add_mod(df_mod, code,
                                 type='Value correction',
                                 fun_name='Manual new value assignment',
-                                comment=paste('At ', date,
+                                comment=paste('At ', flagDate,
                                               ' the value ', oldValue,
                                               ' becomes ', newValue,
                                               sep=''))
@@ -142,7 +143,8 @@ missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL
                          apply_missing_year(Date,
                                             Value,
                                             Code,
-                                            yearNA_lim))
+                                            yearNA_lim),
+                        .groups="drop")
 
     if (!is.null(df_mod)) {
         
@@ -309,7 +311,25 @@ NA_filter = function (df_XEx, NA_pct_lim=1, df_mod=NULL) {
 
 
 ## 4. SAMPLING OF THE DATA ___________________________________________
-sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code=NULL, df_mod=NULL) {
+sampling_data = function (df_data, df_meta, hydroPeriod=c('05-01', '11-30'), Code=NULL, df_mod=NULL) {
+
+    if (length(hydroPeriod) == 2) {
+        sampleStart = as.Date(paste('1972', hydroPeriod[1], sep='-'))
+        sampleEnd = as.Date(paste('1972', hydroPeriod[2], sep='-'))
+    } else {
+        sampleStart = as.Date(paste('1972', hydroPeriod, sep='-'))
+        sampleEnd = sampleStart - 1
+    }
+
+    if (abs(sampleStart - sampleEnd) == 1) {
+        print('.. No sampling of the data needed')
+        if (!is.null(df_mod)) {
+            res = list(data=df_data, mod=df_mod)
+            return (res)
+        } else {
+            return (df_data)
+        }
+    }
 
     print('.. Sampling of the data')
     
@@ -320,16 +340,7 @@ sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code
     } else {
         nCode = length(Code)
     }
-
-    # 1972 is leap year reference is case of leap year comparison
-    sampleStart = as.Date(paste('1972', sampleSpan[1], sep='-'))
-    sampleEnd = as.Date(paste('1972', sampleSpan[2], sep='-'))
-
-    DateMD = format(df_data$Date, "%m-%d")
-    DateRef = paste('1972', DateMD, sep='-')
     
-    df_data$Value[DateRef < sampleStart | DateRef > sampleEnd] = NA
-
     # df_data$DateRef = DateRef
     # df_data = mutate(.data=df_data,
     #                  Value=
@@ -337,14 +348,42 @@ sampling_data = function (df_data, df_meta, sampleSpan=c('05-01', '11-30'), Code
     #                              DateRef < sampleStart | DateRef > sampleEnd,
     #                              NA))
     # df_data = select(df_data, -DateRef)
+
+    mStart = as.numeric(substr(hydroPeriod[1], 1, 2))
+    dStart = as.numeric(substr(hydroPeriod[1], 4, 5))
+    mEnd = as.numeric(substr(hydroPeriod[2], 1, 2))
+    dEnd = as.numeric(substr(hydroPeriod[2], 4, 5))
     
+    if (sampleStart < sampleEnd) {
+        df_data = filter(df_data,
+        (mStart < month(Date) |
+         (mStart == month(Date) &
+          dStart <= day(Date)))
+        &
+        (month(Date) < mEnd |
+         (month(Date) == mEnd &
+          day(Date) <= dEnd))
+        )
+
+    } else {
+        df_data = filter(df_data,
+        (month(Date) < mEnd |
+         (month(Date) == mEnd &
+          day(Date) <= dEnd))
+        |
+        (mStart < month(Date) |
+         (mStart == month(Date) &
+          dStart <= day(Date)))
+        )
+    }
+
     if (!is.null(df_mod)) {
         for (code in Code) {
             df_mod = add_mod(df_mod, code,
                              type='Seasonal sampling ',
                              fun_name='NA assignment',
-                             comment=paste('Before ', sampleStart,
-                                           ' and after ', sampleEnd,
+                             comment=paste('Between ', hydroPeriod[1],
+                                           ' and ', hydroPeriod[2],
                                            sep=''))
         }
     }

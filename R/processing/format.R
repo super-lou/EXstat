@@ -83,12 +83,12 @@ join_selection = function (list_data, list_meta, list_from) {
 
 ## 2. WRAP OF TREND ANALYSE __________________________________________
 ### 2.1. extract.Var _________________________________________________
-extract_Var_WRAP = function (df_data, funct, period, hydroYear,
-                             hydroPeriod, timestep,
+extract_Var_WRAP = function (df_data, funct, period,
+                             hydroPeriod="01-01", timestep="year",
                              isDate=FALSE, ...) {
 
     print('... Extraction of data')
-    
+
     # Groups the data by code column
     df_data = group_by(df_data, code)
     # Creates a new tibble of data with a group column
@@ -105,17 +105,17 @@ extract_Var_WRAP = function (df_data, funct, period, hydroYear,
     # Stores data and info tibble as a list that match the entry of
     # the 'extract.Var' function
     df_Xlist = list(data=data, info=info)
-
+    
     df_XEx = extract.Var(data.station=df_Xlist,
                          funct=funct,
                          period=period,
-                         per.start=hydroYear,
+                         per.start=hydroPeriod[1],
                          timestep=timestep,
                          pos.datetime=1,
                          ...)
 
     colnames(df_XEx) = c('Date', 'group', 'Value', 'NA_pct')
-    df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', hydroYear))
+    df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', hydroPeriod[1]))
     # Recreates the outing of the 'extract.Var' function nicer
     df_XEx = tibble(Date=df_XEx$Date,
                     Value=df_XEx$Value,
@@ -124,7 +124,7 @@ extract_Var_WRAP = function (df_data, funct, period, hydroYear,
 
     if (isDate) {
         # Converts index of the tCEN to the julian date associated
-        df_XEx = convert_dateEx(df_XEx, df_data, hydroYear=hydroYear)
+        df_XEx = convert_dateEx(df_XEx, df_data, hydroYear=hydroPeriod[1])
     }
 
     return (df_XEx)

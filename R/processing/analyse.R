@@ -41,6 +41,7 @@ library(StatsAnalysisTrend)
 library(lubridate)
 library(trend)
 library(Hmisc)
+library(accelerometry)
 
 # Sourcing R file
 source(file.path('R', 'processing', 'format.R'), encoding='UTF-8')
@@ -49,9 +50,9 @@ source(file.path('R', 'processing', 'correction.R'), encoding='UTF-8')
 
 ## 1. TREND ANALYSIS _________________________________________________
 ### 1.0. X ___________________________________________________________
-get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
+get_Xtrend = function (var, df_data, df_meta, period,
                        hydroPeriod, alpha,
-                       df_flag=NULL, sampleSpan=NULL, yearNA_lim=NULL,
+                       df_flag=NULL, yearNA_lim=NULL,
                        dayLac_lim=NULL, NA_pct_lim=NULL,
                        day_to_roll=NULL,
                        functM=NULL, functM_args=NULL, isDateM=FALSE,
@@ -61,12 +62,12 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
                        functYT_sum_args=NULL,
                        df_mod=tibble()) {
 
-    print(paste0('. Computes ', var, ' trend for hydrological month start ',
-                 substr(hydroYear, 1, 2)))
+    print(paste0('. Computes ', var, ' trend for hydrological period ',
+                 paste0(hydroPeriod, collapse=' / ')))
 
     # Get all different stations code
     Code = levels(factor(df_meta$code))
-    
+
     if (!is.null(df_flag)) {
         # Local corrections if needed
         res = flag_data(df_data, df_meta,
@@ -82,7 +83,7 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
         df_data = res$data
         df_mod = res$mod
     }
-    
+
     if (!is.null(yearNA_lim)) {
         # Removes older data if there are a too long missing period
         res = missing_year(df_data, df_meta,
@@ -92,26 +93,15 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
         df_mod = res$mod
     }
 
-    if (!is.null(dayLac_lim)) {
-        # Removes incomplete years if there are too long missing
-        # consecutive days
-        res = missing_day(df_data, df_meta,
-                          dayLac_lim=dayLac_lim,
-                          hydroYear=hydroYear,
-                          df_mod=df_mod)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
-    if (!is.null(sampleSpan)) {
+    if (!is.null(hydroPeriod)) {
         # Samples the data
         res = sampling_data(df_data, df_meta,
-                            sampleSpan=sampleSpan,
+                            hydroPeriod=hydroPeriod,
                             df_mod=df_mod)
         df_data = res$data
         df_mod = res$mod
     }
-    
+
     # Make sure to convert the period to a list
     period = as.list(period)
     # Set the max interval period as the minimal possible
@@ -131,7 +121,6 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
                 args=c(list(df_data=df_data,
                             funct=functM,
                             period=per,
-                            hydroYear="01",
                             hydroPeriod=hydroPeriod,
                             timestep='year-month',
                             isDate=isDateM),
@@ -146,7 +135,6 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
                 args=c(list(df_data=df_data,
                             funct=functYT_ext,
                             period=per,
-                            hydroYear=hydroYear,
                             hydroPeriod=hydroPeriod,
                             timestep='year',
                             isDate=isDateYT_ext),
@@ -154,7 +142,8 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
             
             df_YT = summarise(group_by(df_YTEx, code),
                               threshold=functYT_sum(Value,
-                                                    !!!functYT_sum_args))
+                                                    !!!functYT_sum_args),
+                              .groups="drop")
             
             idT = which(functY_args == '*threshold*')
             
@@ -172,7 +161,6 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
                     args=c(list(df_data=df_data_code,
                                 funct=functY,
                                 period=per,
-                                hydroYear=hydroYear,
                                 hydroPeriod=hydroPeriod,
                                 timestep='year',
                                 isDate=isDateY),
@@ -186,7 +174,6 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
                 args=c(list(df_data=df_data,
                             funct=functY,
                             period=per,
-                            hydroYear=hydroYear,
                             hydroPeriod=hydroPeriod,
                             timestep='year',
                             isDate=isDateY),
@@ -230,31 +217,39 @@ get_Xtrend = function (var, df_data, df_meta, period, hydroYear,
 
 ## 2. USEFUL FUNCTIONS _______________________________________________
 ### 2.1. Rolling average over stations _______________________________
-rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
-    
-    # Blank tibble to store the data averaged
-    df_data_roll = tibble()
-    # For all the code
-    for (code in Code) {
-        # Get the data associated to the code
-        df_data_code = df_data[df_data$code == code,]
-        # Perform the roll mean of the flow over 10 days
-        df_data_roll_code = tibble(Date=df_data_code$Date,
-                                   Value=rollmean(df_data_code$Value, 
-                                                  k=10,
-                                                  fill=NA),
-                                   code=code)
-        # Store the results
-        df_data_roll = bind_rows(df_data_roll, df_data_roll_code)
+rollmean_center = function (X, k) {
+    N = length(X)
+    Xroll = movingaves(X, k)
+    Xroll = c(rep(NA, as.integer((k-1)/2)), Xroll)
+    Nroll = length(Xroll)
+    Xroll = c(Xroll, rep(NA, N-Nroll))
+    return (Xroll)
+}
 
-        if (!is.null(df_mod)) {
+rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
+
+    print(paste0('.. Rolling average over ', nroll, " days"))
+
+    df_roll = summarise(group_by(df_data, code),
+                        Value=rollmean_center(Value,
+                                              k=nroll),
+                        .groups="drop")
+    df_data_roll = tibble(Date=df_data$Date,
+                          Value=df_roll$Value,
+                          code=df_roll$code)
+
+    if (!is.null(df_mod)) {
+        # For all the code
+        for (code in Code) {
             df_mod = add_mod(df_mod, code,
                              type='Rolling average',
                              fun_name='rollmean',
-                             comment='Rolling average of 10 day over all the data')
+                             comment=paste0('Rolling average of',
+                                            nroll,
+                                            'days over all the data'))
         }
     }
-
+    
     if (!is.null(df_mod)) {
         res = list(data=df_data, mod=df_mod)
         return (res)

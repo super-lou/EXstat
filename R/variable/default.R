@@ -3,12 +3,9 @@ type = ""
 unit = ""
 glose = ""
 event = ""
-hydroYear = "01-01"
 hydroPeriod = c("01-01", "12-31")
 
-sampleSpan = NULL
 yearNA_lim = NULL
-dayLac_lim = NULL
 NA_pct_lim = NULL
 day_to_roll = NULL
 

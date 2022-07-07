@@ -129,7 +129,7 @@ to_assign_out = c(
     # 'analyse'
 )
 
-hydroYear_mode =
+hydroPeriod_mode =
     # 'every'
     'fixed'
 
