@@ -74,15 +74,17 @@ theme_ash = function () {
 }
 
 ### 1.2. Color palette _______________________________________________
-palette_perso = function () {
-    palette =
-        c('#0f3b57', # cold
-          '#1d7881',
-          '#80c4a9',
-          '#e2dac6', # mid
-          '#fadfad',
-          '#d08363',
-          '#7e392f') # hot
+Palette_ground = function () {
+    palette = c('#543005',
+                '#8c510a',
+                '#bf812d',
+                '#dfc27d',
+                '#f6e8c3',
+                '#c7eae5',
+                '#80cdc1',
+                '#35978f',
+                '#01665e',
+                '#003c30')
     return (palette)
 }
 

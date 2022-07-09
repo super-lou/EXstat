@@ -112,7 +112,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
     }
     
     # Number of ticks for the colorbar
-    nbTick = 10
+    colorStep = 10
 
     for (j in 1:nMap) {
         # For all variable
@@ -445,19 +445,12 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 }
                 
                 # Computes the color associated to the mean trend
-                color_res = get_color(value, 
+                color_res = get_color(value,
                                       minValue,
                                       maxValue,
-                                      palette_name='perso',
-                                      reverse=TRUE,
-                                      ncolor=256)
-                # Computes the colorbar info 
-                palette_res = get_palette(minValue,
-                                          maxValue,
-                                          palette_name='perso',
-                                          reverse=TRUE,
-                                          ncolor=256,
-                                          nbTick=nbTick)
+                                      Palette=Palette_ground(),
+                                      colorStep=colorStep,
+                                      reverse=FALSE)
 
                 if (mapType == 'trend') {
                     # If it is significative
@@ -539,37 +532,57 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                    color='grey50', fill=fill[OkVal])
                 }
 
-                # Extracts the position of the tick of the colorbar
-                posTick = palette_res$posTick
-                # Extracts the label of the tick of the colorbar
-                labTick = palette_res$labTick
-                # Extracts the color corresponding to the tick
-                # of the colorbar
-                colTick = palette_res$colTick
+                # Computes the colorbar info
+                palette_res = compute_colorBin(minValue,
+                                               maxValue,
+                                               Palette=Palette_ground(),
+                                               colorStep=colorStep,
+                                               reverse=FALSE)
+
+                bin = palette_res$bin
+                upBin = palette_res$upBin
+                lowBin = palette_res$lowBin
+                
+                midBin = (bin[2:(colorStep-1)] + bin[1:(colorStep-2)])/2
+                dBin = mean(diff(midBin))
+                midBin = c(midBin[1]-dBin, midBin, midBin[(colorStep-2)]+dBin)
+                midBin = (midBin - min(midBin)) / (max(midBin) - min(midBin))
+                
+                color = palette_res$Palette
                 
                 # Spreading of the colorbar
-                valNorm = nbTick * 3.3
-                base = 65 - valNorm
-                ytickNorm = posTick / max(posTick) * valNorm
+                valNorm = colorStep * 2.65
+                base = 70.5 - valNorm
                 # Normalisation of the position of ticks
-                ytick = posTick / max(posTick) * valNorm + base
-
-                # If it is a flow variable
-                if (type == 'sévérité') {
-                    # Formatting of label in pourcent
-                    labTick = as.character(signif(labTick*100, 2))
-                    # If it is a date variable
-                } else if (type == 'saisonnalité') {
-                    # Formatting of label
-                    labTick = as.character(signif(labTick, 2))
-                }
+                Ypal = midBin / max(midBin) * valNorm + base
                 
                 # X position of ticks all similar
-                xtick = rep(0.7, times=nbTick)
+                Xpal = rep(0.7, times=colorStep)
 
+                # Computes the label of the tick of the colorbar
+                ncharLim = 4
+                if (type == 'sévérité') {
+                    labelRaw = bin*100
+                } else if (type == 'saisonnalité') {
+                    labelRaw = bin
+                }
+                label2 = signif(labelRaw, 2)
+                label2[label2 >= 0] = paste0(" ", label2[label2 >= 0])
+                label1 = signif(labelRaw, 1)
+                label1[label1 >= 0] = paste0(" ", label1[label1 >= 0])
+                label = label2        
+                label[nchar(label2) > ncharLim] = label1[nchar(label2) > ncharLim]
+                label = c("-Inf", label, "Inf")
+
+                # X position of ticks all similar
+                Xlab = rep(0.7, times=colorStep+1)
+                dY = mean(diff(Ypal))
+                Ylab = Ypal - dY/2
+                Ylab = c(Ylab, Ylab[colorStep] + dY)
+                
                 # Creates a tibble to store all parameters of colorbar
-                plot_palette = tibble(xtick=xtick, ytick=ytick,
-                                      colTick=colTick, labTick=labTick)
+                plot_palette = tibble(Xpal=Xpal, Ypal=Ypal,
+                                      color=color)
 
                 
                 nbLine = as.integer(nchar(glose)/40) + 1
@@ -596,14 +609,14 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     nbChar = nchar(Newline)
                 }
 
-                Yline = 84 + 2.9*nbNewline
+                Yline = 86.8 + 2.6*nbNewline
                 Ytitle = Yline + 0.8
    
                 # New plot with void theme
                 leg = ggplot() + theme_void() +
                     
                     # Plots separation lines
-                    geom_line(aes(x=c(0, 9.7), y=c(80.7, 80.7)),
+                    geom_line(aes(x=c(0, 9.7), y=c(84.4, 84.4)),
                               size=0.6, color="#00A3A8") +
                     geom_line(aes(x=c(0, 9.7), y=c(Yline, Yline)),
                               size=0.6, color="#00A3A8") +
@@ -617,7 +630,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                     hjust=0, vjust=0, size=10) +
                     
                     # Writes glose
-                    geom_shadowtext(data=tibble(x=0, y=81.6,
+                    geom_shadowtext(data=tibble(x=0, y=85.2,
                                                 label=gloseName),
                                     aes(x=x, y=y, label=label),
                                     fontface="bold",
@@ -627,31 +640,18 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
     
                     # Plots the point of the colorbar
                     geom_point(data=plot_palette,
-                               aes(x=xtick, y=ytick),
+                               aes(x=Xpal, y=Ypal),
                                shape=21, size=5, stroke=1,
-                               color='white', fill=colTick)
-
-                periodName_trend = paste(
+                               color='white', fill=color)
+                
+                if (mapType == 'trend') {
+                    periodName_trend = paste(
                     format(as.Date(trend_period[[idPer_trend]][1]),
                            '%Y'),
                     format(as.Date(trend_period[[idPer_trend]][2]),
                            '%Y'),
                     sep='-')
-                
-                periodName1_mean = paste(
-                    format(as.Date(mean_period[[1]][1]),
-                           '%Y'),
-                    format(as.Date(mean_period[[1]][2]),
-                           '%Y'),
-                    sep='-')
-                periodName2_mean = paste(
-                    format(as.Date(mean_period[[2]][1]),
-                           '%Y'),
-                    format(as.Date(mean_period[[2]][2]),
-                           '%Y'),
-                    sep='-')
-                
-                if (mapType == 'trend') {
+                                    
                     ValueName1 = "Tendances observées"
                     ValueName2 = paste("sur la période ",
                                        periodName_trend, sep='')
@@ -664,6 +664,19 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     }
                     
                 } else if (mapType == 'mean') {
+                    periodName1_mean = paste(
+                    format(as.Date(mean_period[[1]][1]),
+                           '%Y'),
+                    format(as.Date(mean_period[[1]][2]),
+                           '%Y'),
+                    sep='-')
+                periodName2_mean = paste(
+                    format(as.Date(mean_period[[2]][1]),
+                           '%Y'),
+                    format(as.Date(mean_period[[2]][2]),
+                           '%Y'),
+                    sep='-')
+                                    
                     ValueName1 = "Écarts observés entre"
                     ValueName2 = paste(periodName1_mean,
                                        " et ",
@@ -681,30 +694,30 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 leg = leg +
                     # Name of the colorbar
                     annotate('text',
-                             x=0, y=77,
+                             x=0, y=81.5,
                              label=ValueName1,
                              hjust=0, vjust=0.5,
                              size=6, color='grey40') +
                     # Second line
                     annotate('text',
-                             x=0, y=73.5,
+                             x=0, y=78.8,
                              label=ValueName2,
                              hjust=0, vjust=0.5,
                              size=6, color='grey40') +
                     # Unit legend of the colorbar
                     annotate('text',
-                             x=0, y=69.5,
+                             x=0, y=75.6,
                              label=unit,
                              hjust=0, vjust=0.5,
                              size=4, color='grey40')
                 
                 # For all the ticks
-                for (id in 1:nbTick) {
+                for (id in 1:(colorStep+1)) {
                     leg = leg +
                         # Adds the value
-                        annotate('text', x=xtick[id]+0.7,
-                                 y=ytick[id],
-                                 label=bquote(bold(.(labTick[id]))),
+                        annotate('text', x=Xlab[id]+0.7,
+                                 y=Ylab[id],
+                                 label=bquote(bold(.(label[id]))),
                                  hjust=0, vjust=0.75, 
                                  size=3, color='grey40')
                 }
@@ -714,9 +727,9 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     noneLabel = bquote(bold("Non significatif à 10%"))
                     downLabel = bquote(bold("Baisse significative à 10%"))
 
-                    yUp = 25
-                    yNone = 22
-                    yDown = 18.4
+                    yUp = 38
+                    yNone = 35.6
+                    yDown = 32.7
                     
                     leg = leg +
                         # Up triangle in the marker legend
@@ -755,21 +768,16 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                  size=3, color='grey40')
                 }
                 
-                # Normalises all the trend values for each station
-                # according to the colorbar
-                if (mapType == 'trend') {
-                    yValue = (Value - minTrendValue[idPer_trend, i]) / (maxTrendValue[idPer_trend, i] - minTrendValue[idPer_trend, i]) * valNorm
-                } else if (mapType == 'mean') {
-                    yValue = (Value - minBreakValue[j+1, i]) / (maxBreakValue[j+1, i] - minBreakValue[j+1, i]) * valNorm
-                }
 
                 # Takes only the significative ones
-                yValueOk = yValue[OkVal]
-                yValueNOk = yValue[!OkVal]
+                yValueOk = Value[OkVal]
+                yValueNOk = Value[!OkVal]
 
                 # Histogram distribution
                 # Computes the histogram of values
-                res_hist = hist(yValueOk, breaks=ytickNorm, plot=FALSE)
+                res_hist = hist(yValueOk,
+                           breaks=c(-Inf, bin, Inf),
+                           plot=FALSE)
                 # Extracts the number of counts per cells
                 countsOk = res_hist$counts
                 # Extracts middle of cells 
@@ -777,7 +785,9 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
 
                 # Histogram distribution
                 # Computes the histogram of values
-                res_hist = hist(yValueNOk, breaks=ytickNorm, plot=FALSE)
+                res_hist = hist(yValueNOk,
+                                breaks=c(-Inf, bin, Inf),
+                                plot=FALSE)
                 # Extracts the number of counts per cells
                 countsNOk = res_hist$counts
 
@@ -828,7 +838,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                          times=countsNOk[ii]))
 
                     if (mapType == 'trend') {
-                        if (midsOk[ii] > 0) {
+                        if (midsOk[ii] < 0) {
                             shapetmp = 25
                         } else {
                             shapetmp = 24
@@ -841,9 +851,23 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                         shape = 21
                     }
                 }
+
+                print(yValue)
+                print(counts)
+
+                
+                # # Normalises all the trend values for each station
+                # # according to the colorbar
+                # if (mapType == 'trend') {
+                #     yValueNorm = yValue / maxTrendValue[idPer_trend, i] + base
+                # } else if (mapType == 'mean') {
+                #     yValueNorm = yValue / maxBreakValue[j+1, i] + base
+                # }
+
+
                 
                 # Makes a tibble to plot the distribution
-                plot_value = tibble(xValue=xValue, yValue=yValue+base)
+                plot_value = tibble(xValue=xValue, yValue=yValueNorm)
 
                 leg = leg +
                     # Plots the point of the distribution
@@ -894,9 +918,9 @@ bonnes par le gestionnaire et les débits
 peu altérés par les activités humaines."
 
                 if (mapType == 'trend') {
-                    yAnn = 0
+                    yAnn = 18
                 } else if (mapType == 'mean') {
-                    yAnn = 14
+                    yAnn = 32
                 }
 
                 leg = leg +
@@ -907,7 +931,6 @@ peu altérés par les activités humaines."
                              size=3, color='grey70',
                              fontface='italic')
 
-                ann = void()
                 
             # If there is a specified station code
             } else if (mapType == 'mini') {
@@ -930,7 +953,6 @@ peu altérés par les activités humaines."
                                color='grey97', fill='#00A3A8')
                 
                 leg = void()
-                ann = void()
                 
             } else if (mapType == 'regime') {
                 nudge_y = rnorm(nCode, mean=0, sd=1000)
@@ -963,14 +985,14 @@ peu altérés par les activités humaines."
                                     y=c(yRow1, yRow2),
                                     label=c(titleRow1, titleRow2))
 
-                xtick = rep(0.8, times=nRegime)
-                ytick = c(62, 67.5, 73)
-                labTick = names(regimeColorSample)
-                colTick = regimeColorSample
+                Xpal = rep(0.8, times=nRegime)
+                Ypal = c(62, 67.5, 73)
+                label = names(regimeColorSample)
+                color = regimeColorSample
                 plot_palette = tibble(xtick=xtick,
                                       ytick=ytick,
                                       color=colTick,
-                                      label=labTick)
+                                      label=label)
                 
                 # New plot with void theme
                 leg = ggplot() + theme_void() +
@@ -989,9 +1011,9 @@ peu altérés par les activités humaines."
                     
                     # Plots the point of the colorbar
                     geom_point(data=plot_palette,
-                               aes(x=xtick, y=ytick),
+                               aes(x=Xpal, y=Ypal),
                                shape=21, size=5, stroke=1,
-                               color='white', fill=colTick)
+                               color='white', fill=color)
                 
                 # For all the ticks
                 for (id in 1:nRegime) {
@@ -999,7 +1021,7 @@ peu altérés par les activités humaines."
                         # Adds the value
                         annotate('text', x=xtick[id]+0.8,
                                  y=ytick[id],
-                                 label=bquote(bold(.(labTick[id]))),
+                                 label=bquote(bold(.(label[id]))),
                                  hjust=0, vjust=0.7, 
                                  size=4, color='grey40')
                 }
@@ -1014,8 +1036,6 @@ peu altérés par les activités humaines."
                     # Margin of the colorbar
                     theme(plot.margin=margin(t=0, r=0, b=0, l=0,
                                              unit="mm"))
-
-                ann = void()
             }
 
             if (!is.null(df_page)) {
@@ -1057,23 +1077,20 @@ peu altérés par les activités humaines."
                                   foot_height, logo_path)
 
                 # Stores the map, the title and the colorbar in a list
-                P = list(map, leg, ann, foot)
+                P = list(map, leg, foot)
                 LM = matrix(c(1, 1, 1, 2,
-                              1, 1, 1, 3,
-                              4, 4, 4, 4),
-                            nrow=3, byrow=TRUE)
+                              3, 3, 3, 3),
+                            nrow=2, byrow=TRUE)
             } else {
                 foot_height = 0
                 # Stores the map, the title and the colorbar in a list
-                P = list(map, leg, ann)
-                LM = matrix(c(1, 1, 1, 2,
-                              1, 1, 1, 3),
-                            nrow=2, byrow=TRUE)
+                P = list(map, leg)
+                LM = matrix(c(1, 1, 1, 2),
+                            nrow=1, byrow=TRUE)
             }
 
             id_leg = 2
-            id_ann = 3        
-            id_foot = 4
+            id_foot = 3
             
             LMcol = ncol(LM)
             LMrow = nrow(LM)
@@ -1086,18 +1103,12 @@ peu altérés par les activités humaines."
             margin_size = 0.5
             height = 21
             width = 29.7
-            leg_ratio = 4/5
-            ann_ratio = 1/5
 
-            Norm_ratio = height * (leg_ratio + ann_ratio) / (height - 2*margin_size - foot_height)
-
-            leg_height = height * leg_ratio / Norm_ratio
-            ann_height = height * ann_ratio / Norm_ratio
+            leg_height = height - 2*margin_size - foot_height
 
             Hcut = LM[, LMcol-1]
             heightLM = rep(0, times=LMrow)
             heightLM[Hcut == id_leg] = leg_height
-            heightLM[Hcut == id_ann] = ann_height
             heightLM[Hcut == id_foot] = foot_height
             heightLM[Hcut == 99] = margin_size
 

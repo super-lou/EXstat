@@ -326,11 +326,13 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                         }
                         
                         # gets the color corresponding to the mean trend
-                        color_res = get_color(trendValue, 
+
+                        color_res = get_color(value,
                                               minTrendValue[j, i],
                                               maxTrendValue[j, i],
-                                              palette_name='perso',
-                                              reverse=TRUE)
+                                              Palette=Palette_ground(),
+                                              colorStep=10,
+                                              reverse=FALSE)
                         # Stores it temporarily
                         colortmp = color_res
 

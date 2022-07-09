@@ -139,11 +139,12 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                 }
 
                 # Gets the color associated to the averaged trend
-                color_res = get_color(trendValue, 
+                color_res = get_color(trendValue,
                                       minTrendValue[j, i],
                                       maxTrendValue[j, i],
-                                      palette_name='perso',
-                                      reverse=TRUE)
+                                      Palette=Palette_ground(),
+                                      colorStep=10,
+                                      reverse=FALSE)
 
                 pVal = df_trend_code_per$p
                 
@@ -307,11 +308,12 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     # Extracts averaged breaking
                     breakValue = BreakValue_mean[ii]
                     # Gets the color associated
-                    color_res = get_color(breakValue, 
+                    color_res = get_color(breakValue,
                                           minBreakValue[j, i],
                                           maxBreakValue[j, i],
-                                          palette_name='perso',
-                                          reverse=TRUE)
+                                          Palette=Palette_ground(),
+                                          colorStep=10,
+                                          reverse=FALSE)
                     # Gets the fill and contour color
                     fill = color_res
                     color = 'white'
