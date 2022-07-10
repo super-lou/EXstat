@@ -204,6 +204,8 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                              aes(x=long, y=lat, group=group),
                              color="grey70", fill=NA, size=sizebs)
 
+            print(zone_to_show)
+            
             if (zone_to_show == 'Adour-Garonne') {
                 map = map +
                     # Plot the hydrological sub-basin
@@ -227,7 +229,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                  aes(x=long, y=lat, group=code),
                                  color=color, fill=NA, size=sizecbs)
             }
-
+            
             if (zone_to_show == 'Adour-Garonne') {
                 if (mapType != 'mini') {
                 xBasin = c(410000, 520000, 630000,
@@ -444,7 +446,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     pVal = 0
                 }
                 
-                # Computes the color associated to the mean trend
+                # Computes the color associated to the trend
                 color_res = get_color(value,
                                       minValue,
                                       maxValue,
@@ -458,7 +460,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                         # The computed color is stored
                         filltmp = color_res
                         # If the mean tend is positive
-                        if (value >= 0) {
+                        if (value > 0) {
                             # Uses a triangle up for the shape
                             # of the marker
                             shapetmp = 24
@@ -546,7 +548,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 midBin = (bin[2:(colorStep-1)] + bin[1:(colorStep-2)])/2
                 dBin = mean(diff(midBin))
                 midBin = c(midBin[1]-dBin, midBin, midBin[(colorStep-2)]+dBin)
-                midBin = (midBin - min(midBin)) / (max(midBin) - min(midBin))
+                midBinNorm = (midBin - min(midBin)) / (max(midBin) - min(midBin))
                 
                 color = palette_res$Palette
                 
@@ -554,7 +556,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 valNorm = colorStep * 2.65
                 base = 70.5 - valNorm
                 # Normalisation of the position of ticks
-                Ypal = midBin / max(midBin) * valNorm + base
+                Ypal = midBinNorm * valNorm + base
                 
                 # X position of ticks all similar
                 Xpal = rep(0.7, times=colorStep)
@@ -776,12 +778,15 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 # Histogram distribution
                 # Computes the histogram of values
                 res_hist = hist(yValueOk,
-                           breaks=c(-Inf, bin, Inf),
-                           plot=FALSE)
+                                breaks=c(-Inf, bin, Inf),
+                                plot=FALSE)
                 # Extracts the number of counts per cells
                 countsOk = res_hist$counts
                 # Extracts middle of cells 
-                midsOk = res_hist$mids
+                mids = res_hist$mids
+                mids = mids[2:(colorStep-1)]
+                dM = mean(diff(mids))
+                mids = c(mids[1] - dM, mids, mids[colorStep-2] + dM)
 
                 # Histogram distribution
                 # Computes the histogram of values
@@ -790,7 +795,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                 plot=FALSE)
                 # Extracts the number of counts per cells
                 countsNOk = res_hist$counts
-
+               
                 counts = countsOk + countsNOk
 
                 # Blank vectors to store position of points of
@@ -816,7 +821,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 }
                 
                 # For all cells of the histogram
-                for (ii in 1:length(midsOk)) {
+                for (ii in 1:length(mids)) {
                     # If the count in the current cell is not zero
                     if (counts[ii] != 0) {
                         # Stores the X positions of points of the 
@@ -829,7 +834,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     }
                     # Stores the Y position which is the middle of the
                     # current cell the number of times it has been counted
-                    yValue = c(yValue, rep(midsOk[ii],
+                    yValue = c(yValue, rep(mids[ii],
                                            times=counts[ii]))
                     
                     color = c(color, rep('grey50',
@@ -838,7 +843,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                          times=countsNOk[ii]))
 
                     if (mapType == 'trend') {
-                        if (midsOk[ii] < 0) {
+                        if (mids[ii] < 0) {
                             shapetmp = 25
                         } else {
                             shapetmp = 24
@@ -852,16 +857,26 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     }
                 }
 
-                print(yValue)
-                print(counts)
 
+                
+                yValueNorm =
+                    (yValue - min(midBin)) / (max(midBin) - min(midBin)) * valNorm + base
+
+                print(Value)
+                print(yValue)
+                print(fill)
+                print("")
+                print(mids)
+                print(countsOk)
+                print(countsNOk)
+                print(counts)
                 
                 # # Normalises all the trend values for each station
                 # # according to the colorbar
                 # if (mapType == 'trend') {
-                #     yValueNorm = yValue / maxTrendValue[idPer_trend, i] + base
+                #     yValueNorm = (yValue - minTrendValue[idPer_trend, i]) / (maxTrendValue[idPer_trend, i] - minTrendValue[idPer_trend, i]) * valNorm + base
                 # } else if (mapType == 'mean') {
-                #     yValueNorm = yValue / maxBreakValue[j+1, i] + base
+                #     yValueNorm = (yValue - minBreakValue[j+1, i]) / (maxBreakValue[j+1, i] - minBreakValue[j+1, i]) * valNorm + base
                 # }
 
 

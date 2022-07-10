@@ -75,16 +75,16 @@ theme_ash = function () {
 
 ### 1.2. Color palette _______________________________________________
 Palette_ground = function () {
-    palette = c('#543005',
+    palette = c('#543005', #hot
                 '#8c510a',
                 '#bf812d',
                 '#dfc27d',
-                '#f6e8c3',
-                '#c7eae5',
+                '#f6e8c3', #mid hot
+                '#c7eae5', #mid cold
                 '#80cdc1',
                 '#35978f',
                 '#01665e',
-                '#003c30')
+                '#003c30') #cold
     return (palette)
 }
 
@@ -299,6 +299,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                 df_shapefile=df_shapefile,
                                 foot_note=foot_note,
                                 foot_height=foot_height,
+                                zone_to_show=zone_to_show,
                                 logo_path=logo_path,
                                 outdirTmp_pdf=outdirTmp_pdf,
                                 outdirTmp_png=outdirTmp_png, 
@@ -317,6 +318,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                             df_shapefile=df_shapefile,
                             foot_note=foot_note,
                             foot_height=foot_height,
+                            zone_to_show=zone_to_show,
                             logo_path=logo_path,
                             outdirTmp_pdf=outdirTmp_pdf,
                             outdirTmp_png=outdirTmp_png, 
@@ -334,6 +336,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                 df_shapefile=df_shapefile,
                                 foot_note=foot_note,
                                 foot_height=foot_height,
+                                zone_to_show=zone_to_show,
                                 logo_path=logo_path,
                                 outdirTmp_pdf=outdirTmp_pdf,
                                 outdirTmp_png=outdirTmp_png, 
