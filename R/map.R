@@ -203,8 +203,6 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 geom_polygon(data=df_basin,
                              aes(x=long, y=lat, group=group),
                              color="grey70", fill=NA, size=sizebs)
-
-            print(zone_to_show)
             
             if (zone_to_show == 'Adour-Garonne') {
                 map = map +
@@ -559,28 +557,30 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 Ypal = midBinNorm * valNorm + base
                 
                 # X position of ticks all similar
-                Xpal = rep(0.7, times=colorStep)
+                Xpal = rep(1.62, times=colorStep)
 
                 # Computes the label of the tick of the colorbar
-                ncharLim = 4
+                nCharLim = 4
                 if (type == 'sévérité') {
                     labelRaw = bin*100
                 } else if (type == 'saisonnalité') {
                     labelRaw = bin
                 }
                 label2 = signif(labelRaw, 2)
-                label2[label2 >= 0] = paste0(" ", label2[label2 >= 0])
+                label2[label2 >= 0] = paste0("+", label2[label2 >= 0])
                 label1 = signif(labelRaw, 1)
-                label1[label1 >= 0] = paste0(" ", label1[label1 >= 0])
+                label1[label1 >= 0] = paste0("+", label1[label1 >= 0])
                 label = label2        
-                label[nchar(label2) > ncharLim] = label1[nchar(label2) > ncharLim]
-                label = c("-Inf", label, "Inf")
-
+                label[nchar(label2) > nCharLim] = label1[nchar(label2) > nCharLim]
+                label = gsub("[+]", "  ", label)                
+                label = c("\\downarrow ", label, "\\uparrow ")
+                
                 # X position of ticks all similar
-                Xlab = rep(0.7, times=colorStep+1)
+                Xlab = rep(1, times=colorStep+1)
                 dY = mean(diff(Ypal))
                 Ylab = Ypal - dY/2
-                Ylab = c(Ylab, Ylab[colorStep] + dY)
+                Ylab = c(Ylab, Ylab[colorStep] + dY/2 + dY/3)
+                Ylab[1] = Ylab[1] + dY/3
                 
                 # Creates a tibble to store all parameters of colorbar
                 plot_palette = tibble(Xpal=Xpal, Ypal=Ypal,
@@ -717,10 +717,11 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 for (id in 1:(colorStep+1)) {
                     leg = leg +
                         # Adds the value
-                        annotate('text', x=Xlab[id]+0.7,
+                        annotate('text', x=Xlab[id],
                                  y=Ylab[id],
-                                 label=bquote(bold(.(label[id]))),
-                                 hjust=0, vjust=0.75, 
+                                 label=TeX(
+                                     paste0("\\textbf{", label[id], "}")),
+                                 hjust=1, vjust=0.75, 
                                  size=3, color='grey40')
                 }
 
@@ -805,7 +806,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 color = c()
                 shape = c()
                 # Start X position of the distribution
-                start_hist = 3
+                start_hist = 2.5
 
                 # X separation bewteen point
                 hist_sep = 0.35
@@ -813,11 +814,13 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 # Gets the maximun number of point of the distribution
                 maxCount = max(counts, na.rm=TRUE)
                 # Limit of the histogram
-                lim_hist = 8
+                lim_hist = 8.4
+                len_hist = maxCount * hist_sep + start_hist
                 # If the number of point will exceed the limit
-                if (maxCount * hist_sep + start_hist > lim_hist) {
+                if (len_hist > lim_hist) {
                     # Computes the right amount of space between points
                     hist_sep = (lim_hist - start_hist) / maxCount
+                    len_hist = lim_hist
                 }
                 
                 # For all cells of the histogram
@@ -860,26 +863,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
 
                 
                 yValueNorm =
-                    (yValue - min(midBin)) / (max(midBin) - min(midBin)) * valNorm + base
-
-                print(Value)
-                print(yValue)
-                print(fill)
-                print("")
-                print(mids)
-                print(countsOk)
-                print(countsNOk)
-                print(counts)
-                
-                # # Normalises all the trend values for each station
-                # # according to the colorbar
-                # if (mapType == 'trend') {
-                #     yValueNorm = (yValue - minTrendValue[idPer_trend, i]) / (maxTrendValue[idPer_trend, i] - minTrendValue[idPer_trend, i]) * valNorm + base
-                # } else if (mapType == 'mean') {
-                #     yValueNorm = (yValue - minBreakValue[j+1, i]) / (maxBreakValue[j+1, i] - minBreakValue[j+1, i]) * valNorm + base
-                # }
-
-
+                    (yValue - min(midBin)) / (max(midBin) - min(midBin)) * valNorm + base - 0.2
                 
                 # Makes a tibble to plot the distribution
                 plot_value = tibble(xValue=xValue, yValue=yValueNorm)
@@ -900,7 +884,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 }
 
                 # Position of the arrow
-                xArrow = 8.45
+                xArrow = len_hist + 0.2
 
                 leg = leg +
                     # Arrow to show a worsening of the situation
@@ -910,7 +894,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                  arrow=arrow(length=unit(2, "mm"))) +
                     # Text associated to the arrow
                     annotate('text',
-                             x=xArrow+0.25, y=valNorm*0.5+base,
+                             x=xArrow+0.17, y=valNorm*0.5+base,
                              label=labelArrow,
                              angle=90,
                              hjust=0.5, vjust=1,

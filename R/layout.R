@@ -159,7 +159,6 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                          linetype_per='solid',
                          axis_xlim=NULL,
                          missRect=TRUE,
-                         summary=FALSE,
                          paper_size='A4',
                          time_header=NULL,
                          info_header=NULL, foot_note=TRUE,
@@ -285,7 +284,11 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         list_df2plot[[i]] = df2plot
     }
 
-    df_page = tibble(section='Sommaire', subsection=NA, n=1, N=1)
+    if ('summary' %in% to_plot) {
+        df_page = tibble(section='Sommaire', subsection=NA, n=1, N=1)
+    } else {
+        df_page = tibble()
+    }
     
     # If map needs to be plot
     if ('map' %in% to_plot | 'map_regime' %in% to_plot) {
@@ -389,7 +392,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                   df_page=df_page)
     }
 
-    if (summary) {
+    if ('summary' %in% to_plot) {
         summary_panel(df_page,
                       foot_note,
                       foot_height,
@@ -403,7 +406,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
     details = details[with(details, order(as.POSIXct(mtime))),]
     listfile_path = rownames(details)
 
-    if (summary) {
+    if ('summary' %in% to_plot) {
         summary_path = listfile_path[length(listfile_path)]
         listfile_path = listfile_path[-length(listfile_path)]
         listfile_path = c(summary_path, listfile_path)

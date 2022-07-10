@@ -104,17 +104,23 @@ extract_Var_WRAP = function (df_data, funct, period,
     # Stores data and info tibble as a list that match the entry of
     # the 'extract.Var' function
     df_Xlist = list(data=data, info=info)
+
+    if (timestep == "year-month" | timestep == "month") {
+        per.start = substr(hydroPeriod[1], 4, 5)
+    } else {
+        per.start = hydroPeriod[1]
+    }
     
     df_XEx = extract.Var(data.station=df_Xlist,
                          funct=funct,
                          period=period,
-                         per.start=hydroPeriod[1],
+                         per.start=per.start,
                          timestep=timestep,
                          pos.datetime=1,
                          ...)
 
     colnames(df_XEx) = c('Date', 'group', 'Value', 'NA_pct')
-    df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', hydroPeriod[1]))
+    df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', per.start))
     # Recreates the outing of the 'extract.Var' function nicer
     df_XEx = tibble(Date=df_XEx$Date,
                     Value=df_XEx$Value,
