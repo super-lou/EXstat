@@ -137,7 +137,7 @@ extract_Var_WRAP = function (df_data, funct, period,
 ### 2.2. Estimate.stats ______________________________________________
 #' @title Estimate_stats_WRAP
 #' @export
-Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
+Estimate_stats_WRAP = function (df_XEx, alpha, period=NULL, dep_option='AR1') {
 
     print('... Estimation of trend')
     
@@ -165,8 +165,9 @@ Estimate_stats_WRAP = function (df_XEx, alpha, period, dep_option='AR1') {
     
     df_Xtrend = get_intercept(df_XEx, df_Xtrend)
     df_Xtrend = get_period(df_XEx, df_Xtrend)
-    df_Xtrend$input_period = paste(period, collapse='/')
-    
+    if (!is.null(period)) {
+        df_Xtrend$input_period = paste(period, collapse='/')
+    }
     return (df_Xtrend)
 }
 
