@@ -40,8 +40,7 @@
 #' @export
 get_Xtrend = function (var, df_data, df_meta, period,
                        hydroPeriod, alpha,
-                       df_flag=NULL, yearNA_lim=NULL,
-                       dayLac_lim=NULL, NA_pct_lim=NULL,
+                       df_flag=NULL, yearNA_lim=NULL, dayNA_lim=NULL,
                        day_to_roll=NULL,
                        functM=NULL, functM_args=NULL, isDateM=FALSE,
                        functY=NULL, functY_args=NULL, isDateY=FALSE,
@@ -113,6 +112,16 @@ get_Xtrend = function (var, df_data, df_meta, period,
                             timestep='year-month',
                             isDate=isDateM),
                        functM_args))
+
+            if (!is.null(dayNA_lim)) {
+                # NA filtering
+                res = NA_filter(df_XEx,
+                                dayNA_lim=dayNA_lim,
+                                df_mod=df_mod)
+                df_XEx = res$data
+                df_mod = res$mod
+            }
+            
             df_data = df_XEx
         }
 
@@ -167,11 +176,11 @@ get_Xtrend = function (var, df_data, df_meta, period,
                             isDate=isDateY),
                        functY_args))
         }
-        
-        if (!is.null(NA_pct_lim)) {
+
+        if (!is.null(dayNA_lim)) {
             # NA filtering
             res = NA_filter(df_XEx,
-                            NA_pct_lim=NA_pct_lim,
+                            dayNA_lim=dayNA_lim,
                             df_mod=df_mod)
             df_XEx = res$data
             df_mod = res$mod

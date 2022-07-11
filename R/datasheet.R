@@ -39,7 +39,7 @@
 #' @export
 datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             mean_period, linetype_per, axis_xlim,
-                            colorForce, info_header, time_header,
+                            colorForce, exQprob, info_header, time_header,
                             foot_note, structure, layout_matrix,
                             info_height, time_height,
                             var_ratio, foot_height,
@@ -66,7 +66,12 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         nPeriod_trend = length(trend_period)
 
         # Extracts the min and the max of the mean trend for all the station
-        res = short_trendExtremes(list_df2plot, Code, nPeriod_trend, nVar, nCode, colorForce)
+        res = get_valueExtremes(list_df2plot, Code,
+                                nPeriod_trend, nVar,
+                                nCode,
+                                valueType="trend",
+                                colorForce=colorForce,
+                                minQprob=exQprob, maxQprob=1-exQprob)
         minTrendValue = res$min
         maxTrendValue = res$max
     }
@@ -184,12 +189,19 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 info_header_code = NULL
                 to_do = info_header
             }
+
+            if (!is.null(mean_period[[1]])) {
+                period = mean_period[[1]]
+            } else {
+                period = trend_period[[1]]
+            }
+            
             # Gets the info plot
             Hinfo = info_panel(list_df2plot, 
                                df_meta,
                                trend_period=trend_period,
                                mean_period=mean_period,
-                               periodHyd=mean_period[[1]],
+                               period=period,
                                df_shapefile=df_shapefile,
                                codeLight=code,
                                df_data_code=info_header_code,
@@ -319,14 +331,15 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                             na.rm=TRUE)
                             # Normalises the trend value by the mean
                             # of the data
-                            trendValue = df_trend_code_per$trend / dataMean
+                            value = df_trend_code_per$trend / dataMean
                             # If it is a date variable
                         } else if (unit == "jour de l'année" | unit == 'jour') {
-                            trendValue = df_trend_code_per$trend
+                            value = df_trend_code_per$trend
                         }
+
+                        # print(value)
                         
                         # gets the color corresponding to the mean trend
-
                         color_res = get_color(value,
                                               minTrendValue[j, i],
                                               maxTrendValue[j, i],
@@ -1563,15 +1576,15 @@ event_panel = function(event, colorEvent, colorTextEvent) {
 #' @title Info panel
 #' @export
 info_panel = function(list_df2plot, df_meta, trend_period=NULL,
-                      mean_period=NULL, periodHyd=NULL,
+                      mean_period=NULL, period=NULL,
                       df_shapefile=NULL, codeLight=NULL,
                       df_data_code=NULL, to_do='all',
                       zone_to_show='France') {
-    
+
     # If there is a data serie for the given code
     if (!is.null(df_data_code)) {
         # Computes the hydrograph
-        hyd = hydrograph_panel(df_data_code, period=periodHyd,
+        hyd = hydrograph_panel(df_data_code, period=period,
                                margin=margin(t=0, r=0, b=0, l=5,
                                              unit="mm"))
     # Otherwise

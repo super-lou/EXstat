@@ -131,7 +131,6 @@ extract_Var_WRAP = function (df_data, funct, period,
         # Converts index of the tCEN to the julian date associated
         df_XEx = convert_dateEx(df_XEx, df_data, hydroYear=hydroPeriod[1])
     }
-
     return (df_XEx)
 }
 

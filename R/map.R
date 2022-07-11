@@ -37,7 +37,7 @@
 #' @export
 map_panel = function (list_df2plot, df_meta, df_shapefile,
                       idPer_trend=1, trend_period, mean_period,
-                      colorForce=FALSE, codeLight=NULL,
+                      colorForce=FALSE, exQprob=0.01, codeLight=NULL,
                       mapType='trend', margin=NULL, showSea=TRUE,  
                       foot_note=FALSE, foot_height=0,
                       logo_path=NULL, zone_to_show='France',
@@ -70,8 +70,10 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
         
         # Extracts the min and the max of the mean trend
         # for all the station
-        res = short_trendExtremes(list_df2plot, Code, nPeriod_trend,
-                                  nVar, nCode, colorForce)
+        res = get_valueExtremes(list_df2plot, Code, nPeriod_trend,
+                                nVar, nCode, valueType="trend",
+                                colorForce=colorForce,
+                                minQprob=exQprob, maxQprob=1-exQprob)
         minTrendValue = res$min
         maxTrendValue = res$max
     }
@@ -83,8 +85,10 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
         # Number of mean period
         nPeriod_mean = length(mean_period)
 
-        res = short_meanExtremes(list_df2plot, Code,
-                                 nPeriod_mean, nVar, nCode)
+        res = get_valueExtremes(list_df2plot, Code,
+                                nPeriod_mean, nVar, nCode,
+                                valueType="break",
+                                minQprob=exQprob, maxQprob=1-exQprob)
         minBreakValue = res$min
         maxBreakValue = res$max
         breakValue_code = res$value
@@ -129,6 +133,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
             var = list_df2plot[[i]]$var
             # Extracts the type of variable of the plot
             type = list_df2plot[[i]]$type
+            unit = list_df2plot[[i]]$unit
             # Explanations about the variable
             glose = list_df2plot[[i]]$glose
             
@@ -421,7 +426,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     }
 
                     # If it is a flow variable
-                    if (type == 'sévérité') {
+                    if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
                         # Computes the mean of the data on the period
                         dataMean = mean(df_data_code_per$Value,
                                         na.rm=TRUE)
@@ -429,7 +434,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                         # of the data
                         value = df_trend_code_per$trend / dataMean
                         # If it is a date variable
-                    } else if (type == 'saisonnalité') {
+                    } else if (unit == 'jour' | unit == "jour de l'année") {
                         value = df_trend_code_per$trend
                     }
 
@@ -451,7 +456,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                       Palette=Palette_ground(),
                                       colorStep=colorStep,
                                       reverse=FALSE)
-
+                
                 if (mapType == 'trend') {
                     # If it is significative
                     if (pVal <= alpha){
@@ -502,6 +507,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 # If the trend analysis is significative a TRUE is stored
                 OkVal = c(OkVal, pVal <= alpha)
             }
+            
             # Creates a tibble to stores all the data to plot
             plot_map = tibble(lon=lon, lat=lat, fill=fill,
                               shape=shape, code=Code, OkVal=OkVal)
@@ -561,9 +567,9 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
 
                 # Computes the label of the tick of the colorbar
                 nCharLim = 4
-                if (type == 'sévérité') {
+                if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
                     labelRaw = bin*100
-                } else if (type == 'saisonnalité') {
+                } else if (unit == 'jour' | unit == "jour de l'année") {
                     labelRaw = bin
                 }
                 label2 = signif(labelRaw, 2)
@@ -658,11 +664,13 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     ValueName2 = paste("sur la période ",
                                        periodName_trend, sep='')
                     # If it is a flow variable
-                    if (type == 'sévérité') {
-                        unit = bquote(bold("(% par an)"))
+                    if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
+                        unitLeg = bquote(bold("(% par an)"))
                         # If it is a date variable
-                    } else if (type == 'saisonnalité') {
-                        unit = bquote(bold("(jour par an)"))
+                    } else if (unit == "jour") {
+                        unitLeg = bquote(bold("(jour par an)"))
+                    } else if (unit == "jour de l'année") {
+                        unitLeg = bquote(bold("(jour de l'année par an)"))
                     }
                     
                 } else if (mapType == 'mean') {
@@ -685,11 +693,13 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                        periodName2_mean,
                                        sep='')
                     # If it is a flow variable
-                    if (type == 'sévérité') {
-                        unit = bquote(bold("(%)"))
+                    if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
+                        unitLeg = bquote(bold("(%)"))
                         # If it is a date variable
-                    } else if (type == 'saisonnalité') {
-                        unit = bquote(bold("(jour)"))
+                    } else if (unit == 'jour') {
+                        unitLeg = bquote(bold("(jour)"))
+                    } else if (unit == "jour de l'année") {
+                        unitLeg = bquote(bold("(jour de l'année)"))
                     }
                 }
 
@@ -709,7 +719,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     # Unit legend of the colorbar
                     annotate('text',
                              x=0, y=75.6,
-                             label=unit,
+                             label=unitLeg,
                              hjust=0, vjust=0.5,
                              size=4, color='grey40')
                 
@@ -860,8 +870,6 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     }
                 }
 
-
-                
                 yValueNorm =
                     (yValue - min(midBin)) / (max(midBin) - min(midBin)) * valNorm + base - 0.2
                 
@@ -877,10 +885,12 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                                fill=color, stroke=0.4,
                                alpha=1)
 
-                if (type == 'sévérité') {
+                if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
                     labelArrow = 'Plus sévère'
-                } else if (type == 'saisonnalité') {
+                } else if (unit == "jour de l'année") {
                     labelArrow = 'Plus tôt'
+                } else if (unit == 'jour') {
+                    labelArrow = 'Plus cours'
                 }
 
                 # Position of the arrow
@@ -919,7 +929,7 @@ peu altérés par les activités humaines."
                 if (mapType == 'trend') {
                     yAnn = 18
                 } else if (mapType == 'mean') {
-                    yAnn = 32
+                    yAnn = 29
                 }
 
                 leg = leg +

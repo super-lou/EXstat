@@ -38,7 +38,8 @@
 #' @title Table panel
 #' @export
 table_panel = function (list_df2plot, df_meta, trend_period,
-                        mean_period, colorForce=FALSE, slice=NULL,
+                        mean_period, colorForce=FALSE, exQprob=0.01,
+                        slice=NULL,
                         title=NULL, paper_size='A3',
                         foot_note=FALSE, foot_height=0, resdir=NULL,
                         logo_path=NULL,
@@ -59,7 +60,12 @@ table_panel = function (list_df2plot, df_meta, trend_period,
     nPeriod_trend = length(trend_period)
     
     # Extracts the min and the max of the mean trend for all the station
-    res = short_trendExtremes(list_df2plot, Code, nPeriod_trend, nVar, nCode, colorForce)
+    res = get_valueExtremes(list_df2plot, Code,
+                            nPeriod_trend, nVar,
+                            nCode,
+                            valueType="trend",
+                            colorForce=colorForce,
+                            minQprob=exQprob, maxQprob=1-exQprob)
     minTrendValue = res$min
     maxTrendValue = res$max
 
@@ -191,7 +197,10 @@ table_panel = function (list_df2plot, df_meta, trend_period,
         # Number of mean period
         nPeriod_mean = length(mean_period)
 
-        res = short_meanExtremes(list_df2plot, Code, nPeriod_mean, nVar, nCode)
+        res = get_valueExtremes(list_df2plot, Code,
+                                nPeriod_mean, nVar, nCode,
+                                valueType="break",
+                                minQprob=exQprob, maxQprob=1-exQprob)
         minBreakValue = res$min
         maxBreakValue = res$max
     } else {

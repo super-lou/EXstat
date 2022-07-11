@@ -286,10 +286,25 @@ missing_day = function (df_data, df_meta, dayLac_lim=3, hydroYear='01-01', Code=
 ## 3. NA FILTER AFTER EXTRACTION _____________________________________
 #' @title NA filter
 #' @export
-NA_filter = function (df_XEx, NA_pct_lim=1, df_mod=NULL) {
+NA_filter = function (df_XEx, dayNA_lim, df_mod=NULL) {
 
-    filter = df_XEx$NA_pct > NA_pct_lim
+    df_XEx_code = df_XEx[df_XEx$code == df_XEx$code[1],]
+    diffStep = df_XEx_code$Date[2] - df_XEx_code$Date[1]
+
+    if (diffStep >= 28 & diffStep <=31) {
+        step = "month"
+        dStep = months(1)
+    } else if (diffStep >= 365 & diffStep <= 366) {
+        step = "year"
+        dStep = years(1)
+    }
     
+    startStep = df_XEx$Date
+    endStep = startStep + dStep
+    dayStep = endStep - startStep
+
+    filter = df_XEx$NA_pct * dayStep > dayNA_lim
+
     df_XEx$Value[filter] = NA
     codeFilter = df_XEx$code[filter]
     codeFilter = codeFilter[!duplicated(codeFilter)]
@@ -346,14 +361,6 @@ sampling_data = function (df_data, df_meta, hydroPeriod=c('05-01', '11-30'), Cod
     } else {
         nCode = length(Code)
     }
-    
-    # df_data$DateRef = DateRef
-    # df_data = mutate(.data=df_data,
-    #                  Value=
-    #                      replace(Value,
-    #                              DateRef < sampleStart | DateRef > sampleEnd,
-    #                              NA))
-    # df_data = select(df_data, -DateRef)
 
     mStart = as.numeric(substr(hydroPeriod[1], 1, 2))
     dStart = as.numeric(substr(hydroPeriod[1], 4, 5))
