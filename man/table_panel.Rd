@@ -10,6 +10,7 @@ table_panel(
   trend_period,
   mean_period,
   colorForce = FALSE,
+  exQprob = 0.01,
   slice = NULL,
   title = NULL,
   paper_size = "A3",

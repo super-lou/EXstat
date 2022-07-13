@@ -9,7 +9,7 @@ info_panel(
   df_meta,
   trend_period = NULL,
   mean_period = NULL,
-  periodHyd = NULL,
+  period = NULL,
   df_shapefile = NULL,
   codeLight = NULL,
   df_data_code = NULL,

@@ -12,6 +12,7 @@ datasheet_panel(
   linetype_per,
   axis_xlim,
   colorForce,
+  exQprob,
   info_header,
   time_header,
   foot_note,

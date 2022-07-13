@@ -12,6 +12,7 @@ map_panel(
   trend_period,
   mean_period,
   colorForce = FALSE,
+  exQprob = 0.01,
   codeLight = NULL,
   mapType = "trend",
   margin = NULL,

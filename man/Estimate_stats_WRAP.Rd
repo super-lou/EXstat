@@ -4,7 +4,7 @@
 \alias{Estimate_stats_WRAP}
 \title{Estimate_stats_WRAP}
 \usage{
-Estimate_stats_WRAP(df_XEx, alpha, period, dep_option = "AR1")
+Estimate_stats_WRAP(df_XEx, period = NULL, dep_option = "AR1")
 }
 \description{
 Estimate_stats_WRAP

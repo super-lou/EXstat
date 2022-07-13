@@ -39,7 +39,7 @@
 #' @title X trend
 #' @export
 get_Xtrend = function (var, df_data, df_meta, period,
-                       hydroPeriod, alpha,
+                       hydroPeriod,
                        df_flag=NULL, yearNA_lim=NULL, dayNA_lim=NULL,
                        day_to_roll=NULL,
                        functM=NULL, functM_args=NULL, isDateM=FALSE,
@@ -188,7 +188,6 @@ get_Xtrend = function (var, df_data, df_meta, period,
 
         # Compute the trend analysis
         df_Xtrend = Estimate_stats_WRAP(df_XEx=df_XEx,
-                                        alpha=alpha,
                                         period=per,
                                         dep_option='AR1')
         
