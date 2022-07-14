@@ -200,7 +200,7 @@ read_data = function (resdir, filedir, filename, verbose=TRUE) {
             # For all the filename in the directory selected
             for (f in filelist_tmp) {
                 # If the filename extention is 'txt'
-                if (file_ext(f) == 'txt') {
+                if (tools::file_ext(f) == 'txt') {
                     # Store the filename in the filelist
                     filelist = c(filelist, f) 
                 }
@@ -311,7 +311,7 @@ read_FST = function (resdir, filename, filedir='fst') {
 ## 3. TOOLS __________________________________________________________
 #' @title Split filename
 #' @export
-splitext = function(file) { # file_ext
+splitext = function(file) { # tools::file_ext
     ex = strsplit(basename(file), split="\\.")[[1]]
     res = list(name=ex[1], extension=ex[2])
     return (res)

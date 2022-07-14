@@ -781,7 +781,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
         # For all the sub period of analysis in 'trend_period'
         for (per in trend_period) {
             # Compute time interval of period
-            I = interval(per[1], per[2])
+            I = lubridate::interval(per[1], per[2])
             # If it is the smallest interval
             if (I < Imin) {
                 # Store it
@@ -806,9 +806,9 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
 
             # If the temporary end of period plus one year 
             # is smaller than the fix end of x axis limit
-            if (maxPer + years(1) < axis_xlim[2]) {
+            if (maxPer + lubridate::years(1) < axis_xlim[2]) {
                 # Add one year the the temporary end of period
-                maxPer = maxPer + years(1)
+                maxPer = maxPer + lubridate::years(1)
             } else {
                 # Set the start of the period to the start of
                 # the x axis limit
@@ -895,10 +895,10 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                 if (!is.null(axis_xlim)) {
                     # If the max of the period plus 1 year
                     # is smaller thant the max of the x axis limit
-                    if (xmax + years(1) < axis_xlim[2]) {
+                    if (xmax + lubridate::years(1) < axis_xlim[2]) {
                         # Add one year to the max to include
                         # the entire last year graphically
-                        xmax = xmax + years(1)
+                        xmax = xmax + lubridate::years(1)
                     } else {
                         # The max of this sub period is the max
                         # of the x axis limit
@@ -910,7 +910,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                 # } else {
                 #     # Add one year to the max to include
                 #     # the entire last year graphically
-                #     xmax = xmax + years(1)
+                #     xmax = xmax + lubridate::years(1)
                 # }
             }
 

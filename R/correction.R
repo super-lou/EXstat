@@ -145,7 +145,6 @@ missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL
                                             Code,
                                             yearNA_lim),
                         .groups="drop")
-
     if (!is.null(df_mod)) {
         
         isCorr = is.na(df_Value$Value) != is.na(df_data$Value)
@@ -286,17 +285,12 @@ missing_day = function (df_data, df_meta, dayLac_lim=3, hydroYear='01-01', Code=
 ## 3. NA FILTER AFTER EXTRACTION _____________________________________
 #' @title NA filter
 #' @export
-NA_filter = function (df_XEx, dayNA_lim, df_mod=NULL) {
+NA_filter = function (df_XEx, dayNA_lim, timestep="year", df_mod=NULL) {
 
-    df_XEx_code = df_XEx[df_XEx$code == df_XEx$code[1],]
-    diffStep = df_XEx_code$Date[2] - df_XEx_code$Date[1]
-
-    if (diffStep >= 28 & diffStep <=31) {
-        step = "month"
-        dStep = months(1)
-    } else if (diffStep >= 365 & diffStep <= 366) {
-        step = "year"
-        dStep = years(1)
+    if (timestep == "year-month" | timestep == "month") {
+        dStep = lubridate::months(1)
+    } else if (timestep == "year") {
+        dStep = lubridate::years(1)
     }
     
     startStep = df_XEx$Date

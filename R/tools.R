@@ -293,28 +293,28 @@ load_shapefile = function (resources_path, df_meta,
     rv_shppath = file.path(resources_path, rv_shpdir, rv_shpname)
     
     # France
-    fr_spdf = readOGR(dsn=fr_shppath, verbose=FALSE)    
-    proj4string(fr_spdf) = CRS("+proj=longlat +ellps=WGS84")
+    fr_spdf = rgdal::readOGR(dsn=fr_shppath, verbose=FALSE)    
+    sp::proj4string(fr_spdf) = sp::CRS("+proj=longlat +ellps=WGS84")
     # Transformation in Lambert93
-    france = spTransform(fr_spdf, CRS("+init=epsg:2154"))
-    df_france = tibble(fortify(france))
+    france = spTransform(fr_spdf, sp::CRS("+init=epsg:2154"))
+    df_france = tibble(ggplot2::fortify(france))
 
     # Hydrological basin
-    basin = readOGR(dsn=bs_shppath, verbose=FALSE)
-    df_basin = tibble(fortify(basin))
+    basin = rgdal::readOGR(dsn=bs_shppath, verbose=FALSE)
+    df_basin = tibble(ggplot2::fortify(basin))
 
     # Hydrological sub-basin
-    subBasin = readOGR(dsn=sbs_shppath, verbose=FALSE)
-    df_subBasin = tibble(fortify(subBasin))
+    subBasin = rgdal::readOGR(dsn=sbs_shppath, verbose=FALSE)
+    df_subBasin = tibble(ggplot2::fortify(subBasin))
 
     df_codeBasin = tibble()
     CodeOk = c()
     nShp = length(cbs_shppath)
     # Hydrological stations basins
     for (i in 1:nShp) {
-        codeBasin = readOGR(dsn=cbs_shppath[i], verbose=FALSE)
+        codeBasin = rgdal::readOGR(dsn=cbs_shppath[i], verbose=FALSE)
         shpCode = as.character(codeBasin@data$Code)
-        df_tmp = tibble(fortify(codeBasin))
+        df_tmp = tibble(ggplot2::fortify(codeBasin))
         groupSample = rle(as.character(df_tmp$group))$values
         df_tmp$code = shpCode[match(df_tmp$group, groupSample)]
         df_tmp = df_tmp[df_tmp$code %in% Code &
@@ -322,13 +322,13 @@ load_shapefile = function (resources_path, df_meta,
         CodeOk = c(CodeOk, shpCode[!(shpCode %in% CodeOk)])
 
         if (cbs_coord[i] == "L2") {
-            crs_rgf93 = st_crs(2154)
-            crs_l2 = st_crs(27572)
-            sf_loca = st_as_sf(df_tmp[c("long", "lat")],
-                               coords=c("long", "lat"))
-            st_crs(sf_loca) = crs_l2
-            sf_loca = st_transform(sf_loca, crs_rgf93)
-            sf_loca = st_coordinates(sf_loca$geometry)
+            crs_rgf93 = sf::st_crs(2154)
+            crs_l2 = sf::st_crs(27572)
+            sf_loca = sf::st_as_sf(df_tmp[c("long", "lat")],
+                                   coords=c("long", "lat"))
+            sf::st_crs(sf_loca) = crs_l2
+            sf_loca = sf::st_transform(sf_loca, crs_rgf93)
+            sf_loca = sf::st_coordinates(sf_loca$geometry)
             df_tmp$long = sf_loca[, 1]
             df_tmp$lat = sf_loca[, 2]
         }
@@ -339,14 +339,14 @@ load_shapefile = function (resources_path, df_meta,
     # If the river shapefile needs to be load
     if (!("none" %in% river_selection)) {
         # Hydrographic network
-        river = readOGR(dsn=rv_shppath, verbose=FALSE) ### trop long ###
+        river = rgdal::readOGR(dsn=rv_shppath, verbose=FALSE) ### trop long ###
         if ('all' %in% river_selection) {
             river = river[river$Classe == 1,]
         } else {
             river = river[grepl(paste(river_selection, collapse='|'),
                                 river$NomEntiteH),]
         }
-        df_river = tibble(fortify(river))
+        df_river = tibble(ggplot2::fortify(river))
     } else {
         df_river = NULL   
     }

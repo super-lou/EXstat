@@ -121,8 +121,8 @@ histogram = function (df_break, df_meta, title='', figdir='', filedir_opt='break
                                              'year', sep=' '),
                      guide='axis_minor',
                      date_labels="%Y",
-                     limits=c(min(Date) - years(0), 
-                              max(Date) + years(0)),
+                     limits=c(min(Date) - lubridate::years(0), 
+                              max(Date) + lubridate::years(0)),
                      expand=c(0, 0)) +
         
         # Y axis
@@ -192,15 +192,15 @@ cumulative = function (df_break, df_meta, title='', dyear=10, figdir='', filedir
     midsRaw = as.Date(res_hist$mids)
 
     # Duplicates start and end value to extend graph
-    mids = c(midsRaw[1] - years(dyear), midsRaw[1] - years(1),
+    mids = c(midsRaw[1] - lubridate::years(dyear), midsRaw[1] - lubridate::years(1),
              midsRaw,
-             midsRaw[length(midsRaw)] + years(dyear)) 
+             midsRaw[length(midsRaw)] + lubridate::years(dyear)) 
     cumul_pct = c(0, 0, 
                   cumul_pct,
                   cumul_pct[length(cumul_pct)])
 
     # Centers the middle date
-    mids = mids + months(6)
+    mids = mids + lubridate::months(6)
     # Shifts the breaking date to be coherent with the start
     # of the rupture 
     breaks = breaks + 1
@@ -222,15 +222,15 @@ cumulative = function (df_break, df_meta, title='', dyear=10, figdir='', filedir
     midsOk = as.Date(res_histOk$mids)
     
     # Duplicates start and end value to extend graph
-    midsOk = c(midsRaw[1] - years(dyear), midsOk[1] - years(1),
+    midsOk = c(midsRaw[1] - lubridate::years(dyear), midsOk[1] - lubridate::years(1),
                midsOk,
-               midsRaw[length(midsRaw)] + years(dyear)) 
+               midsRaw[length(midsRaw)] + lubridate::years(dyear)) 
     cumul_pctOk = c(0, 0, 
                     cumul_pctOk,
                     cumul_pctOk[length(cumul_pctOk)])
 
     # Centers the middle date
-    midsOk = midsOk + months(6)
+    midsOk = midsOk + lubridate::months(6)
     # Shifts the breaking date to be coherent with the start
     # of the rupture 
     breaksOk = breaksOk + 1
@@ -246,7 +246,7 @@ cumulative = function (df_break, df_meta, title='', dyear=10, figdir='', filedir
         DBOk = c(DBOk, rep(breaksOk[i], times=countsOk[i]))
     }
     # Estimates the median
-    q50 = as.Date(quantile(DBOk, probs=0.5)) + years(1)
+    q50 = as.Date(quantile(DBOk, probs=0.5)) + lubridate::years(1)
     # Print the median
     print(paste('mediane :', q50))
     
@@ -285,8 +285,8 @@ cumulative = function (df_break, df_meta, title='', dyear=10, figdir='', filedir
                                              'year', sep=' '),
                      guide='axis_minor',
                      date_labels="%Y",
-                     limits=c(min(mids) - years(0), 
-                              max(mids) + years(0)),
+                     limits=c(min(mids) - lubridate::years(0), 
+                              max(mids) + lubridate::years(0)),
                      expand=c(0, 0)) +
         
         # Y axis

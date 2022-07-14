@@ -4,7 +4,7 @@
 \alias{NA_filter}
 \title{NA filter}
 \usage{
-NA_filter(df_XEx, dayNA_lim, df_mod = NULL)
+NA_filter(df_XEx, dayNA_lim, timestep = "year", df_mod = NULL)
 }
 \description{
 NA filter

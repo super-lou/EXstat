@@ -90,11 +90,20 @@ extract_Var_WRAP = function (df_data, funct, period,
 
     # Groups the data by code column
     df_data = group_by(df_data, code)
-    # Creates a new tibble of data with a group column
-    data = tibble(Date=df_data$Date, 
-                  group=group_indices(df_data),
-                  Value=df_data$Value,
-                  Na.percent=df_data$Na.percent)
+
+    if ("Na.percent" %in% names(df_data)) {
+        # Creates a new tibble of data with a group column
+        data = tibble(Date=df_data$Date, 
+                      group=group_indices(df_data),
+                      Value=df_data$Value,
+                      Na.percent=df_data$Na.percent)
+    } else {
+        # Creates a new tibble of data with a group column
+        data = tibble(Date=df_data$Date, 
+                      group=group_indices(df_data),
+                      Value=df_data$Value)
+    }
+    
     # Gets the different value of the group
     Gkey = group_keys(df_data)
     # Creates a new tibble of info of the group
@@ -204,7 +213,7 @@ convert_dateEx = function(df_XEx, df_data, hydroYear="01-01") {
         MonthNoNA = Month[!is.na(Month)]
 
         fact = 2*pi/12
-        monthMean_raw = circ.mean(fact * MonthNoNA) / fact
+        monthMean_raw = CircStats::circ.mean(fact * MonthNoNA) / fact
         monthMean = (monthMean_raw + 12) %% 12
 
         upLim = monthMean + 6
@@ -221,7 +230,7 @@ convert_dateEx = function(df_XEx, df_data, hydroYear="01-01") {
 
     Year = format(df_XEx$Date, "%Y")
     Start = as.Date(paste0(Year, '-', hydroYear))
-    End = Start + years(1) - days(1)
+    End = Start + lubridate::years(1) - lubridate::days(1)
     nbDate = as.numeric(difftime(End, Start,
                                  units="days"))
 

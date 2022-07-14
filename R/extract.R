@@ -245,7 +245,7 @@ create_selection = function (computer_data_path, filedir, outname,
     # For all the filename in the file list
     for (f in filelist_tmp) {
         # If the filename is a 'txt' file
-            if (file_ext(f) == 'txt') {
+            if (tools::file_ext(f) == 'txt') {
                 # Extracts the station code
                 code = gsub("[^[:alnum:] ].*$", '', f)
                 # Then the station code is stored
@@ -421,7 +421,7 @@ extract_meta = function (computer_data_path, filedir, filename,
             # For all the filename in the directory selected
             for (f in filelist_tmp) {
                 # If the filename extention is 'txt'
-                if (file_ext(f) == 'txt') {
+                if (tools::file_ext(f) == 'txt') {
                     # Store the filename in the filelist
                     filelist = c(filelist, f) 
                 }
@@ -576,7 +576,7 @@ extract_data = function (computer_data_path, filedir, filename,
             # For all the filename in the directory selected
             for (f in filelist_tmp) {
                 # If the filename extention is 'txt'
-                if (file_ext(f) == 'txt') {
+                if (tools::file_ext(f) == 'txt') {
                     # Store the filename in the filelist
                     filelist = c(filelist, f) 
                 }

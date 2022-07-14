@@ -117,6 +117,7 @@ get_Xtrend = function (var, df_data, df_meta, period,
                 # NA filtering
                 res = NA_filter(df_XEx,
                                 dayNA_lim=dayNA_lim,
+                                timestep="year-month",
                                 df_mod=df_mod)
                 df_XEx = res$data
                 df_mod = res$mod
@@ -181,6 +182,7 @@ get_Xtrend = function (var, df_data, df_meta, period,
             # NA filtering
             res = NA_filter(df_XEx,
                             dayNA_lim=dayNA_lim,
+                            timestep='year',
                             df_mod=df_mod)
             df_XEx = res$data
             df_mod = res$mod
@@ -192,7 +194,7 @@ get_Xtrend = function (var, df_data, df_meta, period,
                                         dep_option='AR1')
         
         # Get the associated time interval
-        I = interval(per[1], per[2])
+        I = lubridate::interval(per[1], per[2])
         # If it is the largest interval       
         if (I > Imax) {
             # Store it and the associated data
@@ -217,7 +219,7 @@ get_Xtrend = function (var, df_data, df_meta, period,
 #' @export
 rollmean_center = function (X, k) {
     N = length(X)
-    Xroll = movingaves(X, k)
+    Xroll = accelerometry::movingaves(X, k)
     Xroll = c(rep(NA, as.integer((k-1)/2)), Xroll)
     Nroll = length(Xroll)
     Xroll = c(Xroll, rep(NA, N-Nroll))
