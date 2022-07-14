@@ -150,7 +150,7 @@ get_Xtrend = function (var, df_data, df_meta, period,
                 # Get the averaged data associated to the code
                 df_data_code = df_data[df_data$code == code,]
                 YT_code = df_YT$threshold[df_YT$code == code]
-                
+
                 functY_args[idT] = YT_code
                 
                 df_XEx_code = do.call(
