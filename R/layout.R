@@ -36,6 +36,8 @@
 
 ## 1. PERSONALISATION ________________________________________________
 ### 1.1. Personal theme ______________________________________________
+#' @title Ggplot2 theme ash
+#' @export
 theme_ash = function () {
     theme =
         theme(
@@ -74,6 +76,8 @@ theme_ash = function () {
 }
 
 ### 1.2. Color palette _______________________________________________
+#' @title Palette ground
+#' @export
 Palette_ground = function () {
     palette = c('#543005', #hot
                 '#8c510a',
@@ -88,12 +92,16 @@ Palette_ground = function () {
     return (palette)
 }
 
+#' @title Color event
+#' @export
 get_colorEvent = function () {
     colorEvent = c("#423089", "#9ed6e3", "#9dc544", "#ed6e6c")
     names(colorEvent) = c("Crue", "Crue Nivale", "Moyennes Eaux", "Étiage")
     return(colorEvent)
 }
 
+#' @title Text color event
+#' @export
 get_colorTextEvent = function () {
     colorTextEvent = c("#423089", "#9ed6e3", "#9dc544", "#ed6e6c")
     names(colorTextEvent) = c("Crue", "Crue Nivale", "Moyennes Eaux", "Étiage")
@@ -103,6 +111,8 @@ get_colorTextEvent = function () {
 ## 2. USEFUL GENERICAL PLOT __________________________________________
 ### 2.1. Void plot ___________________________________________________
 # A plot completly blank
+#' @title Void plot
+#' @export
 void = function () {
     plot = ggplot() + geom_blank(aes(1,1)) +
         theme(
@@ -124,6 +134,8 @@ void = function () {
 
 ### 2.2. Contour void plot ___________________________________________
 # A plot completly blank with a contour
+#' @title Contour plot
+#' @export
 contour = function () {
     plot = ggplot() + geom_blank(aes(1,1)) +
         theme(
