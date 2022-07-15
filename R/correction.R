@@ -363,23 +363,23 @@ sampling_data = function (df_data, df_meta, hydroPeriod=c('05-01', '11-30'), Cod
     
     if (sampleStart < sampleEnd) {
         df_data = filter(df_data,
-        (mStart < month(Date) |
-         (mStart == month(Date) &
+        (mStart < lubridate::month(Date) |
+         (mStart == lubridate::month(Date) &
           dStart <= day(Date)))
         &
-        (month(Date) < mEnd |
-         (month(Date) == mEnd &
+        (lubridate::month(Date) < mEnd |
+         (lubridate::month(Date) == mEnd &
           day(Date) <= dEnd))
         )
 
     } else {
         df_data = filter(df_data,
-        (month(Date) < mEnd |
-         (month(Date) == mEnd &
+        (lubridate::month(Date) < mEnd |
+         (lubridate::month(Date) == mEnd &
           day(Date) <= dEnd))
         |
-        (mStart < month(Date) |
-         (mStart == month(Date) &
+        (mStart < lubridate::month(Date) |
+         (mStart == lubridate::month(Date) &
           dStart <= day(Date)))
         )
     }
