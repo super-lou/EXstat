@@ -1,6 +1,6 @@
 Package: ash
-Version: 0.1
-Date: 2022-07-08
+Version: 0.2-beta
+Date: 2022-07-15
 Title: Analyse de Stationnarité Hydrologique
 Description: Ash is a toolbox of R code that perfoms a stationarity analysis of the low water regime which in french is analyse de stationnarité du régime des étiages. In this configuration, this analysis is centered on the Adour-Garonne hydrological basin which is located in the south-west part of France.
 Author: Louis Héraut <louis.heraut@inrae.fr>
