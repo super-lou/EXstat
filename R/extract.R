@@ -38,6 +38,8 @@
 
 ### 1. GENERAL METADATA ON STATION ___________________________________
 # Status of the station
+#' @title Status info
+#' @export
 iStatut = function () {
     c('0'='inconnu', 
       '1'='station avec signification hydrologique', 
@@ -46,6 +48,8 @@ iStatut = function () {
 }
 
 # Goal
+#' @title Goal of measure info
+#' @export
 iFinalite = function () {
     c('0'='inconnue', 
       '1'="hydrométrie générale", 
@@ -59,6 +63,8 @@ iFinalite = function () {
 }
 
 # Type of measure
+#' @title Type of measure info
+#' @export
 iType = function () {
     c('0'='inconnu',
       '1'='une échelle',
@@ -69,6 +75,8 @@ iType = function () {
 }
 
 # Influence of the flow
+#' @title Influence info
+#' @export
 iInfluence = function () {
     c('0'='inconnue',
       '1'='nulle ou faible',
@@ -77,6 +85,8 @@ iInfluence = function () {
 }
 
 # Type of flow
+#' @title Débit info
+#' @export
 iDebit = function () {
     c('0'='reconstitué',
       '1'=paste("réel (prise en compte de l'eau rajoutée ",
@@ -86,6 +96,8 @@ iDebit = function () {
 }
 
 # Quality of low water flow
+#' @title Qualité basse eau info
+#' @export
 iQBE = function () {
     c('0'='qualité basses eaux inconnue',
       '1'='qualité basses eaux bonne',
@@ -93,6 +105,8 @@ iQBE = function () {
 }
 
 # Quality of mean water flow
+#' @title Qualité moyenne eau info
+#' @export
 iQME = function () {
     c('0'='qualité moyennes eaux inconnue',
       '1'='qualité moyennes eaux bonne',
@@ -100,6 +114,8 @@ iQME = function () {
 }
 
 # Quality of high water flow
+#' @title Qualité haute eau info
+#' @export
 iQHE = function () {
     c('0'='qualité hautes eaux inconnue',
       '1'='qualité hautes eaux bonne',
@@ -107,6 +123,8 @@ iQHE = function () {
 }
 
 # Hydrological region
+#' @title Region info
+#' @export
 iRegHydro = function () {
     c('D'='Affluents du Rhin',
       'E'="Fleuves côtiers de l'Artois-Picardie",

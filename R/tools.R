@@ -31,6 +31,8 @@
 
 ## 1. COLOR MANAGEMENT
 ### 1.1. Color on colorbar ___________________________________________
+#' @title Compute color bin
+#' @export
 compute_colorBin = function (min, max, Palette, colorStep=256,
                              reverse=FALSE) {
 
@@ -54,6 +56,8 @@ compute_colorBin = function (min, max, Palette, colorStep=256,
     return (res)
 }
 
+#' @title Compute color
+#' @export
 compute_color = function (value, min, max, Palette, colorStep=256, reverse=FALSE) {
 
     # If the value is a NA return NA color
@@ -78,6 +82,8 @@ compute_color = function (value, min, max, Palette, colorStep=256, reverse=FALSE
 
 # compute_color(-51, -50, 40, Palette, colorStep=10)
 
+#' @title Get color
+#' @export
 get_color = function (value, min, max, Palette, colorStep=256, reverse=FALSE, noneColor='black') {
     
     color = sapply(value, compute_color,
@@ -94,6 +100,8 @@ get_color = function (value, min, max, Palette, colorStep=256, reverse=FALSE, no
 
 ### 1.3. Palette tester ______________________________________________
 # Allows to display the current personal palette
+#' @title Palette tester
+#' @export
 palette_tester = function (Palette, colorStep=256) {
 
     outdir = 'palette'
@@ -143,6 +151,8 @@ palette_tester = function (Palette, colorStep=256) {
 }
 
 
+#' @title Get palette
+#' @export
 get_palette = function (Palette, colorStep=256) {
     
     # Gets the number of discrete colors in the palette
