@@ -79,16 +79,16 @@ theme_ash = function () {
 #' @title Palette ground
 #' @export
 Palette_ground = function () {
-    palette = c('#543005', #hot
-                '#8c510a',
-                '#bf812d',
-                '#dfc27d',
-                '#f6e8c3', #mid hot
-                '#c7eae5', #mid cold
-                '#80cdc1',
-                '#35978f',
-                '#01665e',
-                '#003c30') #cold
+    palette = c("#543005",
+                "#8c510a",
+                "#bf812d",
+                "#dfc27d",
+                "#f6e8c3",
+                "#c7eae5",
+                "#80cdc1",
+                "#35978f",
+                "#01665e",
+                "#003c30")
     return (palette)
 }
 
