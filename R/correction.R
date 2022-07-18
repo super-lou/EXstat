@@ -35,9 +35,12 @@
 ## 1. LOCAL CORRECTION OF DATA _______________________________________
 #' @title Flag data
 #' @export
-flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL) {
+flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL,
+                      verbose=TRUE) {
 
-    print('.. Checking of flags')
+    if (verbose) {
+        print('.. Checking of flags')
+    }
     
     if (is.null(Code)) {
         # Get all different stations code
@@ -135,10 +138,13 @@ apply_missing_year = function (Date, Value, Code, yearNA_lim) {
 
 #' @title Missing year
 #' @export
-missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL) {
+missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL,
+                         verbose=TRUE) {
 
-    print('.. Checking for missing years')
-
+    if (verbose) {
+        print('.. Checking for missing years')
+    }
+    
     df_Value = summarise(group_by(df_data, code),
                          apply_missing_year(Date,
                                             Value,
@@ -187,10 +193,13 @@ missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL
 ### 2.2. Missing period over several days ____________________________
 #' @title Missing period over several days
 #' @export
-missing_day = function (df_data, df_meta, dayLac_lim=3, hydroYear='01-01', Code=NULL, df_mod=NULL) {
-
-    print('.. Checking for missing days')
-
+missing_day = function (df_data, df_meta, dayLac_lim=3,
+                        hydroYear='01-01', Code=NULL, df_mod=NULL,
+                        verbose=TRUE) {
+    if (verbose) {
+        print('.. Checking for missing days')
+    }
+    
     if (is.null(Code)) {
         # Get all different stations code
         Code = levels(factor(df_meta$code))
@@ -285,7 +294,8 @@ missing_day = function (df_data, df_meta, dayLac_lim=3, hydroYear='01-01', Code=
 ## 3. NA FILTER AFTER EXTRACTION _____________________________________
 #' @title NA filter
 #' @export
-NA_filter = function (df_XEx, dayNA_lim, timestep="year", df_mod=NULL) {
+NA_filter = function (df_XEx, dayNA_lim, timestep="year",
+                      df_mod=NULL, verbose=TRUE) {
 
     if (timestep == "year-month" | timestep == "month") {
         dStep = lubridate::months(1)
@@ -326,7 +336,9 @@ NA_filter = function (df_XEx, dayNA_lim, timestep="year", df_mod=NULL) {
 ## 4. SAMPLING OF THE DATA ___________________________________________
 #' @title Sampling data
 #' @export
-sampling_data = function (df_data, df_meta, hydroPeriod=c('05-01', '11-30'), Code=NULL, df_mod=NULL) {
+sampling_data = function (df_data, df_meta,
+                          hydroPeriod=c('05-01', '11-30'), Code=NULL,
+                          df_mod=NULL, verbose=TRUE) {
 
     if (length(hydroPeriod) == 2) {
         sampleStart = as.Date(paste('1972', hydroPeriod[1], sep='-'))
@@ -337,7 +349,11 @@ sampling_data = function (df_data, df_meta, hydroPeriod=c('05-01', '11-30'), Cod
     }
 
     if (abs(sampleStart - sampleEnd) == 1) {
-        print('.. No sampling of the data needed')
+
+        if (verbose) {
+            print('.. No sampling of the data needed')
+        }
+        
         if (!is.null(df_mod)) {
             res = list(data=df_data, mod=df_mod)
             return (res)
@@ -346,7 +362,9 @@ sampling_data = function (df_data, df_meta, hydroPeriod=c('05-01', '11-30'), Cod
         }
     }
 
-    print('.. Sampling of the data')
+    if (verbose) {
+        print('.. Sampling of the data')
+    }
     
     if (is.null(Code)) {
         # Get all different stations code

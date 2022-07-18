@@ -11,6 +11,7 @@ extract_Var_WRAP(
   hydroPeriod = "01-01",
   timestep = "year",
   isDate = FALSE,
+  verbose = TRUE,
   ...
 )
 }

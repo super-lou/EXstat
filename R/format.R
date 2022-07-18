@@ -84,10 +84,12 @@ join_selection = function (list_data, list_meta, list_from) {
 #' @export
 extract_Var_WRAP = function (df_data, funct, period,
                              hydroPeriod="01-01", timestep="year",
-                             isDate=FALSE, ...) {
+                             isDate=FALSE, verbose=TRUE, ...) {
 
-    print('... Extraction of data')
-
+    if (verbose) {
+        print('... Extraction of data')
+    }
+    
     # Groups the data by code column
     df_data = group_by(df_data, code)
 
@@ -146,9 +148,12 @@ extract_Var_WRAP = function (df_data, funct, period,
 ### 2.2. Estimate.stats ______________________________________________
 #' @title Estimate_stats_WRAP
 #' @export
-Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1') {
+Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1',
+                                verbose=TRUE) {
 
-    print('... Estimation of trend')
+    if (verbose) {
+        print('... Estimation of trend')
+    }
     
     df_XEx = group_by(df_XEx, code)
     df_XEx_RAW = tibble(datetime=as.numeric(format(df_XEx$Date, "%Y")),

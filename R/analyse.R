@@ -47,11 +47,14 @@ get_Xtrend = function (var, df_data, df_meta, period,
                        functYT_ext=NULL, functYT_ext_args=NULL,
                        isDateYT_ext=FALSE, functYT_sum=NULL,
                        functYT_sum_args=NULL,
-                       df_mod=tibble()) {
+                       df_mod=tibble(),
+                       verbose=TRUE) {
 
-    print(paste0('. Computes ', var, ' trend for hydrological period ',
-                 paste0(hydroPeriod, collapse=' / ')))
-
+    if (verbose) {
+        print(paste0('. Computes ', var, ' trend for hydrological period ',
+                     paste0(hydroPeriod, collapse=' / ')))
+    }
+    
     # Get all different stations code
     Code = levels(factor(df_meta$code))
 
@@ -59,14 +62,16 @@ get_Xtrend = function (var, df_data, df_meta, period,
         # Local corrections if needed
         res = flag_data(df_data, df_meta,
                         df_flag=df_flag,
-                        df_mod=df_mod)
+                        df_mod=df_mod,
+                        verbose=verbose)
         df_data = res$data
         df_mod = res$mod
     }
 
     if (!is.null(day_to_roll)) {
         # Computes the rolling average by day_to_roll days over the data
-        res = rollmean_code(df_data, Code, day_to_roll, df_mod=df_mod)
+        res = rollmean_code(df_data, Code, day_to_roll, df_mod=df_mod,
+                            verbose=verbose)
         df_data = res$data
         df_mod = res$mod
     }
@@ -75,7 +80,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
         # Removes older data if there are a too long missing period
         res = missing_year(df_data, df_meta,
                            yearNA_lim=yearNA_lim,
-                           df_mod=df_mod)
+                           df_mod=df_mod,
+                           verbose=verbose)
         df_data = res$data
         df_mod = res$mod
     }
@@ -84,7 +90,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
         # Samples the data
         res = sampling_data(df_data, df_meta,
                             hydroPeriod=hydroPeriod,
-                            df_mod=df_mod)
+                            df_mod=df_mod,
+                            verbose=verbose)
         df_data = res$data
         df_mod = res$mod
     }
@@ -99,8 +106,10 @@ get_Xtrend = function (var, df_data, df_meta, period,
     # For all periods
     for (per in period) {
 
-        print(paste0('.. For period : ', paste0(per, collapse=' / ')))
-
+        if (verbose) {
+            print(paste0('.. For period : ', paste0(per, collapse=' / ')))
+        }
+        
         # Monthly extraction
         if (!is.null(functM)) {
             df_XEx = do.call(
@@ -110,7 +119,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
                             period=per,
                             hydroPeriod=hydroPeriod,
                             timestep='year-month',
-                            isDate=isDateM),
+                            isDate=isDateM,
+                            verbose=verbose),
                        functM_args))
 
             if (!is.null(dayNA_lim)) {
@@ -118,7 +128,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
                 res = NA_filter(df_XEx,
                                 dayNA_lim=dayNA_lim,
                                 timestep="year-month",
-                                df_mod=df_mod)
+                                df_mod=df_mod,
+                                verbose=verbose)
                 df_XEx = res$data
                 df_mod = res$mod
             }
@@ -135,7 +146,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
                             period=per,
                             hydroPeriod=hydroPeriod,
                             timestep='year',
-                            isDate=isDateYT_ext),
+                            isDate=isDateYT_ext,
+                            verbose=verbose),
                        functYT_ext_args))
             
             df_YT = summarise(group_by(df_YTEx, code),
@@ -161,7 +173,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
                                 period=per,
                                 hydroPeriod=hydroPeriod,
                                 timestep='year',
-                                isDate=isDateY),
+                                isDate=isDateY,
+                                verbose=verbose),
                            functY_args))
                 # Store the results
                 df_XEx = bind_rows(df_XEx, df_XEx_code)
@@ -174,7 +187,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
                             period=per,
                             hydroPeriod=hydroPeriod,
                             timestep='year',
-                            isDate=isDateY),
+                            isDate=isDateY,
+                            verbose=verbose),
                        functY_args))
         }
 
@@ -183,7 +197,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
             res = NA_filter(df_XEx,
                             dayNA_lim=dayNA_lim,
                             timestep='year',
-                            df_mod=df_mod)
+                            df_mod=df_mod,
+                            verbose=verbose)
             df_XEx = res$data
             df_mod = res$mod
         }
@@ -191,7 +206,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
         # Compute the trend analysis
         df_Xtrend = Estimate_stats_WRAP(df_XEx=df_XEx,
                                         period=per,
-                                        dep_option='AR1')
+                                        dep_option='AR1',
+                                        verbose=verbose)
         
         # Get the associated time interval
         I = lubridate::interval(per[1], per[2])

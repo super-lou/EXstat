@@ -10,7 +10,8 @@ missing_day(
   dayLac_lim = 3,
   hydroYear = "01-01",
   Code = NULL,
-  df_mod = NULL
+  df_mod = NULL,
+  verbose = TRUE
 )
 }
 \description{

@@ -25,7 +25,8 @@ get_Xtrend(
   isDateYT_ext = FALSE,
   functYT_sum = NULL,
   functYT_sum_args = NULL,
-  df_mod = tibble()
+  df_mod = tibble(),
+  verbose = TRUE
 )
 }
 \description{
