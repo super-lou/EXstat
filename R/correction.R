@@ -138,7 +138,8 @@ apply_missing_year = function (Date, Value, Code, yearNA_lim) {
 
 #' @title Missing year
 #' @export
-missing_year = function (df_data, df_meta, yearNA_lim=10, Code=NULL, df_mod=NULL,
+missing_year = function (df_data, df_meta, yearNA_lim=10,
+                         Code=NULL, df_mod=NULL,
                          verbose=TRUE) {
 
     if (verbose) {
@@ -340,6 +341,18 @@ sampling_data = function (df_data, df_meta,
                           hydroPeriod=c('05-01', '11-30'), Code=NULL,
                           df_mod=NULL, verbose=TRUE) {
 
+    if (is.tbl(hydroPeriod)) {
+        if (verbose) {
+            print('.. Sampling of the data not possible')
+        }
+        if (!is.null(df_mod)) {
+            res = list(data=df_data, mod=df_mod)
+            return (res)
+        } else {
+            return (df_data)
+        }
+    }
+    
     if (length(hydroPeriod) == 2) {
         sampleStart = as.Date(paste('1972', hydroPeriod[1], sep='-'))
         sampleEnd = as.Date(paste('1972', hydroPeriod[2], sep='-'))
@@ -348,16 +361,10 @@ sampling_data = function (df_data, df_meta,
         sampleEnd = sampleStart - 1
     }
 
-    if (abs(sampleStart - sampleEnd) == 1 | is.tbl(hydroPeriod)) {
-
+    if (abs(sampleStart - sampleEnd) == 1) {
         if (verbose) {
-            if (abs(sampleStart - sampleEnd) == 1) {
-                print('.. No sampling of the data needed')
-            } else if (is.tbl(hydroPeriod)) {
-                print('.. Sampling of the data not possible')
-            }
+            print('.. No sampling of the data needed')
         }
-        
         if (!is.null(df_mod)) {
             res = list(data=df_data, mod=df_mod)
             return (res)
