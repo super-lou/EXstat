@@ -190,6 +190,10 @@ Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1',
 #' @export
 convert_dateEx = function(df_XEx, df_data, hydroYear="01-01") {
 
+    if (verbose) {
+        print('.... Conversion to number of day')
+    }
+    
     Shift_hydroYear = as.integer(df_XEx$Date - as.Date(paste0(format(df_XEx$Date, "%Y"), "-01-01")))
     df_XEx$Value = df_XEx$Value + Shift_hydroYear
     

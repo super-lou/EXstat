@@ -8,3 +8,9 @@ Maintainer: Louis Héraut <louis.heraut@inrae.fr>
 Encoding: UTF-8
 License: GPL-3
 RoxygenNote: 7.1.2
+Imports: 
+    accelerometry,
+    CircStats,
+    dplyr,
+    Hmisc,
+    lubridate
