@@ -348,10 +348,14 @@ sampling_data = function (df_data, df_meta,
         sampleEnd = sampleStart - 1
     }
 
-    if (abs(sampleStart - sampleEnd) == 1) {
+    if (abs(sampleStart - sampleEnd) == 1 | is.tbl(hydroPeriod)) {
 
         if (verbose) {
-            print('.. No sampling of the data needed')
+            if (abs(sampleStart - sampleEnd) == 1) {
+                print('.. No sampling of the data needed')
+            } else if (is.tbl(hydroPeriod)) {
+                print('.. Sampling of the data not possible')
+            }
         }
         
         if (!is.null(df_mod)) {

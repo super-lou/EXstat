@@ -1,6 +1,6 @@
 Package: ashes
-Version: 0.2
-Date: 2022-07-18
+Version: 0.2.1
+Date: 2022-07-19
 Title: Analyse de Stationnarité Hydrologique des Écoulements de Surface
 Description: Ashes is a toolbox of R code that perfoms a stationarity analysis of the low water regime which in french is analyse de stationnarité du régime des étiages. In this configuration, this analysis is centered on the Adour-Garonne hydrological basin which is located in the south-west part of France.
 Author: Louis Héraut <louis.heraut@inrae.fr>

@@ -1565,6 +1565,8 @@ event_panel = function(event, colorEvent, colorTextEvent) {
             
             scale_y_continuous(limits=c(0, 5),
                                expand=c(0, 0))
+
+        print(toupper(event))
     } else {
         plot = void()
     }

@@ -103,7 +103,7 @@ get_colorEvent = function () {
 #' @title Text color event
 #' @export
 get_colorTextEvent = function () {
-    colorTextEvent = c("#423089", "#9ed6e3", "#9dc544", "#ed6e6c")
+    colorTextEvent = c("#9687d5", "#d8eff4", "#cee2a2", "#f6b6b5")
     names(colorTextEvent) = c("Crue", "Crue Nivale", "Moyennes Eaux", "Étiage")
     return(colorTextEvent)
 }
