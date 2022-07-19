@@ -244,10 +244,12 @@ rollmean_center = function (X, k) {
 
 #' @title Rolling average station
 #' @export
-rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL) {
+rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL, verbose=TRUE) {
 
-    print(paste0('.. Rolling average over ', nroll, " days"))
-
+    if (verbose) {
+        print(paste0('.. Rolling average over ', nroll, " days"))
+    }
+    
     df_roll = summarise(group_by(df_data, code),
                         Value=rollmean_center(Value,
                                               k=nroll),

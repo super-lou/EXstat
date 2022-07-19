@@ -4,7 +4,7 @@
 \alias{rollmean_code}
 \title{Rolling average station}
 \usage{
-rollmean_code(df_data, Code, nroll = 10, df_mod = NULL)
+rollmean_code(df_data, Code, nroll = 10, df_mod = NULL, verbose = TRUE)
 }
 \description{
 Rolling average station

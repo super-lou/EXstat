@@ -4,7 +4,7 @@
 \alias{convert_dateEx}
 \title{Convert index to  date}
 \usage{
-convert_dateEx(df_XEx, df_data, hydroYear = "01-01")
+convert_dateEx(df_XEx, df_data, hydroYear = "01-01", verbose = TRUE)
 }
 \description{
 Convert index to  date

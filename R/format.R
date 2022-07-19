@@ -140,7 +140,8 @@ extract_Var_WRAP = function (df_data, funct, period,
 
     if (isDate) {
         # Converts index of the tCEN to the julian date associated
-        df_XEx = convert_dateEx(df_XEx, df_data, hydroYear=hydroPeriod[1])
+        df_XEx = convert_dateEx(df_XEx, df_data, hydroYear=hydroPeriod[1],
+                                verbose=verbose)
     }
     return (df_XEx)
 }
@@ -176,8 +177,8 @@ Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1',
     df_Xtrend = tibble(code=info$code[df_Xtrend$group],
                        df_Xtrend[-1])
     
-    df_Xtrend = get_intercept(df_XEx, df_Xtrend)
-    df_Xtrend = get_period(df_XEx, df_Xtrend)
+    df_Xtrend = get_intercept(df_XEx, df_Xtrend, verbose=verbose)
+    df_Xtrend = get_period(df_XEx, df_Xtrend, verbose=verbose)
     if (!is.null(period)) {
         df_Xtrend$input_period = paste(period, collapse='/')
     }
@@ -188,7 +189,7 @@ Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1',
 #### 2.3.1. Convert index to  date ___________________________________
 #' @title Convert index to  date
 #' @export
-convert_dateEx = function(df_XEx, df_data, hydroYear="01-01") {
+convert_dateEx = function(df_XEx, df_data, hydroYear="01-01", verbose=TRUE) {
 
     if (verbose) {
         print('.... Conversion to number of day')
@@ -254,7 +255,11 @@ convert_dateEx = function(df_XEx, df_data, hydroYear="01-01") {
 # according to the accessible data 
 #' @title Period of trend analysis
 #' @export
-get_period = function (df_XEx, df_Xtrend=NULL) {
+get_period = function (df_XEx, df_Xtrend=NULL, verbose=TRUE) {
+
+    if (verbose) {
+        print('.... Computes the optimal period of trend analysis')
+    }
 
     df_Start = summarise(group_by(df_XEx, code),
                          Start=min(Date, na.rm=TRUE))
@@ -277,8 +282,13 @@ get_period = function (df_XEx, df_Xtrend=NULL) {
 # of trends and the data on which analysis is performed.
 #' @title Intercept of trend
 #' @export
-get_intercept = function (df_XEx, df_Xtrend, unit2day=365.25) {
+get_intercept = function (df_XEx, df_Xtrend, unit2day=365.25,
+                          verbose=TRUE) {
 
+    if (verbose) {
+        print('.... Computes intercept of trend')
+    }
+    
     df_mu_X = summarise(group_by(df_XEx, code),
                         mu_X=mean(Value, na.rm=TRUE))
 

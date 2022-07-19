@@ -4,7 +4,7 @@
 \alias{get_intercept}
 \title{Intercept of trend}
 \usage{
-get_intercept(df_XEx, df_Xtrend, unit2day = 365.25)
+get_intercept(df_XEx, df_Xtrend, unit2day = 365.25, verbose = TRUE)
 }
 \description{
 Intercept of trend
