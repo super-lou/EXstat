@@ -92,9 +92,6 @@ CONTACT
 	contact us. Contact first Louis Héraut who is the main
 	developer. If it is not possible, Éric Sauquet is the main
 	referent at INRAE to contact :
-	
-	Louis Héraut : <louis.heraut@inrae.fr>
-	Éric Sauquet : <eric.sauquet@inrae.fr>
 
 
 GIT
