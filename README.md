@@ -1,9 +1,9 @@
-             _                
-  __ _  ___ | |__    ___  ___ 
- / _` |/ __|| '_ \  / _ \/ __|
-| (_| |\__ \| | | ||  __/\__ \
- \__,_||___/|_| |_| \___||___/ R package _______________________
-Analyse de Stationnarité Hydrologique des Écoulements de Surface
+             _</br>     
+  __ _  ___ | |__    ___  ___</br> 
+ / _` |/ __|| '_ \  / _ \/ __|</br>
+| (_| |\__ \| | | ||  __/\__ \</br>
+ \__,_||___/|_| |_| \___||___/ R package _______________________</br>
+Analyse de Stationnarité Hydrologique des Écoulements de Surface</br>
 
 <!-- badges: start -->
 [![Lifecycle: maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
