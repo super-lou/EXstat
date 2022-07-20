@@ -1,8 +1,4 @@
-             _</br>     
-  __ _  ___ | |__    ___  ___</br> 
- / _` |/ __|| '_ \  / _ \/ __|</br>
-| (_| |\__ \| | | ||  __/\__ \</br>
- \__,_||___/|_| |_| \___||___/ R package _______________________</br>
+#ashes
 Analyse de Stationnarité Hydrologique des Écoulements de Surface</br>
 
 <!-- badges: start -->
@@ -10,6 +6,7 @@ Analyse de Stationnarité Hydrologique des Écoulements de Surface</br>
 ![](https://img.shields.io/github/last-commit/super-lou/ashes)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md) 
 <!-- badges: end -->
+
 
 [<img src="https://github.com/super-lou/MAKAHO/blob/0fad3c354954ebc2d8605a2ec9dd3d4f11a36920/www/screen.png" width="600">](https://makaho.sk8.inrae.fr/)</br>
 
