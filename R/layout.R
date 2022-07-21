@@ -165,7 +165,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                          figdir='', filedir_opt='', filename_opt='',
                          variable='', df_trend=NULL,
                          alpha=0.1, unit2day=365.25, var='',
-                         type='', event='', unit='',
+                         type='', event='', unit='', hydroPeriod='',
                          glose=NULL, trend_period=NULL,
                          mean_period=NULL, colorForce=FALSE,
                          exQprob=0.01,
@@ -273,6 +273,10 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         unit = rep(unit[1], nbp)
     }
 
+    if (length(hydroPeriod) != nbp) {
+        hydroPeriod = rep(hydroPeriod, nbp)
+    }
+
     if (length(missRect) != nbp) {
         missRect = rep(missRect[1], nbp)
     }
@@ -291,6 +295,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                        type=type[[i]],
                        event=event[[i]],
                        unit=unit[[i]],
+                       hydroPeriod=hydroPeriod[[i]],
                        glose=glose[[i]],
                        missRect=missRect[[i]])
         # Stores it

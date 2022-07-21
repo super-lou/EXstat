@@ -195,30 +195,40 @@ merge_panel = function (add, to, widths=NULL, heights=NULL) {
 #' @export
 get_power = function (value) {
 
-    # Do not care about the sign
-    value = abs(value)
-    
-    # If the value is greater than one
-    if (value >= 1) {
-        # The magnitude is the number of character of integer part
-        # of the value minus one
-        power = nchar(as.character(as.integer(value))) - 1
-    # If value is zero
-    } else if (value == 0) {
-        # The power is zero
-        power = 0
-    # If the value is less than one
+    if (length(value) > 1) {
+        power = unlist(as.list(sapply(value, get_power),
+                               recursive=TRUE,
+                               use.names=FALSE))
     } else {
-        # Extract the decimal part
-        dec = gsub('0.', '', as.character(value), fixed=TRUE)
-        # Number of decimal with zero
-        ndec = nchar(dec)
-        # Number of decimal without zero
-        nnum = nchar(as.character(as.numeric(dec)))
-        # Compute the power of ten associated
-        power = -(ndec - nnum + 1)
+        if (!is.na(value)) {
+            # Do not care about the sign
+            value = abs(value)
+            
+            # If the value is greater than one
+            if (value >= 1) {
+                # The magnitude is the number of character of integer part
+                # of the value minus one
+                power = nchar(as.character(as.integer(value))) - 1
+                # If value is zero
+            } else if (value == 0) {
+                # The power is zero
+                power = 0
+                # If the value is less than one
+            } else {
+                # Extract the decimal part
+                dec = gsub('0.', '', as.character(value), fixed=TRUE)
+                # Number of decimal with zero
+                ndec = nchar(dec)
+                # Number of decimal without zero
+                nnum = nchar(as.character(as.numeric(dec)))
+                # Compute the power of ten associated
+                power = -(ndec - nnum + 1)
+            }
+        } else {
+            power = NULL
+        }
     }
-    return(power)
+    return (power)
 }
 
 ### 3.2. Pourcentage of variable _____________________________________
