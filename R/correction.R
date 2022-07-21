@@ -299,7 +299,7 @@ NA_filter = function (df_XEx, dayNA_lim, timestep="year",
                       df_mod=NULL, verbose=TRUE) {
 
     if (timestep == "year-month" | timestep == "month") {
-        dStep = lubridate::months(1)
+        dStep = months(1)
     } else if (timestep == "year") {
         dStep = lubridate::years(1)
     }

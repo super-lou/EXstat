@@ -109,12 +109,12 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     }
 
                     # If it is a flow variable
-                    if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
+                    if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                         # Normalises the break by the mean of the
                         # initial period
                         value = Break / dataMeantmp[i, k]
                         # If it is a date variable
-                    } else if (unit == "jour" | unit == "jour de l'année") {
+                    } else if (unit == "jour" | unit == "jour de l'année" | unit == 'an^{-1}') {
                         # Just stocks the break value
                         value = Break
                     }
@@ -135,13 +135,13 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     }
                     
                     # If it is a flow variable
-                    if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
+                    if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                         # Computes the mean of the data on the period
                         dataMean = mean(df_data_code_per$Value, na.rm=TRUE)
                         # Normalises the trend value by the mean of the data
                         value = df_trend_code_per$trend / dataMean
                         # If it is a date variable
-                    } else if (unit == "jour" | unit == "jour de l'année") {
+                    } else if (unit == "jour" | unit == "jour de l'année" | unit == 'an^{-1}') {
                         value = df_trend_code_per$trend
                     }
                     
@@ -167,4 +167,79 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                           quantile, probs=maxQprob, na.rm=TRUE)
     res = list(value=Value_code, min=minValue, max=maxValue)
     return (res)
+}
+
+
+get_Nspace = function (df_data_code, unit, lim_pct, NspaceMax=NULL) {
+        
+    # If variable unit is date 
+    if (unit == "jour de l'année") {
+        # The number of digit is 6 because months are display
+        # with 3 characters
+        Nspace = 6
+        if (!is.null(NspaceMax)) {
+            accuracy = NULL
+        }
+        
+    # If it is a flow variable
+    } else if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'jour' | unit == 'an^{-1}') {
+        # Gets the max number of digit on the label
+        maxtmp = max(df_data_code$Value, na.rm=TRUE)
+        
+        # If the max is greater than 10
+        if (get_power(maxtmp) >= 4) {
+            Nspace = 12
+            if (!is.null(NspaceMax)) {
+                accuracy = NULL
+            }
+            
+        } else if (maxtmp >= 10) {
+            # The number of digit is the magnitude plus
+            # the first number times 2
+            Nspace = (get_power(maxtmp) + 1)*2
+            # Plus spaces between thousands hence every 8 digits
+            Nspace = Nspace + as.integer(Nspace/8)
+            if (!is.null(NspaceMax)) {
+                # The accuracy is 1
+                accuracy = 1
+            }
+
+        # If the max is less than 10 and greater than 1
+        } else if (maxtmp < 10 & maxtmp >= 1) {
+            # The number of digit is the magnitude plus
+            # the first number times 2 plus 1 for the dot
+            # and 2 for the first decimal
+            Nspace = (get_power(maxtmp) + 1)*2 + 3
+            if (!is.null(NspaceMax)) {
+                # The accuracy is 0.1
+                accuracy = 0.1
+            }
+            
+        # If the max is less than 1 (and obviously more than 0)
+        } else if (maxtmp < 1) {
+            # Fixes the number of significant decimals to 3
+            maxtmp = signif(maxtmp, 3)
+            # The number of digit is the number of character
+            # of the max times 2 minus 1 for the dots that
+            # count just 1 space
+            Nspace = nchar(as.character(maxtmp))*2 - 1
+            if (!is.null(NspaceMax)) {
+                # Computes the accuracy
+                accuracy = 10^(-nchar(as.character(maxtmp))+2)
+            }
+        }
+        if (unit == 'm^{3/2}.s^{-1/2}') {
+            Nspace = Nspace + 1
+        }
+    }
+    
+    if (!is.null(NspaceMax)) {
+        # Gets the associated number of white space
+        prefix = strrep(' ', times=NspaceMax - Nspace)
+        res = list(Nspace=Nspace, prefix=prefix, accuracy=accuracy)
+        return (res)
+        
+    } else {
+        return (Nspace)
+    }
 }

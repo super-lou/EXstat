@@ -28,7 +28,7 @@
 #
 # R/plotting/break.R
 #
-# Plot tool useful to study date break. 
+# Plot tool useful to study date break.
 
 
 ## 1. BREAK PLOTTING _________________________________________________
@@ -200,7 +200,7 @@ cumulative = function (df_break, df_meta, title='', dyear=10, figdir='', filedir
                   cumul_pct[length(cumul_pct)])
 
     # Centers the middle date
-    mids = mids + lubridate::months(6)
+    mids = mids + months(6)
     # Shifts the breaking date to be coherent with the start
     # of the rupture 
     breaks = breaks + 1
@@ -230,7 +230,7 @@ cumulative = function (df_break, df_meta, title='', dyear=10, figdir='', filedir
                     cumul_pctOk[length(cumul_pctOk)])
 
     # Centers the middle date
-    midsOk = midsOk + lubridate::months(6)
+    midsOk = midsOk + months(6)
     # Shifts the breaking date to be coherent with the start
     # of the rupture 
     breaksOk = breaksOk + 1

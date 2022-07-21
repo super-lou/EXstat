@@ -1350,7 +1350,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     if (is.null(df_page)) {
                         n_page = n_loop
                     } else {
-                        n_page = df_page$N[nrow(df_page)] + iMat
+                        n_page = df_page$n[nrow(df_page)] + iMat
                     }
                     
                     foot = foot_panel(footName, n_page,
@@ -1425,13 +1425,13 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                 section = paste0('Tableau récapitulatif de ',
                                  type)
                 subsection = title
-                n_page = df_page$N[nrow(df_page)] + 1
-                N_page = df_page$N[nrow(df_page)] + nMat
+                n_page = df_page$n[nrow(df_page)] + 1
+                # N_page = df_page$n[nrow(df_page)] + nMat
                 df_page = bind_rows(
                     df_page,
                     tibble(section=section,
                            subsection=subsection,
-                           n=n_page, N=N_page))
+                           n=n_page))
             }
         }           
     }

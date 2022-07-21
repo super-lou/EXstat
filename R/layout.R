@@ -303,7 +303,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
     }
 
     if ('summary' %in% to_plot) {
-        df_page = tibble(section='Sommaire', subsection=NA, n=1, N=1)
+        df_page = tibble(section='Sommaire', subsection=NA, n=1)
     } else {
         df_page = tibble()
     }
@@ -412,7 +412,8 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                                   show_colorEvent=show_colorEvent,
                                   outdirTmp_pdf=outdirTmp_pdf,
                                   outdirTmp_png=outdirTmp_png, 
-                                  df_page=df_page)
+                                  df_page=df_page,
+                                  pdf_chunk=pdf_chunk)
     }
 
     if ('summary' %in% to_plot) {
@@ -449,10 +450,6 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         pdf_combine(input=listfile_path,
                     output=file.path(outdir, outfile))
     }
-
-
-
-    
 } 
 
 

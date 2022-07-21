@@ -1059,13 +1059,13 @@ peu altérés par les activités humaines."
                     subsection = NA
                 }
                 
-                n_page = df_page$N[nrow(df_page)] + 1
-                N_page = df_page$N[nrow(df_page)] + 1
+                n_page = df_page$n[nrow(df_page)] + 1
+                # N_page = df_page$N[nrow(df_page)] + 1
                 df_page = bind_rows(
                     df_page,
                     tibble(section=section,
                            subsection=subsection,
-                           n=n_page, N=N_page))
+                           n=n_page))
             }
             
             # If there is a foot note

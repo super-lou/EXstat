@@ -46,7 +46,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             paper_size, df_shapefile, logo_path,
                             zone_to_show, show_colorEvent,
                             outdirTmp_pdf, outdirTmp_png,
-                            df_page=NULL) {
+                            df_page=NULL, pdf_chunk="all") {
 
     # The percentage of augmentation and diminution of the min
     # and max limits for y axis
@@ -83,79 +83,37 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
     for (code in Code) {
 
         # Default max digit
-        NspaceMax_code = 0
-
-        # If the time header is given it adds one to the number of plot
-        nVarMod = nVar + as.numeric(!is.null(time_header))*2
+        Nspace_code = c() 
 
         # For all type of graph
-        for (i in 1:nVarMod) {
-
-            if (i > nVar) {
-                # Extracts the data serie corresponding to the code
-                df_data_code = time_header[time_header$code == code,]
-                if (i > nVar+1) {
-                    df_data_code = compute_sqrt(df_data_code)
-                }
-                unit = 'm^{3}.s^{-1}'
-            } else {
-                # Extracts the data corresponding to the current variable
-                df_data = list_df2plot[[i]]$data
-                # Extracts the type corresponding to the current variable
-                type = list_df2plot[[i]]$type
-                event = list_df2plot[[i]]$event
-                unit = list_df2plot[[i]]$unit
-                # Extracts the data corresponding to the code
-                df_data_code = df_data[df_data$code == code,]
-            }
-
-            # If variable unit is date 
-            if (unit == "jour de l'année") {
-                # The number of digit is 6 because months are display
-                # with 3 characters
-                Nspace = 6
-            # If it is a flow variable
-            } else if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'jour') {
-                # Gets the max number of digit on the label
-                maxtmp = max(df_data_code$Value, na.rm=TRUE)
-                # Taking into account of the augmentation of
-                # max for the window
-                maxtmp = maxtmp * (1 + lim_pct/100)
-                
-                # If the max is greater than 10
-                if (get_power(maxtmp) >= 4) {
-                    Nspace = 12
-                } else if (maxtmp >= 10) {
-                    # The number of digit is the magnitude plus
-                    # the first number times 2
-                    Nspace = (get_power(maxtmp) + 1)*2
-                    # Plus spaces between thousands hence every 8 digits
-                    Nspace = Nspace + as.integer(Nspace/8)
-                    # If the max is less than 10 and greater than 1
-                } else if (maxtmp < 10 & maxtmp >= 1) {
-                    # The number of digit is the magnitude plus
-                    # the first number times 2 plus 1 for the dot
-                    # and 2 for the first decimal
-                    Nspace = (get_power(maxtmp) + 1)*2 + 3
-                    # If the max is less than 1 (and obviously more than 0)
-                } else if (maxtmp < 1) {
-                    # Fixes the number of significant decimals to 3
-                    maxtmp = signif(maxtmp, 3)
-                    # The number of digit is the number of character
-                    # of the max times 2 minus 1 for the dots that
-                    # count just 1 space
-                    Nspace = nchar(as.character(maxtmp))*2 - 1
-                }
-            }
+        for (i in 1:nVar) {
             
-            # If it is the temporary max number
-            if (Nspace > NspaceMax_code) {
-                # Stores it
-                NspaceMax_code = Nspace
-            }
+            # Extracts the data corresponding to the current variable
+            df_data = list_df2plot[[i]]$data
+            # Extracts the type corresponding to the current variable
+            type = list_df2plot[[i]]$type
+            event = list_df2plot[[i]]$event
+            unit = list_df2plot[[i]]$unit
+            # Extracts the data corresponding to the code
+            df_data_code = df_data[df_data$code == code,]
+
+            Nspace = get_Nspace(df_data_code, unit, lim_pct)
+            Nspace_code = c(Nspace_code, Nspace)
         }
+
+        df_data_code = time_header[time_header$code == code,]
+        
+        if (any(c("Resume", "Étiage") %in% sapply(list_df2plot, "[[", 'event'))) {
+            df_sqrt_code = compute_sqrt(df_data_code)
+            Nspace = get_Nspace(df_sqrt_code, 'm^{3/2}.s^{-1/2}', lim_pct)
+            Nspace_code = c(Nspace_code, Nspace)
+        }
+
+        Nspace = get_Nspace(df_data_code, 'm^{3}.s^{-1}', lim_pct)
+        Nspace_code = c(Nspace_code, Nspace)
+        
         # Stores the max digit number for labels of a station
-        NspaceMax = c(NspaceMax, NspaceMax_code)
+        NspaceMax = c(NspaceMax, max(Nspace_code))
     }
 
     # For all the station
@@ -245,7 +203,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                 trend_period=trend_period,
                                 axis_xlim=axis_xlim_code, missRect=TRUE,
                                 unit2day=365.25,
-                                var='sqrt(Q)', type='sévérité',
+                                var='\\sqrt{Q}', type='sévérité',
                                 unit="m^{3/2}.s^{-1/2}",
                                 grid=TRUE, ymin_lim=0,
                                 NspaceMax=NspaceMax[k],
@@ -258,7 +216,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                 trend_period=trend_period,
                                 axis_xlim=axis_xlim_code, missRect=TRUE,
                                 unit2day=365.25,
-                                var='sqrt(Q)', type='sévérité',
+                                var='\\sqrt{Q}', type='sévérité',
                                 unit="m^{3/2}.s^{-1/2}",
                                 grid=TRUE, ymin_lim=0,
                                 NspaceMax=NspaceMax[k],
@@ -336,7 +294,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                         }
 
                         # If it is a flow variable
-                        if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
+                        if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                             # Computes the mean of the data on the period
                             dataMean = mean(df_data_code_per$Value,
                                             na.rm=TRUE)
@@ -344,12 +302,10 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             # of the data
                             value = df_trend_code_per$trend / dataMean
                             # If it is a date variable
-                        } else if (unit == "jour de l'année" | unit == 'jour') {
+                        } else if (unit == "jour de l'année" | unit == 'jour' | unit == 'an^{-1}') {
                             value = df_trend_code_per$trend
                         }
 
-                        # print(value)
-                        
                         # gets the color corresponding to the mean trend
                         color_res = get_color(value,
                                               minTrendValue[j, i],
@@ -372,7 +328,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 }
             }
 
-            if (var != 'sqrt(Q)' & var != 'Q') {
+            if (var != '\\sqrt{Q}' & var != 'Q') {
                 grid = FALSE
                 ymin_lim = NULL
             } else {
@@ -451,11 +407,14 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                         footName = 'fiche station'
                     }
                     if (is.null(df_page)) {
-                        n_page = k + page_code
+                        n_page = k + page_code - 1
                     } else {
-                        n_page = df_page$N[nrow(df_page)] + page_code
+                        if (nrow(df_page) == 0 | pdf_chunk == 'by_code') {
+                            n_page = page_code
+                        } else {
+                            n_page = df_page$n[nrow(df_page)] + page_code
+                        }
                     }
-                    
                     foot = foot_panel(footName, n_page,
                                       foot_height, logo_path)
                     P[[nbg]] = foot
@@ -504,7 +463,6 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 }
                 
                 P_order = c(P_i, P_t, P_order, P_f)
-                # print(P_order)
                 Pevent = P[P_order]
 
                 # Convert the 'layout_matrix' to a matrix
@@ -611,15 +569,17 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         if (!is.null(df_page)) {
             section = 'Fiche station'
             subsection = code
-            n_page = df_page$N[nrow(df_page)] + 1
-            N_page = df_page$N[nrow(df_page)] + page_code
-                df_page = bind_rows(
-                    df_page,
-                    tibble(section=section,
-                           subsection=subsection,
-                           n=n_page, N=N_page))
-        }
-        
+            if (nrow(df_page) == 0 | pdf_chunk == 'by_code') {
+                n_page = page_code
+            } else {
+                n_page = df_page$n[nrow(df_page)] + 1
+            }
+            df_page = bind_rows(
+                df_page,
+                tibble(section=section,
+                       subsection=subsection,
+                       n=n_page))
+        }        
     }
     return (df_page)
 }
@@ -877,7 +837,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             }
             # If it is not a flow or sqrt of flow time serie and
             # it is the first period
-            if (var != 'sqrt(Q)' & var != 'Q' & j == 1) {
+            if (var != '\\sqrt{Q}' & var != 'Q' & j == 1) {
                 # If there is an x axis limit
                 if (!is.null(axis_xlim)) {
                     # If the min of the period is before the x axis min
@@ -898,7 +858,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             }
             # If it is not a flow or sqrt of flow time serie and
             # it is the last period
-            if (var != 'sqrt(Q)' & var != 'Q' & j == nPeriod_mean) {
+            if (var != '\\sqrt{Q}' & var != 'Q' & j == nPeriod_mean) {
                 # If there is an x axis limit
                 if (!is.null(axis_xlim)) {
                     # If the max of the period plus 1 year
@@ -1037,7 +997,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
 
     ### Data ###
     # If it is a square root flow or flow
-    if (var == 'sqrt(Q)' | var == 'Q') {
+    if (var == '\\sqrt{Q}' | var == 'Q') {
         # Plot the data as line
         p = p +
             geom_line(aes(x=df_data_code$Date, y=df_data_code$Value),
@@ -1072,7 +1032,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                           ymin=minQ_win, 
                           xmax=NAdate_Up, 
                           ymax=maxQ_win),
-                      linetype=0, fill='Wheat', alpha=0.4)
+                      linetype=0, fill='#66c1bf', alpha=0.4)
     }
 
     ### Trend ###
@@ -1187,10 +1147,10 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             xminR = x - gpct(1, codeDate)
             yminR = y - gpct(5, codeValue, min_lim=ymin_lim)
             # If it is a flow variable
-            if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
+            if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                 xmaxR = x + gpct(32.5, codeDate)
             # If it is a date variable
-            } else if (unit == "jour de l'année" | unit == 'jour') {
+            } else if (unit == "jour de l'année" | unit == 'jour' | unit == 'an^{-1}') {
                 xmaxR = x + gpct(20.5, codeDate)
             }
             ymaxR = y + gpct(5, codeValue, min_lim=ymin_lim)
@@ -1311,7 +1271,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             # }
 
             unitF = gsub(" ", "\\\\,", unit)
-            if (unit == 'm^{3}' | unit == 'm^{3}.s^{-1}') {
+            if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                 label = paste0("\\textbf{", trendC,
                                " x 10$^{$", powerC,"}}",
                                spaceC,
@@ -1319,7 +1279,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                                "\\;", "\\textbf{", trendMeanC, "}",
                                " ", "\\[%$.an^{-1}$\\]")
                 
-            } else if (unit == "jour de l'année" | unit == "jour") {
+            } else if (unit == "jour de l'année" | unit == "jour" | unit == 'an^{-1}') {
                 label = paste0("\\textbf{", trendC,
                                " x 10$^{$", powerC,"}}",
                                spaceC,
@@ -1416,7 +1376,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
     
     # Y axis title
     # If it is a flow variable
-    varF = gsub("etiage", "étiage", var)    
+    varF = gsub("etiage", "étiage", var)  
     if (grepl("[_]", varF)) {
         varF = gsub("[_]", "$_{$", varF)
         varF = paste0(varF, "}")
@@ -1474,65 +1434,15 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                      limits=limits,
                      position=position, 
                      expand=c(0, 0))    
-    
-    # If it is a date variable 
-    if (unit == "jour de l'année") {
-        # The number of digit is 6 because months are display
-        # with 3 characters
-        Nspace = 6
-        
-        prefix = strrep(' ', times=NspaceMax-Nspace)
-        accuracy = NULL
-        
-    # If it is a flow variable
-    } else if (unit == 'jour' | unit == 'm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}') {
-        # Gets the max number of digit on the label
-        maxtmp = max(df_data_code$Value, na.rm=TRUE)
-        # Taking into account of the augmentation of
-        # max for the window
-        maxtmp = maxtmp * (1 + lim_pct/100)
 
-        # If the max is greater than 10
-        if (maxtmp >= 10 & get_power(maxtmp) < 4) {
-            # The number of digit is the magnitude plus
-            # the first number times 2
-            Nspace = (get_power(maxtmp) + 1)*2
-            # Plus spaces between thousands hence every 8 digits
-            Nspace = Nspace + as.integer(Nspace/8)            
-            # Gets the associated number of white space
-            prefix = strrep(' ', times=NspaceMax-Nspace)
-            # The accuracy is 1
-            accuracy = 1
-            
-        # If the max is less than 10 and greater than 1
-        } else if (maxtmp < 10 & maxtmp >= 1) {
-            # The number of digit is the magnitude plus
-            # the first number times 2 plus 1 for the dot
-            # and 2 for the first decimal
-            Nspace = (get_power(maxtmp) + 1)*2 + 3
-            # Gets the associated number of white space
-            prefix = strrep(' ', times=NspaceMax-Nspace)
-            # The accuracy is 0.1
-            accuracy = 0.1
-            
-        # If the max is less than 1 (and obviously more than 0)
-        } else if (maxtmp < 1) {
-            # Fixes the number of significant decimals to 3
-            maxtmp = signif(maxtmp, 3)
-            # The number of digit is the number of character
-            # of the max times 2 minus 1 for the dots that
-            # count just 1 space
-            Nspace = nchar(as.character(maxtmp))*2 - 1
-            # Gets the associated number of white space
-            prefix = strrep(' ', times=NspaceMax-Nspace)
-            # Computes the accuracy
-            accuracy = 10^(-nchar(as.character(maxtmp))+2)
-        }
-    }
+    res = get_Nspace(df_data_code, unit, lim_pct,
+                     NspaceMax=NspaceMax)
+    prefix = res$prefix
+    accuracy = res$accuracy
     
     # Parameters of the y axis
     # If it is a flow variable
-    if (unit == 'jour' | unit == 'm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}') {
+    if (unit == 'jour' | unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'an^{-1}') {
         
         if (get_power(minQ_lim) < 4) {
             labels = number_format(accuracy=accuracy,
@@ -1547,8 +1457,10 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             }
         }
 
+        breaks = seq(minQ_lim, maxQ_lim, breakQ)
+        breaks = breaks[minQ_win <= breaks & breaks <= maxQ_win]
         p = p +
-            scale_y_continuous(breaks=seq(minQ_lim, maxQ_lim, breakQ),
+            scale_y_continuous(breaks=breaks,
                                limits=c(minQ_win, maxQ_win),
                                expand=c(0, 0),
                                labels=labels)

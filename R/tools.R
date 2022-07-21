@@ -225,7 +225,7 @@ get_power = function (value) {
                 power = -(ndec - nnum + 1)
             }
         } else {
-            power = NULL
+            power = NA
         }
     }
     return (power)
