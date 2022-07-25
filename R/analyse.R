@@ -155,7 +155,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
 
             if (!is.null(dayNA_lim)) {
                 # NA filtering
-                res = NA_filter(df_XEx,
+                res = NA_filter(df_data,
+                                df_XEx,
                                 dayNA_lim=dayNA_lim,
                                 timestep="year-month",
                                 df_mod=df_mod,
@@ -261,7 +262,8 @@ get_Xtrend = function (var, df_data, df_meta, period,
 
         if (!is.null(dayNA_lim)) {
             # NA filtering
-            res = NA_filter(df_XEx,
+            res = NA_filter(df_data,
+                            df_XEx,
                             dayNA_lim=dayNA_lim,
                             timestep='year',
                             df_mod=df_mod,

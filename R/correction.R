@@ -295,7 +295,7 @@ missing_day = function (df_data, df_meta, dayLac_lim=3,
 ## 3. NA FILTER AFTER EXTRACTION _____________________________________
 #' @title NA filter
 #' @export
-NA_filter = function (df_XEx, dayNA_lim, timestep="year",
+NA_filter = function (df_data, df_XEx, dayNA_lim, timestep="year",
                       df_mod=NULL, verbose=TRUE) {
 
     if (timestep == "year-month" | timestep == "month") {
@@ -308,7 +308,24 @@ NA_filter = function (df_XEx, dayNA_lim, timestep="year",
     endStep = startStep + dStep
     dayStep = endStep - startStep
 
-    filter = df_XEx$NA_pct * dayStep > dayNA_lim
+    dayNA = df_XEx$NA_pct/100 * dayStep
+    filter = dayNA > dayNA_lim
+
+    df_start = summarise(group_by(df_data, code),
+                      start=min(Date))
+    df_end = summarise(group_by(df_data, code),
+                    end=max(Date))
+
+    df_XEx_lim = left_join(df_XEx, df_start, by=c("code"="code"))
+    df_XEx_lim = left_join(df_XEx_lim, df_end, by=c("code"="code"))
+
+    filter_start =
+        df_XEx_lim$start - df_XEx_lim$Date + dayNA > dayNA_lim
+    
+    filter_end =
+        df_XEx_lim$Date+lubridate::years(1)-1 - df_XEx_lim$end + dayNA > dayNA_lim
+    
+    filter = filter | filter_start | filter_end
 
     df_XEx$Value[filter] = NA
     codeFilter = df_XEx$code[filter]
