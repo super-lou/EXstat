@@ -133,6 +133,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
         # Opens a blank list to store plot
         P = vector(mode='list', length=nbg)
+        Plast = vector(mode='list', length=nbg)
         
         for (id in 1:nbg) {
             P[[id]] = void() 
@@ -140,6 +141,8 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         
         # If the info header is needed
         if (!is.null(info_header)) {
+
+            print("Info header panel")
             
             if ("data.frame" %in% class(info_header)) {
                 # Extracts the data serie corresponding to the code
@@ -174,6 +177,9 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
         # If the time header is given
         if (!is.null(time_header)) {
+
+            print("Time header panel")
+            
             # Extracts the data serie corresponding to the code
             df_Q_code = time_header[time_header$code == code,]
             df_sqrtQ_code = compute_sqrt(df_Q_code)
@@ -342,6 +348,15 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 first = FALSE
             }
 
+            if (var %in% sapply(structure, tail, 1)) {
+                last = TRUE
+            }
+            if (!(var %in% sapply(structure, tail, 1))) {
+                last = FALSE
+            }
+            
+            print(paste0("Time panel for ", var))
+
             # Computes the time panel associated to the current variable
             p = time_panel(df_data_code, df_trend_code, var=var, 
                            type=type, unit=unit,
@@ -354,13 +369,14 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                            unit2day=unit2day, grid=grid,
                            ymin_lim=ymin_lim, color=color,
                            NspaceMax=NspaceMax[k], first=first,
-                           last=(i == nVar),
+                           last=last,
                            lim_pct=lim_pct)
             
             # Stores the plot
             P[[i+nbh]] = p
         }
 
+        print("Layout")
 
         # If paper format is A4
         if (paper_size == 'A4') {
@@ -549,6 +565,8 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 filename = paste0(as.character(code), '_',
                                   gsub(' ', '_', eventName),
                                   '_', page)
+
+                print("Saving")
                 
                 # Saving
                 ggsave(plot=plot,
