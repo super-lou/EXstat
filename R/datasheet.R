@@ -132,12 +132,15 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         nbg = nbh + nVar + nbf
 
         # Opens a blank list to store plot
-        P = vector(mode='list', length=nbg)
-        Plast = vector(mode='list', length=nbg)
+        # P = vector(mode='list', length=nbg)
+        # Plast = vector(mode='list', length=nbg)
         
-        for (id in 1:nbg) {
-            P[[id]] = void() 
-        }
+        # for (id in 1:nbg) {
+        #     P[[id]] = void() 
+        # }
+
+        df_P = tibble() # name | first | last | plot
+        
         
         # If the info header is needed
         if (!is.null(info_header)) {
@@ -172,7 +175,9 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                zone_to_show=zone_to_show)
             
             # Stores it
-            P[[1]] = Hinfo
+            df_P = add_plot(df_P,
+                            plot=Hinfo,
+                            name="info")
         }
 
         # If the time header is given
@@ -202,7 +207,10 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             NspaceMax=NspaceMax[k],
                             first=TRUE, lim_pct=lim_pct)
             # Stores it
-            P[[2]] = HQ
+            df_P = add_plot(df_P,
+                            plot=HQ,
+                            name="Q",
+                            first=TRUE)
 
             # Gets the time serie plot
             HsqrtQ = time_panel(df_sqrtQ_code, df_trend_code=NULL,
@@ -215,7 +223,10 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                 NspaceMax=NspaceMax[k],
                                 first=TRUE, lim_pct=lim_pct)
             # Stores it
-            P[[3]] = HsqrtQ
+            df_P = add_plot(df_P,
+                            plot=HsqrtQ,
+                            name="\\sqrt{Q}",
+                            first=TRUE)
 
             # Gets the time serie plot
             HsqrtQmid = time_panel(df_sqrtQ_code, df_trend_code=NULL,
@@ -228,7 +239,10 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                 NspaceMax=NspaceMax[k],
                                 first=FALSE, lim_pct=lim_pct)
             # Stores it
-            P[[4]] = HsqrtQmid
+            df_P = add_plot(df_P,
+                            plot=HsqrtQmid,
+                            name="\\sqrt{Q}",
+                            first=FALSE)
             
         } else {
             axis_xlim_code = axis_xlim
@@ -348,32 +362,51 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 first = FALSE
             }
 
-            if (var %in% sapply(structure, tail, 1)) {
-                last = TRUE
-            }
-            if (!(var %in% sapply(structure, tail, 1))) {
-                last = FALSE
-            }
-            
             print(paste0("Time panel for ", var))
-
-            # Computes the time panel associated to the current variable
-            p = time_panel(df_data_code, df_trend_code, var=var, 
-                           type=type, unit=unit,
-                           hydroPeriod_code=hydroPeriod_code,
-                           linetype_per=linetype_per,
-                           alpha=alpha, colorForce=colorForce,
-                           missRect=missRect, trend_period=trend_period,
-                           mean_period=mean_period,
-                           axis_xlim=axis_xlim_code, 
-                           unit2day=unit2day, grid=grid,
-                           ymin_lim=ymin_lim, color=color,
-                           NspaceMax=NspaceMax[k], first=first,
-                           last=last,
-                           lim_pct=lim_pct)
             
+            res = time_panel(df_data_code, df_trend_code, var=var, 
+                             type=type, unit=unit,
+                             hydroPeriod_code=hydroPeriod_code,
+                             linetype_per=linetype_per,
+                             alpha=alpha, colorForce=colorForce,
+                             missRect=missRect,
+                             trend_period=trend_period,
+                             mean_period=mean_period,
+                             axis_xlim=axis_xlim_code, 
+                             unit2day=unit2day, grid=grid,
+                             ymin_lim=ymin_lim, color=color,
+                             NspaceMax=NspaceMax[k], first=first,
+                             last="all",
+                             lim_pct=lim_pct)
+            
+            df_P = add_plot(df_P,
+                            plot=res$lastTRUE,
+                            name=var,
+                            last=TRUE)
+            df_P = add_plot(df_P,
+                            plot=res$lastFALSE,
+                            name=var,
+                            last=TRUE)
+
+            # # Computes the time panel associated to the current variable
+            # p = time_panel(df_data_code, df_trend_code, var=var, 
+            #                type=type, unit=unit,
+            #                hydroPeriod_code=hydroPeriod_code,
+            #                linetype_per=linetype_per,
+            #                alpha=alpha, colorForce=colorForce,
+            #                missRect=missRect, trend_period=trend_period,
+            #                mean_period=mean_period,
+            #                axis_xlim=axis_xlim_code, 
+            #                unit2day=unit2day, grid=grid,
+            #                ymin_lim=ymin_lim, color=color,
+            #                NspaceMax=NspaceMax[k], first=first,
+            #                last=FALSE,
+            #                lim_pct=lim_pct)
             # Stores the plot
-            P[[i+nbh]] = p
+            df_P = add_plot(df_P,
+                            plot=p,
+                            name=var,
+                            last=FALSE)
         }
 
         print("Layout")
@@ -394,6 +427,19 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             var_to_place = structure[[i]]
             event = names(structure)[i]
 
+            if (event != 'Resume' & event != 'None' & show_colorEvent) {
+                space = 0.7
+                colorEvent = get_colorEvent()
+                colorTextEvent = get_colorTextEvent()
+                Hevent = event_panel(event, colorEvent, colorTextEvent)
+                Heventinfo = merge_panel(add=Hevent, to=Hinfo,
+                                         widths=c(space, width-space))
+                df_P = add_plot(df_P,
+                                plot=Heventinfo,
+                                name="info",
+                                overwrite_by_name=TRUE)
+            }
+            
             if (event == 'Resume') {
                 nVar_max = 4
             } else {
@@ -406,15 +452,6 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             for (page in 1:nVar_page) {
 
                 page_code = page_code + 1
-
-                if (event != 'Resume' & event != 'None' & show_colorEvent) {
-                    space = 0.7
-                    colorEvent = get_colorEvent()
-                    colorTextEvent = get_colorTextEvent()
-                    Hevent = event_panel(event, colorEvent, colorTextEvent)
-                    P[[1]] = merge_panel(add=Hevent, to=Hinfo,
-                                         widths=c(space, width-space))
-                }
                 
                 if (foot_note) {
                     if (event != 'Resume' & event != 'None') {
@@ -433,7 +470,10 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                     }
                     foot = foot_panel(footName, n_page,
                                       foot_height, logo_path)
-                    P[[nbg]] = foot
+                    df_P = add_plot(df_P,
+                                    plot=foot,
+                                    name="foot",
+                                    overwrite_by_name=TRUE)
                 }
 
                 var_to_place_page = var_to_place[(1+(nVar_max*(page-1))) : (nVar_max*page)]
@@ -444,11 +484,9 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 matrix_order = place_order - min(place_order) + 1
                 layout_matrix = matrix(matrix_order,
                                        ncol=1)
-                
-                P_order = place_order + nbh
 
                 if (!is.null(info_header)) {
-                    P_i = 1
+                    P_i = which(df_P$name == "info")
                     nbi = 1
                 } else {
                     P_i = NULL
@@ -457,13 +495,14 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 
                 if (!is.null(time_header)) {
                     if (event == "Resume") {
-                        P_t = c(nbi+1, nbi+3)
+                        P_t = c(which(df_P$name == "Q" & df_P$first == TRUE),
+                                which(df_P$name == "\\sqrt{Q}" & df_P$first == FALSE))
                         nbt = 2
                     } else if (event == "Étiage")  {
-                        P_t = c(nbi+2)
+                        P_t = which(df_P$name == "\\sqrt{Q}" & df_P$first == TRUE)
                         nbt = 1
                     } else {
-                        P_t = c(nbi+1)
+                        P_t = which(df_P$name == "Q" & df_P$first == TRUE)
                         nbt = 1
                     }
                 } else {
@@ -471,15 +510,26 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 }
 
                 if (foot_note) {
-                    P_f = nbg
+                    P_f = which(df_P$name == "foot")
                     nbf = 1
                 } else {
                     P_f = NULL
                     nbf = 0
                 }
-                
-                P_order = c(P_i, P_t, P_order, P_f)
-                Pevent = P[P_order]
+
+                P_var = c()
+                for (var in var_to_place_page) {
+                    if (var == var_to_place_page[length(var_to_place_page)]) {
+                        last = TRUE
+                    } else {
+                        last = FALSE
+                    }
+                    p_var = which(df_P$name == var & df_P$last == last)
+                    P_var = c(P_var, p_var)
+                }
+            
+                P_order = c(P_i, P_t, P_var, P_f)
+                Pevent = df_P$plot[P_order]
 
                 # Convert the 'layout_matrix' to a matrix
                 # if it is not already 
@@ -741,21 +791,6 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
     
     # Open new plot
     p = ggplot() + theme_ash()
-
-    # Margins
-    if (first) {
-        p = p + 
-            theme(plot.margin=margin(t=2.5, r=0, b=3, l=0, unit="mm"))
-    } else if (last) {
-        p = p + 
-            theme(plot.margin=margin(t=2, r=0, b=0, l=0, unit="mm"))
-    } else if (first & last) {
-        p = p + 
-            theme(plot.margin=margin(t=2.5, r=0, b=0, l=0, unit="mm"))
-    } else {
-        p = p + 
-            theme(plot.margin=margin(t=2, r=0, b=2, l=0, unit="mm"))
-    }
 
     ## Sub period background ##
     if (!is.null(trend_period)) {
@@ -1411,12 +1446,6 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
     p = p +
         ylab(yTeXlabel)
 
-    
-    if (!last & !first) {
-        p = p + 
-            theme(axis.text.x=element_blank())
-    }
-
     if (first) {
         position = 'top'
     } else {
@@ -1515,10 +1544,36 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                                expand=c(0, 0))
     }
 
-    # p = ggplot_gtable(ggplot_build(p))
-    # p$layout$clip[p$layout$name == "panel"] = "off"
-    # p = grid.draw(p)
-    return(p)
+    pLastTRUE = p
+    pLastFALSE = p
+
+    # Margins
+    if (first) {
+        p = p + 
+            theme(plot.margin=margin(t=2.5, r=0, b=3, l=0, unit="mm"))
+    } else if (last) {
+        p = p + 
+            theme(plot.margin=margin(t=2, r=0, b=0, l=0, unit="mm"))
+    # } else if (first & last) {
+    #     p = p + 
+    #         theme(plot.margin=margin(t=2.5, r=0, b=0, l=0, unit="mm"))
+    } else {
+        p = p + 
+            theme(plot.margin=margin(t=2, r=0, b=2, l=0, unit="mm"))
+    }
+    
+    if (!last & !first) {
+        p = p +
+            theme(axis.text.x=element_blank())
+    }
+
+    if (last == "all") {
+        res = list(lastTRUE=pLastTRUE, lastFALSE=pLastFALSE)
+        return(res)
+        
+    } else {
+        return(p)
+    }
 }
 
 ### 2.2. Event panel _________________________________________________
@@ -1793,4 +1848,22 @@ hydrograph_panel = function (df_data_code, period, margin=NULL) {
                            expand=c(0, 0))
     # Returns the plot
     return (hyd)
+}
+
+
+add_plot = function (P, plot=NULL, name="", first=FALSE, last=FALSE,
+                     overwrite_by_name=FALSE) {
+    
+    if (overwrite_by_name == FALSE | !any(which(P$name == name))) {
+        P = bind_rows(P, tibble(name=name, first=first,
+                                last=last, plot=NULL))
+        P$plot[[nrow(P)]] = plot
+
+    } else {
+        id = which(P$name == name)
+        P$first[id] = first
+        P$last[id] = last
+        P$plot[[id]] = plot
+    }
+    return (P)
 }
