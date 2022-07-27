@@ -171,7 +171,6 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                          exQprob=0.01,
                          linetype_per='solid',
                          axis_xlim=NULL,
-                         missRect=TRUE,
                          paper_size='A4',
                          time_header=NULL,
                          info_header=NULL, foot_note=TRUE,
@@ -277,10 +276,6 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
         hydroPeriod = rep(hydroPeriod, nbp)
     }
 
-    if (length(missRect) != nbp) {
-        missRect = rep(missRect[1], nbp)
-    }
-
     # Creates a blank list to store all the data of each type of plot
     list_df2plot = vector(mode='list', length=nbp)
 
@@ -296,8 +291,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
                        event=event[[i]],
                        unit=unit[[i]],
                        hydroPeriod=hydroPeriod[[i]],
-                       glose=glose[[i]],
-                       missRect=missRect[[i]])
+                       glose=glose[[i]])
         # Stores it
         list_df2plot[[i]] = df2plot
     }
@@ -438,7 +432,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
 
     if (pdf_chunk == 'by_code') {
         # Get all different stations code
-        Code = levels(factor(df_meta$code))
+        Code = rle(df_data$Code)$value
         for (code in Code) {
             listfile_code_path = listfile_path[grepl(code, listfile_path)]
             pdf_combine(input=listfile_code_path,

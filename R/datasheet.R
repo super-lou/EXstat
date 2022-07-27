@@ -56,7 +56,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
     nVar = length(list_df2plot)
     
     # Get all different stations code
-    Code = levels(factor(df_meta$code))
+    Code = rle(df_data$Code)$value
     nCode = length(Code)
 
     if (!is.null(trend_period)) {
@@ -95,13 +95,13 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             event = list_df2plot[[i]]$event
             unit = list_df2plot[[i]]$unit
             # Extracts the data corresponding to the code
-            df_data_code = df_data[df_data$code == code,]
+            df_data_code = df_data[df_data$Code == code,]
 
             Nspace = get_Nspace(df_data_code, unit, lim_pct)
             Nspace_code = c(Nspace_code, Nspace)
         }
 
-        df_data_code = time_header[time_header$code == code,]
+        df_data_code = time_header[time_header$Code == code,]
         
         if (any(c("Resume", "Étiage") %in% sapply(list_df2plot, "[[", 'event'))) {
             df_sqrt_code = compute_sqrt(df_data_code)
@@ -149,7 +149,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             
             if ("data.frame" %in% class(info_header)) {
                 # Extracts the data serie corresponding to the code
-                info_header_code = info_header[info_header$code == code,]
+                info_header_code = info_header[info_header$Code == code,]
                 to_do = 'all'
             } else {
                 info_header_code = NULL
@@ -186,7 +186,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             print("Time header panel")
             
             # Extracts the data serie corresponding to the code
-            df_Q_code = time_header[time_header$code == code,]
+            df_Q_code = time_header[time_header$Code == code,]
             df_sqrtQ_code = compute_sqrt(df_Q_code)
             
             if (is.null(axis_xlim)) {
@@ -260,7 +260,6 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             df_trend = list_df2plot[[i]]$trend
             
             unit2day = list_df2plot[[i]]$unit2day
-            missRect = list_df2plot[[i]]$missRect
             # Extract the variable of the plot
             var = list_df2plot[[i]]$var
             var_plot = c(var_plot, var)
@@ -272,15 +271,15 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
             if (is.tbl(hydroPeriod)) {
                 hydroPeriod_code =
-                    hydroPeriod$Value[hydroPeriod$code == code]
+                    hydroPeriod$Value[hydroPeriod$Code == code]
             } else {
                 hydroPeriod_code = hydroPeriod
             }
             
             # Extracts the data corresponding to the code
-            df_data_code = df_data[df_data$code == code,]
+            df_data_code = df_data[df_data$Code == code,]
             # Extracts the trend corresponding to the code
-            df_trend_code = df_trend[df_trend$code == code,]
+            df_trend_code = df_trend[df_trend$Code == code,]
 
             # Blank vector to store color
             color = c()
@@ -322,7 +321,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             # of the data
                             value = df_trend_code_per$trend / dataMean
                             # If it is a date variable
-                        } else if (unit == "jour de l'année" | unit == 'jour' | unit == 'an^{-1}') {
+                        } else if (unit == "jour de l'année" | unit == 'jour' | unit == 'jour.an^{-1}') {
                             value = df_trend_code_per$trend
                         }
 
@@ -369,7 +368,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                              hydroPeriod_code=hydroPeriod_code,
                              linetype_per=linetype_per,
                              alpha=alpha, colorForce=colorForce,
-                             missRect=missRect,
+                             missRect=FALSE,
                              trend_period=trend_period,
                              mean_period=mean_period,
                              axis_xlim=axis_xlim_code, 
@@ -385,26 +384,6 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             last=TRUE)
             df_P = add_plot(df_P,
                             plot=res$lastFALSE,
-                            name=var,
-                            last=TRUE)
-
-            # # Computes the time panel associated to the current variable
-            # p = time_panel(df_data_code, df_trend_code, var=var, 
-            #                type=type, unit=unit,
-            #                hydroPeriod_code=hydroPeriod_code,
-            #                linetype_per=linetype_per,
-            #                alpha=alpha, colorForce=colorForce,
-            #                missRect=missRect, trend_period=trend_period,
-            #                mean_period=mean_period,
-            #                axis_xlim=axis_xlim_code, 
-            #                unit2day=unit2day, grid=grid,
-            #                ymin_lim=ymin_lim, color=color,
-            #                NspaceMax=NspaceMax[k], first=first,
-            #                last=FALSE,
-            #                lim_pct=lim_pct)
-            # Stores the plot
-            df_P = add_plot(df_P,
-                            plot=p,
                             name=var,
                             last=FALSE)
         }
@@ -1203,7 +1182,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                 xmaxR = x + gpct(32.5, codeDate)
             # If it is a date variable
-            } else if (unit == "jour de l'année" | unit == 'jour' | unit == 'an^{-1}') {
+            } else if (unit == "jour de l'année" | unit == 'jour' | unit == 'jour.an^{-1}') {
                 xmaxR = x + gpct(20.5, codeDate)
             }
             ymaxR = y + gpct(5, codeValue, min_lim=ymin_lim)
@@ -1306,23 +1285,6 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             spaceC = leg_trend_per$spaceC
             trendMeanC = leg_trend_per$trendMeanC
 
-            # # If it is a flow variable
-            # if (type == 'sévérité') {
-            #     # Create the name of the trend
-            #     label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'['*m^{3}*'.'*s^{-1}*'.'*an^{-1}*']'~~bold(.(trendMeanC))~'[%.'*an^{-1}*']')
-                    
-            # # If it is a date variable
-            # } else if (type == 'saisonnalité') {
-            #     # Create the name of the trend
-            #     label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[jour.'*an^{-1}*']')
-            # } else if (type == 'pluviométrie' | type == 'évapotranspiration') {
-            #     # Create the name of the trend
-            #     label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[mm.'*an^{-1}*']')
-            # } else if (type == 'température') {
-            #     # Create the name of the trend
-            #     label = bquote(bold(.(trendC)~'x'~'10'^{.(powerC)}*.(spaceC))~'[°C.'*an^{-1}*']')
-            # }
-
             unitF = gsub(" ", "\\\\,", unit)
             if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                 label = paste0("\\textbf{", trendC,
@@ -1332,11 +1294,16 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                                "\\;", "\\textbf{", trendMeanC, "}",
                                " ", "\\[%$.an^{-1}$\\]")
                 
-            } else if (unit == "jour de l'année" | unit == "jour" | unit == 'an^{-1}') {
+            } else if (unit == "jour de l'année" | unit == "jour") {
                 label = paste0("\\textbf{", trendC,
                                " x 10$^{$", powerC,"}}",
                                spaceC,
                                " ", "\\[", "jour$.an^{-1}$", "\\]")
+            } else if (unit == 'jour.an^{-1}') {
+                label = paste0("\\textbf{", trendC,
+                               " x 10$^{$", powerC,"}}",
+                               spaceC,
+                               " ", "\\[", "jour$.an^{-2}$", "\\]")
             }
 
             # Plot the trend symbole and value of the legend
@@ -1489,7 +1456,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
     
     # Parameters of the y axis
     # If it is a flow variable
-    if (unit == 'jour' | unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'an^{-1}') {
+    if (unit == 'jour' | unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'jour.an^{-1}') {
         
         if (get_power(minQ_lim) < 4) {
             labels = number_format(accuracy=accuracy,
@@ -1544,34 +1511,41 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                                expand=c(0, 0))
     }
 
-    pLastTRUE = p
-    pLastFALSE = p
-
     # Margins
-    if (first) {
-        p = p + 
-            theme(plot.margin=margin(t=2.5, r=0, b=3, l=0, unit="mm"))
-    } else if (last) {
-        p = p + 
-            theme(plot.margin=margin(t=2, r=0, b=0, l=0, unit="mm"))
-    # } else if (first & last) {
-    #     p = p + 
-    #         theme(plot.margin=margin(t=2.5, r=0, b=0, l=0, unit="mm"))
-    } else {
-        p = p + 
-            theme(plot.margin=margin(t=2, r=0, b=2, l=0, unit="mm"))
-    }
-    
-    if (!last & !first) {
-        p = p +
-            theme(axis.text.x=element_blank())
-    }
-
     if (last == "all") {
+        pLastTRUE = p
+        pLastFALSE = p
+        if (first) {
+            pLastFALSE = pLastFALSE +
+                theme(plot.margin=margin(t=2.5, r=0, b=3, l=0, unit="mm"))
+            pLastTRUE = pLastTRUE +
+                theme(plot.margin=margin(t=2.5, r=0, b=0, l=0, unit="mm"))
+        } else {
+            pLastFALSE = pLastFALSE + 
+                theme(plot.margin=margin(t=2, r=0, b=2, l=0, unit="mm"),
+                      axis.text.x=element_blank())
+            pLastTRUE = pLastTRUE +
+                theme(plot.margin=margin(t=2, r=0, b=0, l=0, unit="mm"))
+        }
+
         res = list(lastTRUE=pLastTRUE, lastFALSE=pLastFALSE)
         return(res)
         
     } else {
+        if (first & !last) {
+            p = p +
+                theme(plot.margin=margin(t=2.5, r=0, b=3, l=0, unit="mm"))
+        } else if (!first & last) {
+            p = p + 
+                theme(plot.margin=margin(t=2, r=0, b=0, l=0, unit="mm"))
+        } else if (first & last) {
+            p = p + 
+                theme(plot.margin=margin(t=2.5, r=0, b=0, l=0, unit="mm"))
+        } else if (!first & !last){
+            p = p + 
+                theme(plot.margin=margin(t=2, r=0, b=2, l=0, unit="mm"),
+                      axis.text.x=element_blank())
+        }
         return(p)
     }
 }
@@ -1654,7 +1628,7 @@ info_panel = function(list_df2plot, df_meta, trend_period=NULL,
     }
 
     # Gets the metadata about the station
-    df_meta_code = df_meta[df_meta$code == codeLight,]
+    df_meta_code = df_meta[df_meta$Code == codeLight,]
 
     if ('name' %in% to_do | 'all' %in% to_do) {
         # Extracts the name
@@ -1851,19 +1825,24 @@ hydrograph_panel = function (df_data_code, period, margin=NULL) {
 }
 
 
-add_plot = function (P, plot=NULL, name="", first=FALSE, last=FALSE,
+add_plot = function (df_P, plot=NULL, name="", first=FALSE, last=FALSE,
                      overwrite_by_name=FALSE) {
     
-    if (overwrite_by_name == FALSE | !any(which(P$name == name))) {
-        P = bind_rows(P, tibble(name=name, first=first,
-                                last=last, plot=NULL))
-        P$plot[[nrow(P)]] = plot
+    if (overwrite_by_name == FALSE | !any(which(df_P$name == name))) {
+        if (nrow(df_P) == 0) {
+            df_P = tibble(name=name, first=first,
+                          last=last, plot=NULL)
+        } else {
+            df_P = bind_rows(df_P, tibble(name=name, first=first,
+                                          last=last, plot=NULL))
+        }
+        df_P$plot[[nrow(df_P)]] = plot
 
     } else {
-        id = which(P$name == name)
-        P$first[id] = first
-        P$last[id] = last
-        P$plot[[id]] = plot
+        id = which(df_P$name == name)
+        df_P$first[id] = first
+        df_P$last[id] = last
+        df_P$plot[[id]] = plot
     }
-    return (P)
+    return (df_P)
 }

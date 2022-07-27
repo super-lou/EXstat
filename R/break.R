@@ -38,7 +38,7 @@
 histogram = function (df_break, df_meta, title='', figdir='', filedir_opt='break_hist') {
 
     # Get all different stations code
-    Code = levels(factor(df_meta$code))
+    Code = rle(df_data$Code)$value
     nCode = length(Code)
 
     # If there is not a dedicated figure directory it creats one
@@ -149,7 +149,7 @@ histogram = function (df_break, df_meta, title='', figdir='', filedir_opt='break
 cumulative = function (df_break, df_meta, title='', dyear=10, figdir='', filedir_opt='break_cumul') {
 
     # Get all different stations code
-    Code = levels(factor(df_meta$code))
+    Code = rle(df_data$Code)$value
     nCode = length(Code)
 
     # If there is not a dedicated figure directory it creats one

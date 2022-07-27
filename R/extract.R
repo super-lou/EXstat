@@ -488,7 +488,7 @@ extract_meta = function (computer_data_path, filedir, filename,
         df_meta =
             tibble(
                 # Station code
-                code=trimws(substr(metatxt[11], 38,
+                Code=trimws(substr(metatxt[11], 38,
                                    nchar(metatxt[11]))),
                 # Station name
                 nom=trimws(substr(metatxt[12], 39,
@@ -534,8 +534,8 @@ extract_meta = function (computer_data_path, filedir, filename,
         Ltmp = substr(Ltmp, 1, 1)
         infoSecteur = rle(sort(Ltmp))$values
         
-        oneL = substr(df_meta$code, 1, 1)
-        twoL = substr(df_meta$code, 1, 2)
+        oneL = substr(df_meta$Code, 1, 1)
+        twoL = substr(df_meta$Code, 1, 2)
         RH = c()
         for (i in 1:length(oneL)) {
             if (oneL[i] %in% infoSecteur) {
@@ -646,13 +646,13 @@ extract_data = function (computer_data_path, filedir, filename,
         df_meta = extract_meta(computer_data_path, filedir, filename,
                                verbose=FALSE)
         # Get the code of the station
-        code = df_meta$code
+        code = df_meta$Code
         # Create a tibble with the date as Date class and the code
         # of the station
         df_data = tibble(Date=as.Date(as.character(df_data$Date),
                                       format="%Y%m%d"),
                          Value=df_data$Qls * 1E-3,
-                         code=code)
+                         Code=code)
         return (df_data)
 
     } else {
@@ -689,7 +689,7 @@ extract_climate_data = function (computer_data_path, filedir,
     
     basin = gsub("[^[:alnum:] ].*$", '', filelist)
     
-    df_meta = tibble(code=basin)
+    df_meta = tibble(Code=basin)
     df_data = tibble()
     nfile = length(filelist)
     
@@ -701,11 +701,11 @@ extract_climate_data = function (computer_data_path, filedir,
                                     sep=' ',
                                     skip=1)
 
-        df_data_basin$code = basin[i]
+        df_data_basin$Code = basin[i]
 
         df_data = bind_rows(df_data, df_data_basin)
     }
-    colnames(df_data) = c(colNames, 'code')
+    colnames(df_data) = c(colNames, 'Code')
     df_data$Date = as.Date(df_data$Date) 
     res = list(data=df_data, meta=df_meta)
     return (res)

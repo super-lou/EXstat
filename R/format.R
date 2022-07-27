@@ -52,10 +52,10 @@ join_selection = function (list_data, list_meta, list_from) {
         
         if (!is.null(df_datatmp)) {
             
-            df_datatmp = df_datatmp[!(df_datatmp$code %in% Code),]
-            df_metatmp = df_metatmp[!(df_metatmp$code %in% Code),]
+            df_datatmp = df_datatmp[!(df_datatmp$Code %in% Code),]
+            df_metatmp = df_metatmp[!(df_metatmp$Code %in% Code),]
             Code = c(Code,
-                     df_metatmp$code[!(df_metatmp$code %in% Code)])
+                     df_metatmp$Code[!(df_metatmp$Code %in% Code)])
             
             df_metatmp$source = from
             
@@ -91,7 +91,7 @@ extract_Var_WRAP = function (df_data, funct, period,
     }
     
     # Groups the data by code column
-    df_data = group_by(df_data, code)
+    df_data = group_by(df_data, Code)
 
     if ("Na.percent" %in% names(df_data)) {
         # Creates a new tibble of data with a group column
@@ -135,7 +135,7 @@ extract_Var_WRAP = function (df_data, funct, period,
     # Recreates the outing of the 'extract.Var' function nicer
     df_XEx = tibble(Date=df_XEx$Date,
                     Value=df_XEx$Value,
-                    code=df_Xlist$info$code[df_XEx$group],
+                    Code=df_Xlist$info$Code[df_XEx$group],
                     NA_pct=df_XEx$NA_pct*100)
 
     if (isDate) {
@@ -156,7 +156,7 @@ Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1',
         print('... Estimation of trend')
     }
     
-    df_XEx = group_by(df_XEx, code)
+    df_XEx = group_by(df_XEx, Code)
     df_XEx_RAW = tibble(datetime=as.numeric(format(df_XEx$Date, "%Y")),
                         group1=group_indices(df_XEx),
                         values=df_XEx$Value,
@@ -174,7 +174,7 @@ Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1',
     # Converts results of trend to tibble
     df_Xtrend = tibble(df_Xtrend)
     colnames(df_Xtrend)[1] = 'group'
-    df_Xtrend = tibble(code=info$code[df_Xtrend$group],
+    df_Xtrend = tibble(Code=info$Code[df_Xtrend$group],
                        df_Xtrend[-1])
     
     df_Xtrend = get_intercept(df_XEx, df_Xtrend, verbose=verbose)
@@ -198,7 +198,7 @@ convert_dateEx = function(df_XEx, df_data, hydroYear="01-01", verbose=TRUE) {
     Shift_hydroYear = as.integer(df_XEx$Date - as.Date(paste0(format(df_XEx$Date, "%Y"), "-01-01")))
     df_XEx$Value = df_XEx$Value + Shift_hydroYear
     
-    df_Date = summarise(group_by(df_data, code),
+    df_Date = summarise(group_by(df_data, Code),
                                 Start=min(Date, na.rm=TRUE))
     df_Date$Julian = NA
     df_Date$origin = as.Date(paste0(format(df_Date$Start, "%Y"),
@@ -209,16 +209,16 @@ convert_dateEx = function(df_XEx, df_data, hydroYear="01-01", verbose=TRUE) {
 
     df_Date$Year = format(df_Date$Start, "%Y")
 
-    for (code in df_Date$code) {
-        Ok_Start = df_Date$code == code
+    for (code in df_Date$Code) {
+        Ok_Start = df_Date$Code == code
         Shift = df_Date$Julian[Ok_Start]
         year = df_Date$Year[Ok_Start]
         OkXEx_code_year =
-            df_XEx$code == code & format(df_XEx$Date, "%Y") == year        
+            df_XEx$Code == code & format(df_XEx$Date, "%Y") == year        
         df_XEx$Value[OkXEx_code_year] =
             df_XEx$Value[OkXEx_code_year] + Shift
 
-        OkXEx_code = df_XEx$code == code
+        OkXEx_code = df_XEx$Code == code
         Month = df_XEx$Value[OkXEx_code] / (365.25/12)        
         MonthNoNA = Month[!is.na(Month)]
 
@@ -261,10 +261,10 @@ get_period = function (df_XEx, df_Xtrend=NULL, verbose=TRUE) {
         print('.... Computes the optimal period of trend analysis')
     }
 
-    df_Start = summarise(group_by(df_XEx, code),
+    df_Start = summarise(group_by(df_XEx, Code),
                          Start=min(Date, na.rm=TRUE))
     
-    df_End = summarise(group_by(df_XEx, code),
+    df_End = summarise(group_by(df_XEx, Code),
                        End=max(Date, na.rm=TRUE))
 
     if (!is.null(df_Xtrend)) {
@@ -289,18 +289,18 @@ get_intercept = function (df_XEx, df_Xtrend, unit2day=365.25,
         print('.... Computes intercept of trend')
     }
     
-    df_mu_X = summarise(group_by(df_XEx, code),
+    df_mu_X = summarise(group_by(df_XEx, Code),
                         mu_X=mean(Value, na.rm=TRUE))
 
-    df_mu_t = summarise(group_by(df_XEx, code),
+    df_mu_t = summarise(group_by(df_XEx, Code),
                         mu_t=as.numeric(mean(Date, na.rm=TRUE)) / unit2day)
 
-    df_Xtrendtmp = tibble(code=df_Xtrend$code,
+    df_Xtrendtmp = tibble(Code=df_Xtrend$Code,
                           trend=df_Xtrend$trend,
                           mu_X=df_mu_X$mu_X,
                           mu_t=df_mu_t$mu_t)
     
-    df_b = summarise(group_by(df_Xtrendtmp, code),
+    df_b = summarise(group_by(df_Xtrendtmp, Code),
                      b=mu_X - mu_t * trend)
     
     df_Xtrend$intercept = df_b$b
@@ -317,11 +317,11 @@ add_mod = function (df_mod, Code, type, fun_name, comment, df_meta=NULL) {
         Code = NA # erreur
     } else if (Code == 'all' & !is.null(df_meta)) {
         # Get all different stations code
-        Code = levels(factor(df_meta$code))
+        Code = rle(df_data$Code)$value
     }
     
     for (code in Code) {
-        df_modtmp = tibble(code=code, type=type,
+        df_modtmp = tibble(Code=code, type=type,
                            fun_name=fun_name,
                            comment=comment)
         df_mod = bind_rows(df_mod, df_modtmp)

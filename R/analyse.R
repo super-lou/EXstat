@@ -38,7 +38,7 @@
 ### 1.0. X ___________________________________________________________
 #' @title X trend
 #' @export
-get_Xtrend = function (var, df_data, df_meta, period,
+get_Xtrend = function (var, df_data, period,
                        hydroPeriod,
                        df_flag=NULL, yearNA_lim=NULL, dayNA_lim=NULL,
                        day_to_roll=NULL,
@@ -61,11 +61,11 @@ get_Xtrend = function (var, df_data, df_meta, period,
     }
     
     # Get all different stations code
-    Code = levels(factor(df_meta$code))
+    Code = rle(df_data$Code)$value
 
     if (!is.null(df_flag)) {
         # Local corrections if needed
-        res = flag_data(df_data, df_meta,
+        res = flag_data(df_data,
                         df_flag=df_flag,
                         df_mod=df_mod,
                         verbose=verbose)
@@ -75,7 +75,7 @@ get_Xtrend = function (var, df_data, df_meta, period,
 
     if (!is.null(day_to_roll)) {
         # Computes the rolling average by day_to_roll days over the data
-        res = rollmean_code(df_data, Code, day_to_roll, df_mod=df_mod,
+        res = rollmean_code(df_data, day_to_roll, df_mod=df_mod,
                             verbose=verbose)
         df_data = res$data
         df_mod = res$mod
@@ -83,7 +83,7 @@ get_Xtrend = function (var, df_data, df_meta, period,
 
     if (!is.null(yearNA_lim)) {
         # Removes older data if there are a too long missing period
-        res = missing_year(df_data, df_meta,
+        res = missing_year(df_data,
                            yearNA_lim=yearNA_lim,
                            df_mod=df_mod,
                            verbose=verbose)
@@ -93,7 +93,7 @@ get_Xtrend = function (var, df_data, df_meta, period,
 
     if (!is.null(hydroPeriod)) {
         # Samples the data
-        res = sampling_data(df_data, df_meta,
+        res = sampling_data(df_data,
                             hydroPeriod=hydroPeriod,
                             df_mod=df_mod,
                             verbose=verbose)
@@ -123,9 +123,9 @@ get_Xtrend = function (var, df_data, df_meta, period,
                 # For all the code
                 for (code in Code) {
                     # Get the averaged data associated to the code
-                    df_data_code = df_data[df_data$code == code,]
+                    df_data_code = df_data[df_data$Code == code,]
                     hydroPeriod_code =
-                        hydroPeriod$Value[hydroPeriod$code == code]
+                        hydroPeriod$Value[hydroPeriod$Code == code]
 
                     df_XEx_code = do.call(
                         what=extract_Var_WRAP,
@@ -168,47 +168,51 @@ get_Xtrend = function (var, df_data, df_meta, period,
         }
         
         # Yearly extraction
-        if (!is.null(functYT_ext) & !is.null(functYT_sum) | is.tbl(hydroPeriod)) {
-            
-            if (!is.null(functYT_ext) & !is.null(functYT_sum)) {
-                
-                if (is.tbl(hydroPeriod)) {
-                    df_YTEx = tibble()
-                    # For all the code
-                    for (code in Code) {
-                        # Get the averaged data associated to the code
-                        df_data_code = df_data[df_data$code == code,]
-                        hydroPeriod_code =
-                            hydroPeriod$Value[hydroPeriod$code == code]
+        if (!is.null(functYT_sum) | is.tbl(hydroPeriod)) {
+
+            if (!is.null(functYT_sum)) {
+                if (!is.null(functYT_ext)) {
                     
-                        df_YTEx_code = do.call(
+                    if (is.tbl(hydroPeriod)) {
+                        df_YTEx = tibble()
+                        # For all the code
+                        for (code in Code) {
+                            # Get the averaged data associated to the code
+                            df_data_code = df_data[df_data$Code == code,]
+                            hydroPeriod_code =
+                                hydroPeriod$Value[hydroPeriod$Code == code]
+                            
+                            df_YTEx_code = do.call(
+                                what=extract_Var_WRAP,
+                                args=c(list(df_data=df_data_code,
+                                            funct=functYT_ext,
+                                            period=per,
+                                            hydroPeriod=hydroPeriod_code,
+                                            timestep='year',
+                                            isDate=isDateYT_ext,
+                                            verbose=verbose),
+                                       functYT_ext_args))
+                            # Store the results
+                            df_YTEx = bind_rows(df_YTEx, df_YTEx_code)
+                        }
+                    } else {
+                        df_YTEx = do.call(
                             what=extract_Var_WRAP,
-                            args=c(list(df_data=df_data_code,
+                            args=c(list(df_data=df_data,
                                         funct=functYT_ext,
                                         period=per,
-                                        hydroPeriod=hydroPeriod_code,
+                                        hydroPeriod=hydroPeriod,
                                         timestep='year',
                                         isDate=isDateYT_ext,
                                         verbose=verbose),
                                    functYT_ext_args))
-                        # Store the results
-                        df_YTEx = bind_rows(df_YTEx, df_YTEx_code)
                     }
                 } else {
-                    df_YTEx = do.call(
-                        what=extract_Var_WRAP,
-                        args=c(list(df_data=df_data,
-                                    funct=functYT_ext,
-                                    period=per,
-                                    hydroPeriod=hydroPeriod,
-                                    timestep='year',
-                                    isDate=isDateYT_ext,
-                                    verbose=verbose),
-                               functYT_ext_args))
+                    df_YTEx = df_data
                 }
                 
                 df_YT = summarise(
-                    group_by(df_YTEx, code),
+                    group_by(df_YTEx, Code),
                     threshold=functYT_sum(Value,
                                           !!!functYT_sum_args),
                     .groups="drop")
@@ -220,16 +224,16 @@ get_Xtrend = function (var, df_data, df_meta, period,
             # For all the code
             for (code in Code) {
                 # Get the averaged data associated to the code
-                df_data_code = df_data[df_data$code == code,]
+                df_data_code = df_data[df_data$Code == code,]
 
-                if (!is.null(functYT_ext) & !is.null(functYT_sum)) {
-                    YT_code = df_YT$threshold[df_YT$code == code]
+                if (!is.null(functYT_sum)) {
+                    YT_code = df_YT$threshold[df_YT$Code == code]
                     functY_args[idT] = YT_code
                 }
                 
                 if (is.tbl(hydroPeriod)) {
                     hydroPeriod_code =
-                        hydroPeriod$Value[hydroPeriod$code == code]
+                        hydroPeriod$Value[hydroPeriod$Code == code]
                 } else {
                     hydroPeriod_code = hydroPeriod
                 }
@@ -313,21 +317,22 @@ rollmean_center = function (X, k) {
 
 #' @title Rolling average station
 #' @export
-rollmean_code = function (df_data, Code, nroll=10, df_mod=NULL, verbose=TRUE) {
+rollmean_code = function (df_data, nroll=10, df_mod=NULL, verbose=TRUE) {
 
     if (verbose) {
         print(paste0('.. Rolling average over ', nroll, " days"))
     }
     
-    df_roll = summarise(group_by(df_data, code),
+    df_roll = summarise(group_by(df_data, Code),
                         Value=rollmean_center(Value,
                                               k=nroll),
                         .groups="drop")
     df_data_roll = tibble(Date=df_data$Date,
                           Value=df_roll$Value,
-                          code=df_roll$code)
+                          Code=df_roll$Code)
 
     if (!is.null(df_mod)) {
+        Code = rle(df_data$Code)$value
         # For all the code
         for (code in Code) {
             df_mod = add_mod(df_mod, code,
@@ -449,7 +454,7 @@ BFS = function (Q, d=5, w=0.9) {
 compute_sqrt = function (df_data) {
     df_sqrt = tibble(Date=df_data$Date,
                      Value=sqrt(df_data$Value),
-                     code=df_data$code)
+                     Code=df_data$Code)
     return (df_sqrt)
 }
 
@@ -508,7 +513,7 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
         df_meta$minQM = NA
         
         # Get all different stations code
-        Code = levels(factor(df_meta$code))
+        Code = rle(df_data$Code)$value
         # Number of stations
         nCode = length(Code)
         
@@ -527,7 +532,7 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
             # Gets the code
             code = Code[k]
             # Get the associated data
-            df_data_code = df_data[df_data$code == code,]
+            df_data_code = df_data[df_data$Code == code,]
         } else {
             # The data are the date for the current code
             df_data_code = df_data
@@ -566,19 +571,19 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
         # If there is the metadata
         if (!is.null(df_meta)) {
             # Creates a temporary tibble to store hydrograph results
-            df_QMtmp = tibble(QM=QM_code, code=code)
+            df_QMtmp = tibble(QM=QM_code, Code=code)
             # Stores it
             df_QM = bind_rows(df_QM, df_QMtmp)
             # Stores result of the hydrological regime
-            df_meta$regime_hydro[df_meta$code == code] = classRegime
+            df_meta$regime_hydro[df_meta$Code == code] = classRegime
             
             # Computes the month of the max QM
             maxQM = which.max(QM_code)
             # Computes the month of the max QM
             minQM = which.min(QM_code)
             # Stores it as the start of the hydrological year
-            df_meta$maxQM[df_meta$code == code] = maxQM
-            df_meta$minQM[df_meta$code == code] = minQM
+            df_meta$maxQM[df_meta$Code == code] = maxQM
+            df_meta$minQM[df_meta$Code == code] = minQM
             
         # Otherwise
         } else {
@@ -598,7 +603,7 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
 get_break = function (df_data, df_meta, alpha=0.1) {
     
     # Get all different stations code
-    Code = levels(factor(df_meta$code))
+    Code = rle(df_data$Code)$value
     # Number of stations
     nCode = length(Code)
 
@@ -610,7 +615,7 @@ get_break = function (df_data, df_meta, alpha=0.1) {
     # For all accessible code
     for (code in Code) {
         # Get the associated data
-        df_data_code = df_data[df_data$code == code,] 
+        df_data_code = df_data[df_data$Code == code,] 
         # Remove NA data
         df_data_codeNoNA = df_data_code[!is.na(df_data_code$Value),]
 
@@ -636,7 +641,7 @@ get_break = function (df_data, df_meta, alpha=0.1) {
         # step2 = mean(df_data_codeNoNA$Value[(ibreak+1):nbreak])
     }
     # Create a tibble with the break analysis results
-    df_break = tibble(code=Code_break, Date=as.Date(Date_break),
+    df_break = tibble(Code=Code_break, Date=as.Date(Date_break),
                       significant=Signif_break)
     return (df_break)
 }
@@ -648,7 +653,7 @@ get_break = function (df_data, df_meta, alpha=0.1) {
 get_lacune = function (df_data, df_meta) {
     
     # Get all different stations code
-    Code = levels(factor(df_meta$code))
+    Code = rle(df_data$Code)$value
     
     # Create new vector to stock results for cumulative and mean
     # time gap by station
@@ -663,14 +668,14 @@ get_lacune = function (df_data, df_meta) {
     # For every station
     for (code in Code) {   
         # Get only the data rows for the selected station
-        df_data_code = df_data[df_data$code==code,]
+        df_data_code = df_data[df_data$Code==code,]
         # Get date for the selected station
         Date = df_data_code$Date
         # Get time span for the selection station
         span = as.numeric(Date[length(Date)] - Date[1])
         
         # Get only the data rows with no NA for the selected station
-        df_data_NoNA_code = df_data_NoNA[df_data_NoNA$code==code,]
+        df_data_NoNA_code = df_data_NoNA[df_data_NoNA$Code==code,]
         # Get date for the selected station
         Date_NoNA = df_data_NoNA_code$Date
         
@@ -691,7 +696,7 @@ get_lacune = function (df_data, df_meta) {
     # Compute the cumulative gap rate in pourcent
     tLac100 = tLac * 100
     # Create tibble for lacune
-    df_lac = tibble(code=Code, tLac100=tLac100, meanLac=meanLac)
+    df_lac = tibble(Code=Code, tLac100=tLac100, meanLac=meanLac)
     # Join a tibble
     df_meta = full_join(df_meta, df_lac)
     return (df_meta)
@@ -706,14 +711,14 @@ add_critique = function (df_critique, Code, author, level, start_date, variable,
         Code = NA # erreur
     } else if (Code == 'all' & !is.null(df_meta)) {
         # Get all different stations code
-        Code = levels(factor(df_meta$code))
+        Code = rle(df_data$Code)$value
     }
 
     if (is.null(end_date)) {
         end_date = start_date
     }
     
-    df_tmp = tibble(code=Code, author=author, level=level,
+    df_tmp = tibble(Code=Code, author=author, level=level,
                     start_date=start_date, end_date=end_date,
                     variable=variable, type=type,
                     comment=comment)

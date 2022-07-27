@@ -51,7 +51,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
     nVar = length(list_df2plot)
     
     # Get all different stations code
-    Code = levels(factor(df_meta$code))    
+    Code = rle(df_data$Code)$value    
     nCode = length(Code)
 
     # Convert 'trend_period' to list
@@ -99,9 +99,9 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                 # Extract the type of the variable to plot
                 type = list_df2plot[[i]]$type
                 # Extracts the data corresponding to the code
-                df_data_code = df_data[df_data$code == code,]
+                df_data_code = df_data[df_data$Code == code,]
                 # Extracts the trend corresponding to the code
-                df_trend_code = df_trend[df_trend$code == code,]
+                df_trend_code = df_trend[df_trend$Code == code,]
 
                 # Extract start and end of trend periods
                 Start = df_trend_code$period_start[j]
@@ -239,7 +239,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     # Extract the type of the variable to plot
                     type = list_df2plot[[i]]$type
                     # Extracts the data corresponding to the code
-                    df_data_code = df_data[df_data$code == code,] 
+                    df_data_code = df_data[df_data$Code == code,] 
                     
                     # Get the current start and end of the sub period
                     Start_mean = mean_period[[j]][1]
@@ -393,9 +393,9 @@ table_panel = function (list_df2plot, df_meta, trend_period,
 
                 OK = code == Code_trend & type == Type_trend
                 
-                df_ligne = tibble(code=code)
-                df_ligne_S = tibble(code=code)
-                df_unit = tibble(code='')
+                df_ligne = tibble(Code=code)
+                df_ligne_S = tibble(Code=code)
+                df_unit = tibble(Code='')
                 
                 for (j in 1:nPeriod_trend) {
 
@@ -725,7 +725,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
 
                 # Extracts the name of the currently hydrological
                 # region plotted
-                title = df_meta[df_meta$code == subCode[1],]$region_hydro
+                title = df_meta[df_meta$Code == subCode[1],]$region_hydro
 
                 subtitle = paste(type, ' ', iMat, '/', nMat,
                                  sep='')    
@@ -1292,7 +1292,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                     # Gets the code
                     code = subCode[k]
                     # Gets the name of the station
-                    name = df_meta[df_meta$code == code,]$nom
+                    name = df_meta[df_meta$Code == code,]$nom
                     # Fixes a limit for the max number
                     # of characters available
                     ncharMax = 38

@@ -62,7 +62,7 @@ write_analyse = function (Ldf, resdir, filedir) {
 #' @export
 write_data = function (df_data, df_mod, resdir, filedir) {
 
-    Code = rle(sort(df_mod$code))$values
+    Code = rle(sort(df_mod$Code))$values
     
     outdir = file.path(resdir, filedir)
     if (!(file.exists(outdir))) {
@@ -72,8 +72,8 @@ write_data = function (df_data, df_mod, resdir, filedir) {
     print(paste('Writing of modified data in : ', outdir, sep=''))
 
     for (code in Code) {
-        df_data_code = df_data[df_data$code == code,]
-        df_mod_code = df_mod[df_mod$code == code,]
+        df_data_code = df_data[df_data$Code == code,]
+        df_mod_code = df_mod[df_mod$Code == code,]
 
         outfile1 = paste(code, '.txt', sep='')
         write.table(df_data_code,

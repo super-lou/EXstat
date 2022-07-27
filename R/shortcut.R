@@ -61,7 +61,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                 # current variable
                 df_data = list_df2plot[[i]]$data
                 # Extracts the data corresponding to the code
-                df_data_code = df_data[df_data$code == code,]
+                df_data_code = df_data[df_data$Code == code,]
 
                 if (valueType == "break") {
                     # Get the current start and end of the sub period
@@ -74,7 +74,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     # Extracts the trend corresponding to the
                     # current variable
                     df_trend = list_df2plot[[i]]$trend
-                    df_trend_code = df_trend[df_trend$code == code,]
+                    df_trend_code = df_trend[df_trend$Code == code,]
                                     # Extract start and end of trend periods
                     Start = df_trend_code$period_start[j]
                     End = df_trend_code$period_end[j]
@@ -114,7 +114,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                         # initial period
                         value = Break / dataMeantmp[i, k]
                         # If it is a date variable
-                    } else if (unit == "jour" | unit == "jour de l'année" | unit == 'an^{-1}') {
+                    } else if (unit == "jour" | unit == "jour de l'année" | unit == 'jour.an^{-1}') {
                         # Just stocks the break value
                         value = Break
                     }
@@ -141,7 +141,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                         # Normalises the trend value by the mean of the data
                         value = df_trend_code_per$trend / dataMean
                         # If it is a date variable
-                    } else if (unit == "jour" | unit == "jour de l'année" | unit == 'an^{-1}') {
+                    } else if (unit == "jour" | unit == "jour de l'année" | unit == 'jour.an^{-1}') {
                         value = df_trend_code_per$trend
                     }
                     
@@ -182,7 +182,7 @@ get_Nspace = function (df_data_code, unit, lim_pct, NspaceMax=NULL) {
         }
         
     # If it is a flow variable
-    } else if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'jour' | unit == 'an^{-1}') {
+    } else if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'jour' | unit == 'jour.an^{-1}') {
         # Gets the max number of digit on the label
         maxtmp = max(df_data_code$Value, na.rm=TRUE)
         
@@ -222,10 +222,10 @@ get_Nspace = function (df_data_code, unit, lim_pct, NspaceMax=NULL) {
             # The number of digit is the number of character
             # of the max times 2 minus 1 for the dots that
             # count just 1 space
-            Nspace = nchar(as.character(maxtmp))*2 - 1
+            Nspace = nchar(as.character(maxtmp))*2 - 3
             if (!is.null(NspaceMax)) {
                 # Computes the accuracy
-                accuracy = 10^(-nchar(as.character(maxtmp))+2)
+                accuracy = 10^(-nchar(as.character(maxtmp))+3)
             }
         }
         if (unit == 'm^{3/2}.s^{-1/2}') {

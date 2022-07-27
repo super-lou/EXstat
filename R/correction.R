@@ -35,31 +35,25 @@
 ## 1. LOCAL CORRECTION OF DATA _______________________________________
 #' @title Flag data
 #' @export
-flag_data = function (df_data, df_meta, df_flag, Code=NULL, df_mod=NULL,
+flag_data = function (df_data, df_flag, df_mod=NULL,
                       verbose=TRUE) {
 
     if (verbose) {
         print('.. Checking of flags')
     }
-    
-    if (is.null(Code)) {
-        # Get all different stations code
-        Code = levels(factor(df_meta$code))
-        nCode = length(Code)
-    } else {
-        nCode = length(Code)
-    }
- 
-    for (code in Code) {
-        if (code %in% df_flag$code) {
 
-            df_flag_code = df_flag[df_flag$code == code,]
+    Code = rle(df_data$Code)$value
+
+    for (code in Code) {
+        if (code %in% df_flag$Code) {
+
+            df_flag_code = df_flag[df_flag$Code == code,]
             nbFlag = nrow(df_flag_code)
 
             for (i in 1:nbFlag) {
                 newValue = df_flag_code$newValue[i]
                 flagDate = as.Date(df_flag_code$Date[i])
-                OKcor = df_data$code == code & df_data$Date == flagDate
+                OKcor = df_data$Code == code & df_data$Date == flagDate
                 oldValue = df_data$Value[OKcor]
                 df_data$Value[OKcor] = newValue
 
@@ -132,36 +126,37 @@ apply_missing_year = function (Date, Value, Code, yearNA_lim) {
             }
         }
     }
-    res = tibble(Date=Date, Value=Value, code=Code)
+    res = tibble(Date=Date, Value=Value, Code=Code)
     return (res)
 }
 
 #' @title Missing year
 #' @export
-missing_year = function (df_data, df_meta, yearNA_lim=10,
-                         Code=NULL, df_mod=NULL,
+missing_year = function (df_data, yearNA_lim=10,
+                         df_mod=NULL,
                          verbose=TRUE) {
 
     if (verbose) {
         print('.. Checking for missing years')
     }
     
-    df_Value = summarise(group_by(df_data, code),
+    df_Value = summarise(group_by(df_data, Code),
                          apply_missing_year(Date,
                                             Value,
                                             Code,
                                             yearNA_lim),
-                        .groups="drop")
+                         .groups="drop")
+    
     if (!is.null(df_mod)) {
         
         isCorr = is.na(df_Value$Value) != is.na(df_data$Value)
-        CodeCorr = df_Value$code[isCorr]
+        CodeCorr = df_Value$Code[isCorr]
         CodeCorr = CodeCorr[!duplicated(CodeCorr)]
 
         for (code in CodeCorr) {
 
-            df_Value_code = df_Value[df_Value$code == code,]
-            df_data_code = df_data[df_data$code == code,]
+            df_Value_code = df_Value[df_Value$Code == code,]
+            df_data_code = df_data[df_data$Code == code,]
 
             isCorr_code = is.na(df_Value_code$Value) != is.na(df_data_code$Value)
 
@@ -194,24 +189,18 @@ missing_year = function (df_data, df_meta, yearNA_lim=10,
 ### 2.2. Missing period over several days ____________________________
 #' @title Missing period over several days
 #' @export
-missing_day = function (df_data, df_meta, dayLac_lim=3,
-                        hydroYear='01-01', Code=NULL, df_mod=NULL,
+missing_day = function (df_data, dayLac_lim=3,
+                        hydroYear='01-01', df_mod=NULL,
                         verbose=TRUE) {
     if (verbose) {
         print('.. Checking for missing days')
     }
-    
-    if (is.null(Code)) {
-        # Get all different stations code
-        Code = levels(factor(df_meta$code))
-        nCode = length(Code)
-    } else {
-        nCode = length(Code)
-    }
 
+    Code = rle(df_data$Code)$value
+    
     for (code in Code) {        
         # Extracts the data corresponding to the code
-        df_data_code = df_data[df_data$code == code,]
+        df_data_code = df_data[df_data$Code == code,]
 
         DateMD = format(df_data_code$Date, "%m-%d")
         idhydroYear = which(DateMD == hydroYear)
@@ -281,7 +270,7 @@ missing_day = function (df_data, df_meta, dayLac_lim=3,
                 }
             }
         }
-        df_data[df_data$code == code,] = df_data_code        
+        df_data[df_data$Code == code,] = df_data_code        
     }
     if (!is.null(df_mod)) {
         res = list(data=df_data, mod=df_mod)
@@ -311,13 +300,13 @@ NA_filter = function (df_data, df_XEx, dayNA_lim, timestep="year",
     dayNA = df_XEx$NA_pct/100 * dayStep
     filter = dayNA > dayNA_lim
 
-    df_start = summarise(group_by(df_data, code),
+    df_start = summarise(group_by(df_data, Code),
                       start=min(Date))
-    df_end = summarise(group_by(df_data, code),
+    df_end = summarise(group_by(df_data, Code),
                     end=max(Date))
 
-    df_XEx_lim = left_join(df_XEx, df_start, by=c("code"="code"))
-    df_XEx_lim = left_join(df_XEx_lim, df_end, by=c("code"="code"))
+    df_XEx_lim = left_join(df_XEx, df_start, by=c("Code"="Code"))
+    df_XEx_lim = left_join(df_XEx_lim, df_end, by=c("Code"="Code"))
 
     filter_start =
         df_XEx_lim$start - df_XEx_lim$Date + dayNA > dayNA_lim
@@ -328,7 +317,7 @@ NA_filter = function (df_data, df_XEx, dayNA_lim, timestep="year",
     filter = filter | filter_start | filter_end
 
     df_XEx$Value[filter] = NA
-    codeFilter = df_XEx$code[filter]
+    codeFilter = df_XEx$Code[filter]
     codeFilter = codeFilter[!duplicated(codeFilter)]
     dateFilter = format(df_XEx$Date[filter], "%Y")
     Nmod = length(codeFilter)
@@ -354,8 +343,8 @@ NA_filter = function (df_data, df_XEx, dayNA_lim, timestep="year",
 ## 4. SAMPLING OF THE DATA ___________________________________________
 #' @title Sampling data
 #' @export
-sampling_data = function (df_data, df_meta,
-                          hydroPeriod=c('05-01', '11-30'), Code=NULL,
+sampling_data = function (df_data,
+                          hydroPeriod=c('05-01', '11-30'),
                           df_mod=NULL, verbose=TRUE) {
 
     if (is.tbl(hydroPeriod)) {
@@ -394,14 +383,6 @@ sampling_data = function (df_data, df_meta,
         print('.. Sampling of the data')
     }
     
-    if (is.null(Code)) {
-        # Get all different stations code
-        Code = levels(factor(df_meta$code))
-        nCode = length(Code)
-    } else {
-        nCode = length(Code)
-    }
-
     mStart = as.numeric(substr(hydroPeriod[1], 1, 2))
     dStart = as.numeric(substr(hydroPeriod[1], 4, 5))
     mEnd = as.numeric(substr(hydroPeriod[2], 1, 2))
@@ -431,6 +412,7 @@ sampling_data = function (df_data, df_meta,
     }
 
     if (!is.null(df_mod)) {
+        Code = rle(df_data$Code)$value
         for (code in Code) {
             df_mod = add_mod(df_mod, code,
                              type='Seasonal sampling ',

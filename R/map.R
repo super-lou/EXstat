@@ -59,7 +59,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
     }
     
     # Get all different stations code
-    Code = levels(factor(df_meta$code))
+    Code = rle(df_data$Code)$value
     nCode = length(Code)
 
     if (mapType == 'trend' & !is.null(trend_period)) {
@@ -109,7 +109,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
         nRegime = length(regimeColorSample)
         regimeColor = c()
         for (code in Code) {
-            regime = df_meta$regime_hydro[df_meta$code == code]
+            regime = df_meta$regime_hydro[df_meta$Code == code]
             color = regimeColorSample[regime]
             regimeColor = c(regimeColor, color)
         }
@@ -224,7 +224,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                              color="grey40", fill=NA, size=sizefr)
             
             if (mapType == 'regime') {
-                # color = regimeColor[match(df_codeBasin$code, Code)]
+                # color = regimeColor[match(df_codeBasin$Code, Code)]
                 color = 'grey20'
                 map = map +
                     # Plot the hydrological code basins
@@ -399,10 +399,10 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     # Gets the risk of the test
                     alpha = list_df2plot[[i]]$alpha
                     # Extracts the data corresponding to the code
-                    df_data_code = df_data[df_data$code == code,]
+                    df_data_code = df_data[df_data$Code == code,]
 
                     # Extracts the trend corresponding to the code
-                    df_trend_code = df_trend[df_trend$code == code,]
+                    df_trend_code = df_trend[df_trend$Code == code,]
                     
                     # Extract start and end of trend periods
                     Start = df_trend_code$period_start[idPer_trend]
@@ -494,9 +494,9 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
 
                 # Extracts the localisation of the current station
                 lontmp =
-                    df_meta$L93X_m_BH[df_meta$code == code]           
+                    df_meta$L93X_m_BH[df_meta$Code == code]           
                 lattmp =
-                    df_meta$L93Y_m_BH[df_meta$code == code]
+                    df_meta$L93Y_m_BH[df_meta$Code == code]
                 
                 # Stores all the parameters
                 lon = c(lon, lontmp)
@@ -510,7 +510,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
             
             # Creates a tibble to stores all the data to plot
             plot_map = tibble(lon=lon, lat=lat, fill=fill,
-                              shape=shape, code=Code, OkVal=OkVal)
+                              shape=shape, Code=Code, OkVal=OkVal)
 
             # If there is no specified station code to highlight
             # (mini map)
@@ -944,9 +944,9 @@ peu altérés par les activités humaines."
             # If there is a specified station code
             } else if (mapType == 'mini') {
                 # Extract data of all stations not to highlight
-                plot_map_codeNo = plot_map[plot_map$code != codeLight,]
+                plot_map_codeNo = plot_map[plot_map$Code != codeLight,]
                 # Extract data of the station to highlight
-                plot_map_code = plot_map[plot_map$code == codeLight,]
+                plot_map_code = plot_map[plot_map$Code == codeLight,]
 
                 # Plots only the localisation
                 map = map +

@@ -303,7 +303,7 @@ load_shapefile = function (resources_path, df_meta,
                            rv_shpdir, rv_shpname,
                            river_selection=c('all')) {
 
-    Code = levels(factor(df_meta$code))
+    Code = rle(df_data$Code)$value
     
     # Path for shapefile
     fr_shppath = file.path(resources_path, fr_shpdir, fr_shpname)
@@ -333,7 +333,7 @@ load_shapefile = function (resources_path, df_meta,
     # Hydrological stations basins
     for (i in 1:nShp) {
         codeBasin = rgdal::readOGR(dsn=cbs_shppath[i], verbose=FALSE)
-        shpCode = as.character(codeBasin@data$Code)
+        shpCode = as.character(codeBasin@data$code)
         df_tmp = tibble(ggplot2::fortify(codeBasin))
         groupSample = rle(as.character(df_tmp$group))$values
         df_tmp$code = shpCode[match(df_tmp$group, groupSample)]
@@ -354,7 +354,8 @@ load_shapefile = function (resources_path, df_meta,
         }
         df_codeBasin = bind_rows(df_codeBasin, df_tmp)
     }
-    df_codeBasin = df_codeBasin[order(df_codeBasin$code),]
+    names(df_codeBasin)[names(df_codeBasin) == "code"] = "Code"
+    df_codeBasin = df_codeBasin[order(df_codeBasin$Code),]
     
     # If the river shapefile needs to be load
     if (!("none" %in% river_selection)) {
