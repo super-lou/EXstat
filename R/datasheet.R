@@ -75,6 +75,9 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         minTrendValue = res$min
         maxTrendValue = res$max
     }
+
+    print(minTrendValue)
+    print(maxTrendValue)
     
     # Blank vector to store the max number of digit of label for
     # each station
@@ -103,7 +106,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
         df_data_code = time_header[time_header$Code == code,]
         
-        if (any(c("Resume", "Étiage") %in% sapply(list_df2plot, "[[", 'event'))) {
+        if (any(c("Resume", "Étiage") %in% names(structure))) {
             df_sqrt_code = compute_sqrt(df_data_code)
             Nspace = get_Nspace(df_sqrt_code, 'm^{3/2}.s^{-1/2}', lim_pct)
             Nspace_code = c(Nspace_code, Nspace)
@@ -212,37 +215,39 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             name="Q",
                             first=TRUE)
 
-            # Gets the time serie plot
-            HsqrtQ = time_panel(df_sqrtQ_code, df_trend_code=NULL,
-                                trend_period=trend_period,
-                                axis_xlim=axis_xlim_code, missRect=TRUE,
-                                unit2day=365.25,
-                                var='\\sqrt{Q}', type='sévérité',
-                                unit="m^{3/2}.s^{-1/2}",
-                                grid=TRUE, ymin_lim=0,
-                                NspaceMax=NspaceMax[k],
-                                first=TRUE, lim_pct=lim_pct)
-            # Stores it
-            df_P = add_plot(df_P,
-                            plot=HsqrtQ,
-                            name="\\sqrt{Q}",
-                            first=TRUE)
+            if (any(c("Resume", "Étiage") %in% names(structure))) {
+                # Gets the time serie plot
+                HsqrtQ = time_panel(df_sqrtQ_code, df_trend_code=NULL,
+                                    trend_period=trend_period,
+                                    axis_xlim=axis_xlim_code, missRect=TRUE,
+                                    unit2day=365.25,
+                                    var='\\sqrt{Q}', type='sévérité',
+                                    unit="m^{3/2}.s^{-1/2}",
+                                    grid=TRUE, ymin_lim=0,
+                                    NspaceMax=NspaceMax[k],
+                                    first=TRUE, lim_pct=lim_pct)
+                # Stores it
+                df_P = add_plot(df_P,
+                                plot=HsqrtQ,
+                                name="\\sqrt{Q}",
+                                first=TRUE)
 
-            # Gets the time serie plot
-            HsqrtQmid = time_panel(df_sqrtQ_code, df_trend_code=NULL,
-                                trend_period=trend_period,
-                                axis_xlim=axis_xlim_code, missRect=TRUE,
-                                unit2day=365.25,
-                                var='\\sqrt{Q}', type='sévérité',
-                                unit="m^{3/2}.s^{-1/2}",
-                                grid=TRUE, ymin_lim=0,
-                                NspaceMax=NspaceMax[k],
-                                first=FALSE, lim_pct=lim_pct)
-            # Stores it
-            df_P = add_plot(df_P,
-                            plot=HsqrtQmid,
-                            name="\\sqrt{Q}",
-                            first=FALSE)
+                # Gets the time serie plot
+                HsqrtQmid = time_panel(df_sqrtQ_code, df_trend_code=NULL,
+                                       trend_period=trend_period,
+                                       axis_xlim=axis_xlim_code, missRect=TRUE,
+                                       unit2day=365.25,
+                                       var='\\sqrt{Q}', type='sévérité',
+                                       unit="m^{3/2}.s^{-1/2}",
+                                       grid=TRUE, ymin_lim=0,
+                                       NspaceMax=NspaceMax[k],
+                                       first=FALSE, lim_pct=lim_pct)
+                # Stores it
+                df_P = add_plot(df_P,
+                                plot=HsqrtQmid,
+                                name="\\sqrt{Q}",
+                                first=FALSE)
+            }
             
         } else {
             axis_xlim_code = axis_xlim
@@ -287,7 +292,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             if (!is.null(trend_period)) {
                 # For all the period
                 for (j in 1:nPeriod_trend) {
-                    
+
                     # If the trend is significant
                     # if (df_trend_code$p[j] <= alpha | colorForce){
                     if (df_trend_code$p[j] <= alpha){
@@ -1110,15 +1115,16 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                 df_trend_code_per = df_trend_code_per[1,]
             }            
 
+            df_data_codeNoNA = df_data_code[!is.na(df_data_code$Value),]
+            
             # Search for the index of the closest existing date 
             # to the start of the trend period of analysis
-            iStart = which.min(abs(df_data_code$Date - Start[i]))
+            iStart = which.min(abs(df_data_codeNoNA$Date - Start[i]))
             # Same for the end
-            iEnd = which.min(abs(df_data_code$Date - End[i]))
-
+            iEnd = which.min(abs(df_data_codeNoNA$Date - End[i]))
             # Get the start and end date associated
-            xmin = df_data_code$Date[iStart]
-            xmax = df_data_code$Date[iEnd]
+            xmin = df_data_codeNoNA$Date[iStart]
+            xmax = df_data_codeNoNA$Date[iEnd]
 
             # If there is a x axis limit
             if (!is.null(axis_xlim)) {
@@ -1191,7 +1197,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             trend = df_trend_code_per$trend
             # Gets the p value
             pVal = df_trend_code_per$p
-
+            
             if (pVal <= alpha) {
                 colorLine = color[i]
                 colorLabel = color[i]
@@ -1315,12 +1321,21 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                          linetype=linetypeLeg_per[i],
                          lwd=0.8,
                          lineend="round") +
-
-                annotate("text",
-                         label=TeX(label), size=2.8,
-                         x=leg_trend_per$xt, y=leg_trend_per$y, 
-                         hjust=0, vjust=0.5,
-                         color=colorLabel)
+                
+                # annotate("text",
+                #          label=TeX(label), size=2.8,
+                #          x=leg_trend_per$xt, y=leg_trend_per$y, 
+                #          hjust=0, vjust=0.5,
+                #          color=colorLabel)
+                
+                geom_shadowtext(data=tibble(x=leg_trend_per$xt,
+                                            y=leg_trend_per$y,
+                                            label=TeX(label)[[1]]),
+                                aes(x=x, y=y, label=label),
+                                color=colorLabel,
+                                bg.colour="white",
+                                hjust=0, vjust=0.5,
+                                size=2.8)
         }
 
         # For all periods

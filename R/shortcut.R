@@ -55,8 +55,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
             code = Code[k]
             
             for (i in 1:nbVar) {
-                # Extracts the type of the variable
-                type = list_df2plot[[i]]$type
+                unit = list_df2plot[[i]]$unit
                 # Extracts the data corresponding to the
                 # current variable
                 df_data = list_df2plot[[i]]$data
@@ -162,16 +161,16 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
     # Computes the min and the max of the averaged trend for
     # all the station
     minValue = apply(Value_code, c(1, 2),
-                          quantile, probs=minQprob, na.rm=TRUE)
+                     quantile, probs=minQprob, na.rm=TRUE)
     maxValue = apply(Value_code, c(1, 2),
-                          quantile, probs=maxQprob, na.rm=TRUE)
+                     quantile, probs=maxQprob, na.rm=TRUE)
     res = list(value=Value_code, min=minValue, max=maxValue)
     return (res)
 }
 
 
 get_Nspace = function (df_data_code, unit, lim_pct, NspaceMax=NULL) {
-        
+    
     # If variable unit is date 
     if (unit == "jour de l'année") {
         # The number of digit is 6 because months are display
@@ -185,7 +184,7 @@ get_Nspace = function (df_data_code, unit, lim_pct, NspaceMax=NULL) {
     } else if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'jour' | unit == 'jour.an^{-1}') {
         # Gets the max number of digit on the label
         maxtmp = max(df_data_code$Value, na.rm=TRUE)
-        
+
         # If the max is greater than 10
         if (get_power(maxtmp) >= 4) {
             Nspace = 12

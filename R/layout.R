@@ -432,7 +432,7 @@ layout_panel = function (df_data, df_meta, structure, layout_matrix,
 
     if (pdf_chunk == 'by_code') {
         # Get all different stations code
-        Code = rle(df_data$Code)$value
+        Code = rle(df_data[[1]]$Code)$value
         for (code in Code) {
             listfile_code_path = listfile_path[grepl(code, listfile_path)]
             pdf_combine(input=listfile_code_path,
