@@ -29,7 +29,8 @@ datasheet_panel(
   show_colorEvent,
   outdirTmp_pdf,
   outdirTmp_png,
-  df_page = NULL
+  df_page = NULL,
+  pdf_chunk = "all"
 )
 }
 \description{

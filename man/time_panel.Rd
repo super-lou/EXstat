@@ -10,6 +10,7 @@ time_panel(
   var,
   type,
   unit,
+  hydroPeriod_code = NULL,
   linetype_per = "solid",
   alpha = 0.1,
   colorForce = FALSE,

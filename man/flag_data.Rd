@@ -4,14 +4,7 @@
 \alias{flag_data}
 \title{Flag data}
 \usage{
-flag_data(
-  df_data,
-  df_meta,
-  df_flag,
-  Code = NULL,
-  df_mod = NULL,
-  verbose = TRUE
-)
+flag_data(df_data, df_flag, df_mod = NULL, verbose = TRUE)
 }
 \description{
 Flag data

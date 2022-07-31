@@ -46,7 +46,7 @@ theme_ash = function () {
             # Font
             text=element_text(family='sans'),
             # Border of plot
-            panel.border = element_rect(color="grey85",
+            panel.border = element_rect(color="grey80",
                                         fill=NA,
                                         size=0.7),
             # Grid
@@ -152,6 +152,33 @@ contour = function () {
             plot.background=element_rect(fill=NA, color="#EC4899"),
             plot.margin=margin(t=0, r=0, b=0, l=0, unit="mm"))
     return (plot)
+}
+
+#' @title Switch color label
+#' @export
+switch_colorLabel = function (color) {
+    #switch 12% https://mdigi.tools/darken-color/#f6e8c3
+    if (color == "#F6E8C3") {
+        newColor = "#efd695"
+        
+    } else if (color == "#C7EAE5") {
+        newColor = "#a1dcd3"
+        
+    } else {
+        newColor = color
+    }
+    return (newColor)
+}
+
+#' @title Get reverse
+#' @export
+get_reverse = function (var) {
+    # gets the color corresponding to the mean trend
+    reverse = FALSE
+    if (grepl('^tFIN', var) | grepl('^t[_]', var) | grepl('^v', var)) {
+        reverse = TRUE
+    }
+    return (reverse)
 }
 
 

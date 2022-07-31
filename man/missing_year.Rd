@@ -4,14 +4,7 @@
 \alias{missing_year}
 \title{Missing year}
 \usage{
-missing_year(
-  df_data,
-  df_meta,
-  yearNA_lim = 10,
-  Code = NULL,
-  df_mod = NULL,
-  verbose = TRUE
-)
+missing_year(df_data, yearNA_lim = 10, df_mod = NULL, verbose = TRUE)
 }
 \description{
 Missing year

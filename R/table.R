@@ -171,7 +171,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                 # Otherwise it is not significative
                 } else { 
                     fill = 'white'
-                    color = 'grey85'  
+                    color = 'grey80'  
                     Alpha = 'FALSE'
                 }
 
@@ -871,7 +871,7 @@ table_panel = function (list_df2plot, df_meta, trend_period,
                         # Otherwise
                         } else if (Alpha_trend_per[i] == 'FALSE') {
                             # The text is grey
-                            Tcolor = 'grey85'
+                            Tcolor = 'grey80'
                         }
                         
                         # Same for averaged variables over

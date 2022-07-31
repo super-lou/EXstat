@@ -200,7 +200,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 map = map +
                     geom_path(data=df_river,
                               aes(x=long, y=lat, group=group),
-                              color="grey85", size=sizerv)   
+                              color="grey80", size=sizerv)   
             }
             
             map = map +
@@ -252,7 +252,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     geom_shadowtext(data=plot_basin,
                                     aes(x=x, y=y, label=label),
                                     fontface="bold",
-                                    color="grey85",
+                                    color="grey80",
                                     bg.colour="grey97",
                                     hjust=0.5, vjust=0.5, size=5)
                 }
@@ -852,7 +852,7 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                     
                     color = c(color, rep('grey50',
                                          times=countsOk[ii]))
-                    color = c(color, rep('grey85',
+                    color = c(color, rep('grey80',
                                          times=countsNOk[ii]))
 
                     if (mapType == 'trend') {

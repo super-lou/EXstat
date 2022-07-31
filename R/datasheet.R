@@ -76,9 +76,6 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         maxTrendValue = res$max
     }
 
-    print(minTrendValue)
-    print(maxTrendValue)
-    
     # Blank vector to store the max number of digit of label for
     # each station
     NspaceMax = c()
@@ -330,20 +327,21 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             value = df_trend_code_per$trend
                         }
 
-                        # gets the color corresponding to the mean trend
+
+                        reverse = get_reverse(var)
                         color_res = get_color(value,
                                               minTrendValue[j, i],
                                               maxTrendValue[j, i],
                                               Palette=Palette_ground(),
                                               colorStep=10,
-                                              reverse=FALSE)
+                                              reverse=reverse)
                         # Stores it temporarily
                         colortmp = color_res
 
                         # Otherwise
                     } else {
                         # Stores the default grey color
-                        colortmp = 'grey85'
+                        colortmp = 'grey80'
                         
                     }
                     # Stores the color
@@ -949,7 +947,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
         p = p +
             geom_line(data=plot_line,
                       aes(x=abs, y=ord, group=period),
-                      color='grey85',
+                      color='grey80',
                       size=0.15)
 
         
@@ -970,7 +968,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                 p = p + 
                     geom_line(data=plot_lim, aes(x=x, y=y),
                               linetype='dashed', size=0.15,
-                              color='grey85')
+                              color='grey80')
                 
             } else {
                 # Takes the x and y limits for the ith rectangle
@@ -989,10 +987,10 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                 p = p + 
                     geom_line(data=plot_lim, aes(x=x_i, y=y_i),
                               linetype='dashed', size=0.15,
-                              color='grey85') +
+                              color='grey80') +
                     geom_line(data=plot_lim, aes(x=x_i1, y=y_i1),
                               linetype='dashed', size=0.15,
-                              color='grey85')
+                              color='grey80')
             }      
         }
     }
@@ -1028,7 +1026,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
         p = p +
             geom_line(data=plot_grid, 
                       aes(x=abs, y=ord, group=ord),
-                      color='grey85',
+                      color='grey80',
                       size=0.15)
     }
 
@@ -1201,9 +1199,10 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             if (pVal <= alpha) {
                 colorLine = color[i]
                 colorLabel = color[i]
+                colorLabel = switch_colorLabel(colorLabel)
             } else {
-                colorLine = 'grey85'
-                colorLabel = 'grey85'
+                colorLine = 'grey80'
+                colorLabel = 'grey80'
             }
 
             # Computes the mean trend
@@ -1322,20 +1321,20 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
                          lwd=0.8,
                          lineend="round") +
                 
-                # annotate("text",
-                #          label=TeX(label), size=2.8,
-                #          x=leg_trend_per$xt, y=leg_trend_per$y, 
-                #          hjust=0, vjust=0.5,
-                #          color=colorLabel)
-                
-                geom_shadowtext(data=tibble(x=leg_trend_per$xt,
-                                            y=leg_trend_per$y,
-                                            label=TeX(label)[[1]]),
-                                aes(x=x, y=y, label=label),
-                                color=colorLabel,
-                                bg.colour="white",
-                                hjust=0, vjust=0.5,
-                                size=2.8)
+                annotate("text",
+                         label=TeX(label), size=2.8,
+                         x=leg_trend_per$xt, y=leg_trend_per$y, 
+                         hjust=0, vjust=0.5,
+                         color=colorLabel)
+            
+                # geom_shadowtext(data=tibble(x=leg_trend_per$xt,
+                #                             y=leg_trend_per$y,
+                #                             label=label),
+                #                 aes(x=x, y=y, label=TeX(label)),
+                #                 color=colorLabel,
+                #                 bg.colour="white",
+                #                 hjust=0, vjust=0.5,
+                #                 size=2.8)
         }
 
         # For all periods
@@ -1796,7 +1795,7 @@ hydrograph_panel = function (df_data_code, period, margin=NULL) {
             axis.text.x=element_text(margin=unit(c(0, 0, 0, 0), "mm"),
                                      vjust=1, hjust=0.5),
             axis.ticks.x=element_blank(),
-            axis.line.y=element_line(color='grey85', size=0.3),
+            axis.line.y=element_line(color='grey80', size=0.3),
             plot.title=element_text(size=8, vjust=-0.5, 
                                     hjust=-1E-3, color='grey40'),
             axis.title.y=element_text(size=8, vjust=0, 

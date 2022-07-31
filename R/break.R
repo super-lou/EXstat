@@ -94,7 +94,7 @@ histogram = function (df_break, df_meta, title='', figdir='', filedir_opt='break
     p = ggplot() + theme_ash() +
         
               # Y grid
-        theme(panel.grid.major.y=element_line(color='grey85', size=0.15),
+        theme(panel.grid.major.y=element_line(color='grey80', size=0.15),
               # Remove y title
               axis.title.y=element_blank(),
               # Title
@@ -255,7 +255,7 @@ cumulative = function (df_break, df_meta, title='', dyear=10, figdir='', filedir
     p = ggplot() + theme_ash() +
         
               # Y grid
-        theme(panel.grid.major.y=element_line(color='grey85', size=0.15),
+        theme(panel.grid.major.y=element_line(color='grey80', size=0.15),
               # Remove y title
               axis.title.y=element_blank(),
               # Title

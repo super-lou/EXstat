@@ -7,7 +7,6 @@
 get_Xtrend(
   var,
   df_data,
-  df_meta,
   period,
   hydroPeriod,
   df_flag = NULL,

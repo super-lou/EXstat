@@ -6,10 +6,8 @@
 \usage{
 missing_day(
   df_data,
-  df_meta,
   dayLac_lim = 3,
   hydroYear = "01-01",
-  Code = NULL,
   df_mod = NULL,
   verbose = TRUE
 )

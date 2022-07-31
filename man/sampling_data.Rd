@@ -6,9 +6,7 @@
 \usage{
 sampling_data(
   df_data,
-  df_meta,
   hydroPeriod = c("05-01", "11-30"),
-  Code = NULL,
   df_mod = NULL,
   verbose = TRUE
 )
