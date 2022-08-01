@@ -295,13 +295,14 @@ add_months = function (date, n) {
 #' @return A list of shapefiles converted as tibbles that can be plot
 #' with 'geom_polygon' or 'geom_path'.
 #' @export
-load_shapefile = function (resources_path, df_meta,
+load_shapefile = function (resources_path, df_data,
                            fr_shpdir, fr_shpname,
                            bs_shpdir, bs_shpname,
                            sbs_shpdir, sbs_shpname,
                            cbs_shpdir, cbs_shpname, cbs_coord,
                            rv_shpdir, rv_shpname,
-                           river_selection=c('all')) {
+                           river_selection=c('all'),
+                           toleranceRel=10000) {
 
     Code = rle(df_data$Code)$value
     
@@ -311,71 +312,63 @@ load_shapefile = function (resources_path, df_meta,
     sbs_shppath = file.path(resources_path, sbs_shpdir, sbs_shpname)
     cbs_shppath = file.path(resources_path, cbs_shpdir, cbs_shpname)
     rv_shppath = file.path(resources_path, rv_shpdir, rv_shpname)
+
     
     # France
-    fr_spdf = rgdal::readOGR(dsn=fr_shppath, verbose=FALSE)    
-    sp::proj4string(fr_spdf) = sp::CRS("+proj=longlat +ellps=WGS84")
-    # Transformation in Lambert93
-    france = spTransform(fr_spdf, sp::CRS("+init=epsg:2154"))
-    df_france = tibble(ggplot2::fortify(france))
-
-    # Hydrological basin
-    basin = rgdal::readOGR(dsn=bs_shppath, verbose=FALSE)
-    df_basin = tibble(ggplot2::fortify(basin))
-
-    # Hydrological sub-basin
-    subBasin = rgdal::readOGR(dsn=sbs_shppath, verbose=FALSE)
-    df_subBasin = tibble(ggplot2::fortify(subBasin))
-
-    df_codeBasin = tibble()
-    CodeOk = c()
-    nShp = length(cbs_shppath)
-    # Hydrological stations basins
-    for (i in 1:nShp) {
-        codeBasin = rgdal::readOGR(dsn=cbs_shppath[i], verbose=FALSE)
-        shpCode = as.character(codeBasin@data$code)
-        df_tmp = tibble(ggplot2::fortify(codeBasin))
-        groupSample = rle(as.character(df_tmp$group))$values
-        df_tmp$code = shpCode[match(df_tmp$group, groupSample)]
-        df_tmp = df_tmp[df_tmp$code %in% Code &
-                        !(df_tmp$code %in% CodeOk),]
-        CodeOk = c(CodeOk, shpCode[!(shpCode %in% CodeOk)])
-
-        if (cbs_coord[i] == "L2") {
-            crs_rgf93 = sf::st_crs(2154)
-            crs_l2 = sf::st_crs(27572)
-            sf_loca = sf::st_as_sf(df_tmp[c("long", "lat")],
-                                   coords=c("long", "lat"))
-            sf::st_crs(sf_loca) = crs_l2
-            sf_loca = sf::st_transform(sf_loca, crs_rgf93)
-            sf_loca = sf::st_coordinates(sf_loca$geometry)
-            df_tmp$long = sf_loca[, 1]
-            df_tmp$lat = sf_loca[, 2]
-        }
-        df_codeBasin = bind_rows(df_codeBasin, df_tmp)
-    }
-    names(df_codeBasin)[names(df_codeBasin) == "code"] = "Code"
-    df_codeBasin = df_codeBasin[order(df_codeBasin$Code),]
+    france = st_read(fr_shppath)
+    france = st_union(france)
+    france = st_simplify(france,
+                         preserveTopology=TRUE,
+                         dTolerance=toleranceRel)
+    france = st_transform(france, 2154)
     
+    # Hydrological basin
+    basin = st_read(bs_shppath)
+    basin = st_simplify(basin,
+                        preserveTopology=TRUE,
+                        dTolerance=toleranceRel/2)
+    basin = st_transform(basin, 2154)
+    
+    # Hydrological sub-basin
+    subBasin = st_read(sbs_shppath)
+    subBasin = st_simplify(subBasin,
+                           preserveTopology=TRUE,
+                           dTolerance=toleranceRel/2)
+    subBasin = st_transform(subBasin, 2154)
+
+    # Hydrological code bassin
+    codeBasin_list = lapply(cbs_shppath, read_sf)
+    codeBasin_list = lapply(codeBasin_list, st_transform, 2154)
+    codeBasin = do.call(rbind, codeBasin_list)
+    codeBasin = codeBasin[codeBasin$Code %in% Code,]
+    codeBasin = st_simplify(codeBasin,
+                            preserveTopology=TRUE,
+                            dTolerance=toleranceRel/10)
+
     # If the river shapefile needs to be load
     if (!("none" %in% river_selection)) {
         # Hydrographic network
-        river = rgdal::readOGR(dsn=rv_shppath, verbose=FALSE) ### trop long ###
+        river = st_read(rv_shppath)
+
         if ('all' %in% river_selection) {
             river = river[river$Classe == 1,]
         } else {
             river = river[grepl(paste(river_selection, collapse='|'),
                                 river$NomEntiteH),]
         }
-        df_river = tibble(ggplot2::fortify(river))
+        river = st_simplify(river,
+                            preserveTopology=TRUE,
+                            dTolerance=toleranceRel/10)
+        river = st_transform(river, 2154) 
     } else {
-        df_river = NULL   
+        river = NULL
     }
-    return (list(france=df_france,
-                 basin=df_basin,
-                 subBasin=df_subBasin,
-                 codeBasin=df_codeBasin,
-                 river=df_river))
+
+    return (list(france=france,
+                 basin=basin,
+                 subBasin=subBasin,
+                 codeBasin=codeBasin,
+                 river=river))
 }
 
 ### 4.2. Logo loading ________________________________________________

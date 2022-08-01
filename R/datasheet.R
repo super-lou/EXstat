@@ -43,7 +43,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                             foot_note, structure, layout_matrix,
                             info_height, time_height,
                             var_ratio, foot_height,
-                            paper_size, df_shapefile, logo_path,
+                            paper_size, shapefile_list, logo_path,
                             zone_to_show, show_colorEvent,
                             outdirTmp_pdf, outdirTmp_png,
                             df_page=NULL, pdf_chunk="all") {
@@ -168,7 +168,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                                trend_period=trend_period,
                                mean_period=mean_period,
                                period=period,
-                               df_shapefile=df_shapefile,
+                               shapefile_list=shapefile_list,
                                codeLight=code,
                                df_data_code=info_header_code,
                                to_do=to_do,
@@ -1605,7 +1605,7 @@ event_panel = function(event, colorEvent, colorTextEvent) {
 #' @export
 info_panel = function(list_df2plot, df_meta, trend_period=NULL,
                       mean_period=NULL, period=NULL,
-                      df_shapefile=NULL, codeLight=NULL,
+                      shapefile_list=NULL, codeLight=NULL,
                       df_data_code=NULL, to_do='all',
                       zone_to_show='France') {
 
@@ -1621,13 +1621,13 @@ info_panel = function(list_df2plot, df_meta, trend_period=NULL,
         hyd = void()
     }
 
-    if (!is.null(df_shapefile)) {
+    if (!is.null(shapefile_list)) {
         # Computes the map associated to the station
         map =  map_panel(list_df2plot,
                          df_meta,
                          trend_period=trend_period,
                          mean_period=mean_period,
-                         df_shapefile=df_shapefile,
+                         shapefile_list=shapefile_list,
                          codeLight=codeLight,
                          mapType='mini',
                          margin=margin(t=0, r=-12, b=0, l=0,

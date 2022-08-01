@@ -35,7 +35,7 @@
 # Generates a map plot of the tendancy of a hydrological variable
 #' @title Map panel
 #' @export
-map_panel = function (list_df2plot, df_meta, df_shapefile,
+map_panel = function (list_df2plot, df_meta, shapefile_list,
                       idPer_trend=1, trend_period, mean_period,
                       colorForce=FALSE, exQprob=0.01, codeLight=NULL,
                       mapType='trend', margin=NULL, showSea=TRUE,  
@@ -45,11 +45,11 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                       outdirTmp_png='', verbose=TRUE) {
     
     # Extract shapefiles
-    df_france = df_shapefile$france
-    df_basin = df_shapefile$basin
-    df_subBasin = df_shapefile$subBasin
-    df_codeBasin = df_shapefile$codeBasin
-    df_river = df_shapefile$river
+    france = shapefile_list$france
+    basin = shapefile_list$basin
+    subBasin = shapefile_list$subBasin
+    codeBasin = shapefile_list$codeBasin
+    river = shapefile_list$river
 
     # Number of variable/plot
     if (is.null(list_df2plot)) {
@@ -191,46 +191,51 @@ map_panel = function (list_df2plot, df_meta, df_shapefile,
                 # Fixed coordinate system (remove useless warning)
                 cf +
                 # Plot the background of France
-                geom_polygon(data=df_france,
-                             aes(x=long, y=lat, group=group),
-                             color=NA, fill="grey97")
+                geom_sf(data=france,
+                        color=NA,
+                        fill="grey97")
             # If the river shapefile exists
-            if (!is.null(df_river)) {
+            if (!is.null(river)) {
                 # Plot the river
                 map = map +
-                    geom_path(data=df_river,
-                              aes(x=long, y=lat, group=group),
-                              color="grey80", size=sizerv)   
+                    geom_sf(data=river,
+                            color="grey80",
+                            fill=NA,
+                            size=sizerv)
             }
             
             map = map +
                 # Plot the hydrological basin
-                geom_polygon(data=df_basin,
-                             aes(x=long, y=lat, group=group),
-                             color="grey70", fill=NA, size=sizebs)
+                geom_sf(data=basin,
+                        color="grey70",
+                        fill=NA,
+                        size=sizebs)
             
             if (zone_to_show == 'Adour-Garonne') {
                 map = map +
                     # Plot the hydrological sub-basin
-                    geom_polygon(data=df_subBasin,
-                                 aes(x=long, y=lat, group=group),
-                                 color="grey70", fill=NA, size=sizebs)
+                    geom_sf(data=subBasin,
+                            color="grey70",
+                            fill=NA,
+                            size=sizebs)
             }
             
             map = map +
                 # Plot the countour of France
-                geom_polygon(data=df_france,
-                             aes(x=long, y=lat, group=group),
-                             color="grey40", fill=NA, size=sizefr)
+                geom_sf(data=france,
+                        color="grey40",
+                        fill=NA,
+                        size=sizefr)
             
             if (mapType == 'regime') {
                 # color = regimeColor[match(df_codeBasin$Code, Code)]
                 color = 'grey20'
                 map = map +
                     # Plot the hydrological code basins
-                    geom_polygon(data=df_codeBasin,
-                                 aes(x=long, y=lat, group=code),
-                                 color=color, fill=NA, size=sizecbs)
+                    geom_sf(data=codeBasin,
+                            color=color,
+                            fill=NA,
+                            size=sizecbs)
             }
             
             if (zone_to_show == 'Adour-Garonne') {
@@ -998,9 +1003,9 @@ peu altérés par les activités humaines."
                 Ypal = c(62, 67.5, 73)
                 label = names(regimeColorSample)
                 color = regimeColorSample
-                plot_palette = tibble(xtick=xtick,
-                                      ytick=ytick,
-                                      color=colTick,
+                plot_palette = tibble(Xpal=Xpal,
+                                      Ypal=Ypal,
+                                      color=color,
                                       label=label)
                 
                 # New plot with void theme
@@ -1028,8 +1033,8 @@ peu altérés par les activités humaines."
                 for (id in 1:nRegime) {
                     leg = leg +
                         # Adds the value
-                        annotate('text', x=xtick[id]+0.8,
-                                 y=ytick[id],
+                        annotate('text', x=Xpal[id]+0.8,
+                                 y=Ypal[id],
                                  label=bquote(bold(.(label[id]))),
                                  hjust=0, vjust=0.7, 
                                  size=4, color='grey40')
