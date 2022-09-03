@@ -262,14 +262,6 @@ gpct = function (pct, L, min_lim=NULL, shift=FALSE) {
     return (xL)
 }
 
-### 3.3. Add months __________________________________________________
-#' @title Add months
-#' @export
-add_months = function (date, n) {
-    new_date = seq(date, by = paste (n, "months"), length = 2)[2]
-    return (new_date)
-}
-
 
 ## 4. LOADING ________________________________________________________
 ### 4.1. Shapefile loading ___________________________________________
@@ -401,7 +393,18 @@ load_logo = function (resources_path, logo_dir, PRlogo_file, AEAGlogo_file,
     
     return (logo_path)
 }
-
-
-
     
+#' @title Split filename
+#' @export
+splitext = function(file) { # tools::file_ext
+    ex = strsplit(basename(file), split="\\.")[[1]]
+    res = list(name=ex[1], extension=ex[2])
+    return (res)
+}
+
+#' @title Split path
+#' @export
+split_path = function (path) {
+  if (dirname(path) %in% c(".", path)) return(basename(path))
+  return(c(basename(path), split_path(dirname(path))))
+}

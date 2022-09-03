@@ -306,20 +306,3 @@ read_FST = function (resdir, filename, filedir='fst') {
     df = tibble(fst::read_fst(outfile))
     return (df)
 }
-
-
-## 3. TOOLS __________________________________________________________
-#' @title Split filename
-#' @export
-splitext = function(file) { # tools::file_ext
-    ex = strsplit(basename(file), split="\\.")[[1]]
-    res = list(name=ex[1], extension=ex[2])
-    return (res)
-}
-
-#' @title Split path
-#' @export
-split_path = function (path) {
-  if (dirname(path) %in% c(".", path)) return(basename(path))
-  return(c(basename(path), split_path(dirname(path))))
-}

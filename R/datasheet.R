@@ -131,16 +131,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
         # Actualises the number of plot
         nbg = nbh + nVar + nbf
 
-        # Opens a blank list to store plot
-        # P = vector(mode='list', length=nbg)
-        # Plast = vector(mode='list', length=nbg)
-        
-        # for (id in 1:nbg) {
-        #     P[[id]] = void() 
-        # }
-
         df_P = tibble() # name | first | last | plot
-        
         
         # If the info header is needed
         if (!is.null(info_header)) {
@@ -252,7 +243,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
         # Computes the number of column of plot asked on the datasheet
         nbcol = ncol(as.matrix(layout_matrix))
-        var_plot = c()
+        var_plotted = c()
         # For all variable
         for (i in 1:nVar) {
             # Extracts the data corresponding to the current variable
@@ -264,7 +255,7 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
             unit2day = list_df2plot[[i]]$unit2day
             # Extract the variable of the plot
             var = list_df2plot[[i]]$var
-            var_plot = c(var_plot, var)
+            var_plotted = c(var_plotted, var)
             
             type = list_df2plot[[i]]$type
             event = list_df2plot[[i]]$event
@@ -393,6 +384,10 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
         print("Layout")
 
+        
+
+        
+
         # If paper format is A4
         if (paper_size == 'A4') {
             width = 21
@@ -461,42 +456,36 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                 var_to_place_page = var_to_place[(1+(nVar_max*(page-1))) : (nVar_max*page)]
                 var_to_place_page = var_to_place_page[!is.na(var_to_place_page)]
 
-                place_order = match(var_to_place_page, var_plot)
-
-                matrix_order = place_order - min(place_order) + 1
-                layout_matrix = matrix(matrix_order,
-                                       ncol=1)
-
+                LM_id = c()
+                LM_name = c()
                 if (!is.null(info_header)) {
-                    P_i = which(df_P$name == "info")
+                    id_plot = which(df_P$name == "info")
+                    LM_id = c(LM_id, id_plot)
+                    LM_name = c(LM_name, df_P$name[id_plot])
                     nbi = 1
                 } else {
-                    P_i = NULL
                     nbi = 0
                 }
                 
                 if (!is.null(time_header)) {
                     if (event == "Resume") {
-                        P_t = c(which(df_P$name == "Q" & df_P$first == TRUE),
-                                which(df_P$name == "\\sqrt{Q}" & df_P$first == FALSE))
+                        id_plot = c(which(df_P$name == "Q"
+                                          & df_P$first == TRUE),
+                                    which(df_P$name == "\\sqrt{Q}"))
                         nbt = 2
                     } else if (event == "Étiage")  {
-                        P_t = which(df_P$name == "\\sqrt{Q}" & df_P$first == TRUE)
+                        id_plot = which(df_P$name == "\\sqrt{Q}"
+                                        & df_P$first == TRUE)
                         nbt = 1
                     } else {
-                        P_t = which(df_P$name == "Q" & df_P$first == TRUE)
+                        id_plot = which(df_P$name == "Q"
+                                        & df_P$first == TRUE)
                         nbt = 1
                     }
+                    LM_id = c(LM_id, id_plot)
+                    LM_name = c(LM_name, df_P$name[id_plot])
                 } else {
-                    P_t = NULL
-                }
-
-                if (foot_note) {
-                    P_f = which(df_P$name == "foot")
-                    nbf = 1
-                } else {
-                    P_f = NULL
-                    nbf = 0
+                    nbt = 0
                 }
 
                 P_var = c()
@@ -506,66 +495,45 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
                     } else {
                         last = FALSE
                     }
-                    p_var = which(df_P$name == var & df_P$last == last)
-                    P_var = c(P_var, p_var)
+                    id_plot = which(df_P$name == var & df_P$last == last)
+                    LM_id = c(LM_id, id_plot)
+                    LM_name = c(LM_name, df_P$name[id_plot])
                 }
-            
-                P_order = c(P_i, P_t, P_var, P_f)
-                Pevent = df_P$plot[P_order]
-
-                # Convert the 'layout_matrix' to a matrix
-                # if it is not already 
-                layout_matrix = as.matrix(layout_matrix)
-                LM = layout_matrix
                 
-                # Shifts all plots to be coherent with the adding of header
-                LM = LM + nbt + nbi
-                
-                if (!is.null(time_header)) {
-                    if (event == "Resume") {
-                        id_Q = nbi+1
-                        id_sqrtQ = nbi+2
-                        LM = rbind(id_sqrtQ, LM)
-                        LM = rbind(id_Q, LM)
-                    } else if (event == "Étiage")  {
-                        id_Q = NA
-                        id_sqrtQ = nbi+1
-                        LM = rbind(id_sqrtQ, LM)
-                    } else {
-                        id_Q = nbi+1
-                        id_sqrtQ = NA
-                        LM = rbind(id_Q, LM)
-                    }
-                    
-                } else {
-                    id_Q = NA
-                    id_sqrtQ = NA
-                }
-                if (!is.null(info_header)) {
-                    id_info = nbh - as.numeric(!is.null(time_header))*3
-                    LM = rbind(id_info, LM)
-                } else {
-                    id_info = NA
+                nGraphMiss = nVar_max - length(var_to_place_page)
+
+                for (i in 1:nGraphMiss) {
+                    LM_id = c(LM_id, NA)
+                    LM_name = c(LM_name, "void")
                 }
 
-                id_void = NA
-                nGraphMiss = nVar_max - length(place_order)
-
-                LM = rbind(LM, matrix(rep(id_void, times=ncol(LM)*nGraphMiss),
-                                      ncol=ncol(LM)))
-
-                id_foot = max(LM, na.rm=TRUE) + 1
                 if (foot_note) {
-                    LM = rbind(LM, id_foot)
+                    id_plot = which(df_P$name == "foot")
+                    LM_id = c(LM_id, id_plot)
+                    LM_name = c(LM_name, df_P$name[id_plot])
+                    nbf = 1
+                } else {
+                    nbf = 0
                 }
 
-                LMcol = ncol(LM)
-                LMrow = nrow(LM)
+                Pevent = df_P$plot[LM_id[!is.na(LM_id)]]
+
+                LM_name = matrix(LM_name)
+                LM_id[!is.na(LM_id)] = 1:length(LM_id[!is.na(LM_id)])
+                LM_id = matrix(LM_id)                
+
+                LMcol = ncol(LM_id)
+                LM_id = rbind(rep(NA, times=LMcol), LM_id,
+                           rep(NA, times=LMcol))
+                LM_name = rbind(rep("margin", times=LMcol), LM_name,
+                                rep("margin", times=LMcol))
                 
-                LM = rbind(rep(99, times=LMcol), LM, rep(99, times=LMcol))
-                LMrow = nrow(LM)
-                LM = cbind(rep(99, times=LMrow), LM, rep(99, times=LMrow))
-                LMcol = ncol(LM)
+                LMrow = nrow(LM_id)
+                LM_id = cbind(rep(NA, times=LMrow), LM_id,
+                           rep(NA, times=LMrow))
+                LM_name = cbind(rep("margin", times=LMrow), LM_name,
+                                rep("margin", times=LMrow))
+                LMcol = ncol(LM_id)
 
                 margin_height = 0.5
 
@@ -573,25 +541,84 @@ datasheet_panel = function (list_df2plot, df_meta, trend_period,
 
                 var_height = height * var_ratio / Norm_ratio
 
-                Hcut = LM[, 2]
+                Hcut = LM_name[, 2]
                 heightLM = rep(0, times=LMrow)        
                 
-                heightLM[Hcut == id_info] = info_height
-                heightLM[Hcut == id_Q] = time_height
-                heightLM[Hcut == id_sqrtQ] = time_height
-                heightLM[Hcut > nbt+nbi & Hcut < id_foot | is.na(Hcut)] = var_height
-                heightLM[Hcut == id_foot] = foot_height
-                heightLM[Hcut == 99] = margin_height
+                heightLM[Hcut == "info"] = info_height
+                heightLM[Hcut == "Q"] = time_height
+                heightLM[Hcut == "\\sqrt{Q}"] = time_height
+                heightLM[Hcut %in% var_to_place_page |
+                         Hcut == "void"] = var_height
+                heightLM[Hcut == "foot"] = foot_height
+                heightLM[Hcut == "margin"] = margin_height
 
                 col_width = (width - 2*margin_height) / (LMcol - 2)
                 
-                Wcut = LM[(nrow(LM)-1),]
+                Wcut = LM_name[(LMrow-1),]
                 widthLM = rep(col_width, times=LMcol)
-                widthLM[Wcut == 99] = margin_height
+                widthLM[Wcut == "margin"] = margin_height
                 
                 # Plot the graph as the layout
-                plot = grid.arrange(grobs=Pevent, layout_matrix=LM,
-                                    heights=heightLM, widths=widthLM)
+                # plot = grid.arrange(grobs=Pevent, layout_matrix=LM_id,
+                #                     heights=heightLM, widths=widthLM)
+
+
+
+                print(df_P)
+                print(LM_id)
+                print(LM_name)
+                
+                LM_inline = Pevent[as.vector(LM_id)]
+
+                # print(LM_inline)
+                
+                # LM_inline[sapply(LM_inline, is.null)] = void()
+
+                # lapply(LM_inline,)
+                # [sapply(LM_inline, is.null)]
+
+                # void()
+
+                
+                LM_name_inline = as.vector(LM_name)
+
+                print(LM_name_inline)
+                
+                widths_var = list()
+                nPlot = length(LM_inline)
+                print(nPlot)
+                for (i in 1:nPlot) {
+                    if (is.null(LM_inline[[i]])) {
+                        LM_inline[[i]] = void()
+                    }
+                    if (LM_name_inline[i] %in% c(var_plotted, "Q", "\\sqrt{Q}")) {
+                        LM_inline[[i]] = ggplot_gtable(ggplot_build(LM_inline[[i]]))
+                        widths_var = append(widths_var, list(LM_inline[[i]]$widths))
+                    }
+                }        
+                maxWidth = do.call(grid::unit.pmax, widths_var)
+                for (i in 1:nPlot) {
+                    if (LM_name_inline[i] %in% c(var_plotted, "Q", "\\sqrt{Q}")) {
+                        LM_inline[[i]]$widths = as.list(maxWidth)
+                    }
+                }
+
+                print(matrix(LM_name_inline, nrow=LMrow, ncol=LMcol))
+
+                print(LM_inline)
+
+                print(LMrow)
+                print(LMcol)
+                print(heightLM)
+                print(widthLM)
+                
+                plot = grid.arrange(arrangeGrob(grobs=LM_inline,
+                                                nrow=LMrow,
+                                                ncol=LMcol,
+                                                heights=heightLM,
+                                                widths=widthLM,
+                                                as.table=FALSE))
+                
 
                 eventName = chartr("áéèà", "aeea", tolower(event))
                 filename = paste0(as.character(code), '_',
@@ -868,7 +895,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             if (xmin > min(df_data_code$Date) & j != 1) {
                 # Substract 6 months to be in the middle of
                 # the previous year
-                xmin = add_months(xmin, -6)
+                xmin = xmin - months(6)
             }
             # If it is not a flow or sqrt of flow time serie and
             # it is the first period
@@ -889,7 +916,7 @@ time_panel = function (df_data_code, df_trend_code, var, type, unit,
             if (xmax < max(df_data_code$Date) & j != nPeriod_mean) {
                 # Add 6 months to be in the middle of
                 # the following year
-                xmax = add_months(xmax, 6)
+                xmax = xmax + months(6)
             }
             # If it is not a flow or sqrt of flow time serie and
             # it is the last period
