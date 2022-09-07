@@ -14,6 +14,6 @@ Imports:
     Hmisc,
     lubridate
 Remotes:
-    super-lou/dataSHEEP,
+    super-lou/waterSheep,
     vmansanarez/AoTre
 RoxygenNote: 7.1.2
