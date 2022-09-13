@@ -122,13 +122,13 @@ extract_Var_WRAP = function (df_data, funct, period,
         per.start = hydroPeriod[1]
     }
     
-    df_XEx = extract.Var(data.station=df_Xlist,
-                         funct=funct,
-                         period=period,
-                         per.start=per.start,
-                         timestep=timestep,
-                         pos.datetime=1,
-                         ...)
+    df_XEx = StatsAnalysisTrend::extract.Var(data.station=df_Xlist,
+                                             funct=funct,
+                                             period=period,
+                                             per.start=per.start,
+                                             timestep=timestep,
+                                             pos.datetime=1,
+                                             ...)
 
     colnames(df_XEx) = c('Date', 'group', 'Value', 'NA_pct')
     df_XEx$Date = as.Date(paste0(df_XEx$Date, '-', per.start))
@@ -167,8 +167,8 @@ Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1',
     info = bind_cols(group=seq(1:nrow(Gkey)),
                      Gkey)
 
-    df_Xtrend = Estimate.stats(data.extract=df_XEx_RAW,
-                               dep.option=dep_option)
+    df_Xtrend = StatsAnalysisTrend::Estimate.stats(data.extract=df_XEx_RAW,
+                                                   dep.option=dep_option)
 
     
     # Converts results of trend to tibble
