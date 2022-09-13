@@ -304,14 +304,57 @@ get_Xtrend = function (var, df_data, period,
 
 ## 2. USEFUL FUNCTIONS _______________________________________________
 ### 2.1. Rolling average over stations _______________________________
+
+insertNA = function (X, Id) {
+    for (i in 1:length(Id)) {
+        id = Id[i] - 1
+        if (id > 0) {
+            X = append(X, NA, after=id)
+        } else {
+            X = c(NA, X)
+        }
+    }
+    return (X)
+}
+
+expandNA = function (X, nNAdown, nNAup) {
+
+    nX = length(X)
+    IdNA = which(is.na(X))
+    for (i in 1:nNAdown) {
+        Id = IdNA - i
+        Id = Id[Id > 0]
+        X[Id] = NA
+    }
+    for (i in 1:nNAup) {
+        Id = IdNA + i
+        Id = Id[Id < nX]
+        X[Id] = NA
+    }    
+    return (X)
+}
+
+
 #' @title Rolling average
 #' @export
 rollmean_center = function (X, k) {
-    N = length(X)
-    Xroll = accelerometry::movingaves(X, k)
-    Xroll = c(rep(NA, as.integer((k-1)/2)), Xroll)
-    Nroll = length(Xroll)
-    Xroll = c(Xroll, rep(NA, N-Nroll))
+    
+    isNA = is.na(X)
+    IdNA = which(isNA)
+    XNoNA = X[!isNA]
+
+    nNAdown = floor((k-1)/2)
+    nNAup = ceiling((k-1)/2)
+    IdNA2add = IdNA - nNAdown
+    
+    Xroll = accelerometry::movingaves(XNoNA, k)
+    if (!identical(IdNA2add, numeric(0))) {
+        Xroll = insertNA(Xroll, IdNA2add)
+    }
+    Xroll = expandNA(Xroll, nNAdown, nNAup)
+    Xroll = c(rep(NA, nNAdown), Xroll)
+    Xroll = c(Xroll, rep(NA, nNAup))
+    
     return (Xroll)
 }
 
@@ -327,6 +370,7 @@ rollmean_code = function (df_data, nroll=10, df_mod=NULL, verbose=TRUE) {
                         Value=rollmean_center(Value,
                                               k=nroll),
                         .groups="drop")
+    
     df_data_roll = tibble(Date=df_data$Date,
                           Value=df_roll$Value,
                           Code=df_roll$Code)
