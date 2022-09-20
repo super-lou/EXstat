@@ -140,9 +140,9 @@ extract_Var_WRAP = function (df_data, funct, period,
 
     if (isDate) {
         # Converts index of the tCEN to the julian date associated
-        df_XEx = convert_dateEx(df_XEx, df_data, hydroYear=hydroPeriod[1],
-                                verbose=verbose)
+        df_XEx = convert_dateEx(df_XEx, df_data, verbose=verbose)
     }
+    
     return (df_XEx)
 }
 
@@ -187,68 +187,63 @@ Estimate_stats_WRAP = function (df_XEx, period=NULL, dep_option='AR1',
 
 ### 2.3. Wrap tools __________________________________________________
 #### 2.3.1. Convert index to  date ___________________________________
+convert_dataEx_hide = function (Value) {
+
+    Month = Value / (365.25/12)        
+    MonthNoNA = Month[!is.na(Month)]    
+    fact = 2*pi/12
+    monthMean_raw = CircStats::circ.mean(fact * MonthNoNA) / fact
+    monthMean = (monthMean_raw + 12) %% 12
+
+    upLim = monthMean + 6
+    lowLim = monthMean - 6
+    above = Month > upLim
+    above[is.na(above)] = FALSE
+    below = Month < lowLim
+    below[is.na(below)] = FALSE
+    
+    Value[above] = Value[above] - 365
+    Value[below] = Value[below] + 365
+    return (Value)
+}
+
 #' @title Convert index to  date
 #' @export
-convert_dateEx = function(df_XEx, df_data, hydroYear="01-01", verbose=TRUE) {
-
+convert_dateEx = function(df_XEx, df_data,
+                          verbose=TRUE) {
     if (verbose) {
         print('.... Conversion to number of day')
     }
+
+    df_Date = summarise(group_by(df_data,
+                                 Code,
+                                 Year=lubridate::year(Date)),
+                        yearStart=min(Date, na.rm=TRUE),
+                        .groups="drop")
+
+    df_XEx$Year = lubridate::year(df_XEx$Date)    
+    df_XEx = dplyr::full_join(df_XEx, df_Date, by=c("Code", "Year"))
+
+    df_XEx$sampleStart = pmax(df_XEx$Date, df_XEx$yearStart)
     
-    Shift_hydroYear = as.integer(df_XEx$Date - as.Date(paste0(format(df_XEx$Date, "%Y"), "-01-01")))
-    df_XEx$Value = df_XEx$Value + Shift_hydroYear
-    
-    df_Date = summarise(group_by(df_data, Code),
-                                Start=min(Date, na.rm=TRUE))
-    df_Date$Julian = NA
-    df_Date$origin = as.Date(paste0(format(df_Date$Start, "%Y"),
-                                    '-', hydroYear))
-    for (i in 1:nrow(df_Date)) {
-        df_Date$Julian[i] = julian(df_Date$Start[i], origin=df_Date$origin[i])
-    }
+    df_XEx$Shift = lubridate::yday(df_XEx$sampleStart) - 1
+    df_XEx$Value = df_XEx$Value + df_XEx$Shift
 
-    df_Date$Year = format(df_Date$Start, "%Y")
+    print(df_XEx)
 
-    for (code in df_Date$Code) {
-        Ok_Start = df_Date$Code == code
-        Shift = df_Date$Julian[Ok_Start]
-        year = df_Date$Year[Ok_Start]
-        OkXEx_code_year =
-            df_XEx$Code == code & format(df_XEx$Date, "%Y") == year        
-        df_XEx$Value[OkXEx_code_year] =
-            df_XEx$Value[OkXEx_code_year] + Shift
+    df_XEx = dplyr::select(df_XEx, -c("Year", "yearStart",
+                                      "sampleStart", "Shift"))
 
-        OkXEx_code = df_XEx$Code == code
-        Month = df_XEx$Value[OkXEx_code] / (365.25/12)        
-        MonthNoNA = Month[!is.na(Month)]
+    df_XEx = summarise(group_by(df_XEx, Code),
+                       Date=Date,
+                       Value=convert_dataEx_hide(Value),
+                       NA_pct,
+                       .groups="drop")    
 
-        fact = 2*pi/12
-        monthMean_raw = CircStats::circ.mean(fact * MonthNoNA) / fact
-        monthMean = (monthMean_raw + 12) %% 12
-
-        upLim = monthMean + 6
-        lowLim = monthMean - 6
-
-        above = Month > upLim
-        above[is.na(above)] = FALSE
-        below = Month < lowLim
-        below[is.na(below)] = FALSE
-        
-        df_XEx$Value[OkXEx_code][above] = df_XEx$Value[OkXEx_code][above] - 365
-        df_XEx$Value[OkXEx_code][below] = df_XEx$Value[OkXEx_code][below] + 365
-    }
-
-    Year = format(df_XEx$Date, "%Y")
-    Start = as.Date(paste0(Year, '-', hydroYear))
-    End = Start + lubridate::years(1) - lubridate::days(1)
-    nbDate = as.numeric(difftime(End, Start,
-                                 units="days"))
-
-    # Issue for negative value in the y axis
-    # df_XEx$Value = df_XEx$Value + 365 
-    
     return (df_XEx)
 }
+
+
 
 #### 2.3.2. Period of trend analysis _________________________________
 # Compute the start and the end of the period for a trend analysis
@@ -313,6 +308,7 @@ get_intercept = function (df_XEx, df_Xtrend, unit2day=365.25,
 #' @title Add modification info
 #' @export
 add_mod = function (df_mod, Code, type, fun_name, comment, df_meta=NULL) {
+    
     if (Code == 'all' & is.null(df_meta)) {
         Code = NA # erreur
     } else if (Code == 'all' & !is.null(df_meta)) {

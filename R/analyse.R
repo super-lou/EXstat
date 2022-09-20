@@ -304,7 +304,6 @@ get_Xtrend = function (var, df_data, period,
 
 ## 2. USEFUL FUNCTIONS _______________________________________________
 ### 2.1. Rolling average over stations _______________________________
-
 insertNA = function (X, Id) {
     for (i in 1:length(Id)) {
         id = Id[i] - 1
@@ -318,7 +317,6 @@ insertNA = function (X, Id) {
 }
 
 expandNA = function (X, nNAdown, nNAup) {
-
     nX = length(X)
     IdNA = which(is.na(X))
     for (i in 1:nNAdown) {
@@ -396,103 +394,7 @@ rollmean_code = function (df_data, nroll=10, df_mod=NULL, verbose=TRUE) {
     }
 }
 
-### 2.2. Which with NA management ____________________________________
-#' @title Which max NA
-#' @export
-which.maxNA = function (x) {
-    idMax = which.max(x)
-    if (identical(idMax, integer(0))) {
-        idMax = NA
-    }
-    return (idMax)
-}
-
-#' @title Which min NA
-#' @export
-which.minNA = function (x) {
-    idMin = which.min(x)
-    if (identical(idMin, integer(0))) {
-        idMin = NA
-    }
-    return (idMin)
-}
-
-### 2.3. Which under threshold _______________________________________
-#' @title Which under threshold
-#' @export
-which_underfirst = function (L, UpLim, select_longest=TRUE) {
-    
-    ID = which(L <= UpLim)
-
-    if (select_longest) {
-        dID = diff(ID)
-        dID = c(10, dID)
-        
-        IDjump = which(dID != 1)
-        Njump = length(IDjump)
-        
-        Periods = vector(mode='list', length=Njump)
-        Nperiod = c()
-        
-        for (i in 1:Njump) {
-            idStart = IDjump[i]
-            
-            if (i < Njump) {
-                idEnd = IDjump[i+1] - 1
-            } else {
-                idEnd = length(ID)
-            }
-            
-            period = ID[idStart:idEnd]
-            Periods[[i]] = period
-            Nperiod = c(Nperiod, length(period))
-        }
-        period_max = Periods[[which.max(Nperiod)]]
-        id = period_max[1]
-    } else {
-        id = ID[1]
-    }
-    return (id)
-}
-
-### 2.4. Base flow separation ________________________________________
-#' @title Base flow separation
-#' @export
-BFS = function (Q, d=5, w=0.9) {
-
-    N = length(Q)
-    Slices = split(Q, ceiling(seq_along(Q)/d))
-    
-    idMinSlices = unlist(lapply(Slices, which.min),
-                         use.names=FALSE)
-    idShift = c(0, cumsum(unlist(lapply(Slices, length),
-                                 use.names=FALSE)))
-    idShift = idShift[-length(idShift)]
-    idMin = idMinSlices + idShift
-    Qmin_k = Q[idMin]
-
-    n = length(Qmin_k)
-    Qmin_kp1 = c(Qmin_k[2:n], NA)
-    Qmin_km1 = c(NA, Qmin_k[1:(n-1)])
-    test = w * Qmin_k < pmin(Qmin_km1, Qmin_kp1)
-    test[is.na(test)] = FALSE
-    idPivots = idMin[which(test)]
-    Pivots = Qmin_k[test]
-
-    # BF = approx(idPivots, Pivots, xout=1:N)$y
-    BF = approxExtrap(idPivots, Pivots, xout=1:N,
-                      method="linear", na.rm=TRUE)$y  
-    
-    BF[is.na(Q)] = NA
-    BF[BF < 0] = 0
-    test = BF > Q
-    test[is.na(test)] = FALSE
-    BF[test] = Q[test]
-
-    return (BF)
-}
-
-### 2.5. Compute square root of data _________________________________
+### 2.2. Compute square root of data _________________________________
 #' @title Square root
 #' @export
 compute_sqrt = function (df_data) {

@@ -301,9 +301,9 @@ NA_filter = function (df_data, df_XEx, dayNA_lim, timestep="year",
     filter = dayNA > dayNA_lim
 
     df_start = summarise(group_by(df_data, Code),
-                      start=min(Date))
+                         start=min(Date))
     df_end = summarise(group_by(df_data, Code),
-                    end=max(Date))
+                       end=max(Date))
 
     df_XEx_lim = left_join(df_XEx, df_start, by=c("Code"="Code"))
     df_XEx_lim = left_join(df_XEx_lim, df_end, by=c("Code"="Code"))
@@ -316,11 +316,18 @@ NA_filter = function (df_data, df_XEx, dayNA_lim, timestep="year",
     
     filter = filter | filter_start | filter_end
 
+    # print(filter)
+    # print(df_XEx$Code)
+
+    filter[is.na(filter)] = FALSE
+
     df_XEx$Value[filter] = NA
     codeFilter = df_XEx$Code[filter]
     codeFilter = codeFilter[!duplicated(codeFilter)]
     dateFilter = format(df_XEx$Date[filter], "%Y")
     Nmod = length(codeFilter)
+
+    # print(codeFilter)
 
     if (!is.null(df_mod) & !identical(codeFilter, character(0))) {
         for (i in 1:Nmod) {
