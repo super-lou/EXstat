@@ -39,26 +39,27 @@
 #' @title X trend
 #' @export
 get_Xtrend = function (var, df_data, period,
-                       hydroPeriod,
-                       df_flag=NULL, yearNA_lim=NULL, dayNA_lim=NULL,
+                       df_flag=NULL, NApct_lim=NULL, NAyear_lim=NULL,
                        day_to_roll=NULL,
                        functM=NULL, functM_args=NULL, isDateM=FALSE,
+                       samplePeriodM=NULL,
                        functY=NULL, functY_args=NULL, isDateY=FALSE,
+                       samplePeriodY=NULL,
                        functYT_ext=NULL, functYT_ext_args=NULL,
                        isDateYT_ext=FALSE, functYT_sum=NULL,
                        functYT_sum_args=NULL,
                        df_mod=tibble(),
                        verbose=TRUE) {
 
-    if (verbose) {
-        if (!is.tbl(hydroPeriod)) {
-            print(paste0('. Computes ', var,
-                         ' trend for hydrological period ',
-                         paste0(hydroPeriod, collapse=' / ')))
-        } else {
-            print(paste0('. Computes ', var, ' trend'))
-        }
-    }
+    # if (verbose) {
+    #     if (!is.tbl(samplePeriod)) {
+    #         print(paste0('. Computes ', var,
+    #                      ' trend for hydrological period ',
+    #                      paste0(samplePeriod, collapse=' / ')))
+    #     } else {
+    #         print(paste0('. Computes ', var, ' trend'))
+    #     }
+    # }
     
     # Get all different stations code
     Code = rle(df_data$Code)$value
@@ -81,26 +82,6 @@ get_Xtrend = function (var, df_data, period,
         df_mod = res$mod
     }
 
-    if (!is.null(yearNA_lim)) {
-        # Removes older data if there are a too long missing period
-        res = missing_year(df_data,
-                           yearNA_lim=yearNA_lim,
-                           df_mod=df_mod,
-                           verbose=verbose)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
-    if (!is.null(hydroPeriod)) {
-        # Samples the data
-        res = sampling_data(df_data,
-                            hydroPeriod=hydroPeriod,
-                            df_mod=df_mod,
-                            verbose=verbose)
-        df_data = res$data
-        df_mod = res$mod
-    }
-
     # Make sure to convert the period to a list
     period = as.list(period)
     # Set the max interval period as the minimal possible
@@ -114,173 +95,89 @@ get_Xtrend = function (var, df_data, period,
         if (verbose) {
             print(paste0('.. For period : ', paste0(per, collapse=' / ')))
         }
-
+        
         # Monthly extraction
         if (!is.null(functM)) {
-            
-            if (is.tbl(hydroPeriod)) {
-                df_XEx = tibble()
-                # For all the code
-                for (code in Code) {
-                    # Get the averaged data associated to the code
-                    df_data_code = df_data[df_data$Code == code,]
-                    hydroPeriod_code =
-                        hydroPeriod$Value[hydroPeriod$Code == code]
-
-                    df_XEx_code = do.call(
-                        what=extract_Var_WRAP,
-                        args=c(list(df_data=df_data_code,
-                                    funct=functY,
-                                    period=per,
-                                    hydroPeriod=hydroPeriod_code,
-                                    timestep='year',
-                                    isDate=isDateY,
-                                    verbose=verbose),
-                               functY_args))
-                    # Store the results
-                    df_XEx = bind_rows(df_XEx, df_XEx_code)
-                } 
-            } else {
-                df_XEx = do.call(
-                    what=extract_Var_WRAP,
-                    args=c(list(df_data=df_data,
-                                funct=functM,
-                                period=per,
-                                hydroPeriod=hydroPeriod,
-                                timestep='year-month',
-                                isDate=isDateM,
-                                verbose=verbose),
-                           functM_args))
-            }
-
-            if (!is.null(dayNA_lim)) {
-                # NA filtering
-                res = NA_filter(df_data,
-                                df_XEx,
-                                dayNA_lim=dayNA_lim,
-                                timestep="year-month",
-                                df_mod=df_mod,
-                                verbose=verbose)
-                df_XEx = res$data
-                df_mod = res$mod
-            }       
-            df_data = df_XEx
+            df_data = do.call(
+                what=extraction_process,
+                args=c(list(data=df_data,
+                            funct=functM,
+                            period=per,
+                            samplePeriod=samplePeriodM,
+                            timeStep='year-month',
+                            isDate=isDateM,
+                            NApct_lim=NApct_lim,
+                            NAyear_lim=NAyear_lim,
+                            rmNApct=TRUE,
+                            verbose=verbose),
+                       functM_args))
+            print(df_data)
         }
+
         
-        # Yearly extraction
-        if (!is.null(functYT_sum) | is.tbl(hydroPeriod)) {
+        if (!is.null(functYT_ext) | !is.null(functYT_sum)) {
+            if (!is.null(functYT_ext)) {
+                
+                df_YTEx = do.call(
+                    what=extraction_process,
+                    args=c(list(data=df_data,
+                                funct=functYT_ext,
+                                period=per,
+                                samplePeriod=samplePeriodY,
+                                timeStep='year',
+                                isDate=isDateYT_ext,
+                                NApct_lim=NApct_lim,
+                                NAyear_lim=NAyear_lim,
+                                rmNApct=TRUE,
+                                verbose=verbose),
+                           functYT_ext_args))
+            } else {
+                df_YTEx = df_data
+            }
 
             if (!is.null(functYT_sum)) {
-                if (!is.null(functYT_ext)) {
-                    
-                    if (is.tbl(hydroPeriod)) {
-                        df_YTEx = tibble()
-                        # For all the code
-                        for (code in Code) {
-                            # Get the averaged data associated to the code
-                            df_data_code = df_data[df_data$Code == code,]
-                            hydroPeriod_code =
-                                hydroPeriod$Value[hydroPeriod$Code == code]
-                            
-                            df_YTEx_code = do.call(
-                                what=extract_Var_WRAP,
-                                args=c(list(df_data=df_data_code,
-                                            funct=functYT_ext,
-                                            period=per,
-                                            hydroPeriod=hydroPeriod_code,
-                                            timestep='year',
-                                            isDate=isDateYT_ext,
-                                            verbose=verbose),
-                                       functYT_ext_args))
-                            # Store the results
-                            df_YTEx = bind_rows(df_YTEx, df_YTEx_code)
-                        }
-                    } else {
-                        df_YTEx = do.call(
-                            what=extract_Var_WRAP,
-                            args=c(list(df_data=df_data,
-                                        funct=functYT_ext,
-                                        period=per,
-                                        hydroPeriod=hydroPeriod,
-                                        timestep='year',
-                                        isDate=isDateYT_ext,
-                                        verbose=verbose),
-                                   functYT_ext_args))
-                    }
-                } else {
-                    df_YTEx = df_data
+                df_YT =
+                    dplyr::summarise(
+                               dplyr::group_by(df_YTEx, Code),
+                               threshold=
+                                   functYT_sum(Value,
+                                               !!!functYT_sum_args),
+                               .groups="drop")
+                
+                names(df_YT)[names(df_YT) == "threshold"] =
+                    names(functY_args)[functY_args == '*threshold*']
+                df_data = dplyr::full_join(df_data,
+                                           df_YT,
+                                           by="Code")
+
+                functY_args = functY_args[functY_args != "*threshold*"]
+                if (length(functY_args) == 0) {
+                    functY_args = NULL
                 }
-                
-                df_YT = summarise(
-                    group_by(df_YTEx, Code),
-                    threshold=functYT_sum(Value,
-                                          !!!functYT_sum_args),
-                    .groups="drop")
-                
-                idT = which(functY_args == '*threshold*')
             }
-            
-            df_XEx = tibble()
-            # For all the code
-            for (code in Code) {
-                # Get the averaged data associated to the code
-                df_data_code = df_data[df_data$Code == code,]
-
-                if (!is.null(functYT_sum)) {
-                    YT_code = df_YT$threshold[df_YT$Code == code]
-                    functY_args[idT] = YT_code
-                }
-                
-                if (is.tbl(hydroPeriod)) {
-                    hydroPeriod_code =
-                        hydroPeriod$Value[hydroPeriod$Code == code]
-                } else {
-                    hydroPeriod_code = hydroPeriod
-                }
-                
-                df_XEx_code = do.call(
-                    what=extract_Var_WRAP,
-                    args=c(list(df_data=df_data_code,
-                                funct=functY,
-                                period=per,
-                                hydroPeriod=hydroPeriod_code,
-                                timestep='year',
-                                isDate=isDateY,
-                                verbose=verbose),
-                           functY_args))
-                # Store the results
-                df_XEx = bind_rows(df_XEx, df_XEx_code)
-            }
-        } else {            
-            df_XEx = do.call(
-                what=extract_Var_WRAP,
-                args=c(list(df_data=df_data,
-                            funct=functY,
-                            period=per,
-                            hydroPeriod=hydroPeriod,
-                            timestep='year',
-                            isDate=isDateY,
-                            verbose=verbose),
-                       functY_args))
         }
+        
 
-        if (!is.null(dayNA_lim)) {
-            # NA filtering
-            res = NA_filter(df_data,
-                            df_XEx,
-                            dayNA_lim=dayNA_lim,
-                            timestep='year',
-                            df_mod=df_mod,
-                            verbose=verbose)
-            df_XEx = res$data
-            df_mod = res$mod
-        }
+        # Yearly extraction
+        df_XEx = do.call(
+            what=extraction_process,
+            args=c(list(data=df_data,
+                        funct=functY,
+                        period=per,
+                        samplePeriod=samplePeriodY,
+                        timeStep='year',
+                        isDate=isDateY,
+                        NApct_lim=NApct_lim,
+                        NAyear_lim=NAyear_lim,
+                        verbose=verbose),
+                   functY_args))
 
+        print(df_XEx)
+        
         # Compute the trend analysis
-        df_Xtrend = Estimate_stats_WRAP(df_XEx=df_XEx,
-                                        period=per,
-                                        dep_option='AR1',
-                                        verbose=verbose)
+        df_Xtrend = trend_analyse(data=df_XEx,
+                                  timeDep_option="AR1",
+                                  verbose=verbose)
         
         # Get the associated time interval
         I = lubridate::interval(per[1], per[2])
