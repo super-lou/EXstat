@@ -51,15 +51,9 @@ get_Xtrend = function (var, df_data, period,
                        df_mod=tibble(),
                        verbose=TRUE) {
 
-    # if (verbose) {
-    #     if (!is.tbl(samplePeriod)) {
-    #         print(paste0('. Computes ', var,
-    #                      ' trend for hydrological period ',
-    #                      paste0(samplePeriod, collapse=' / ')))
-    #     } else {
-    #         print(paste0('. Computes ', var, ' trend'))
-    #     }
-    # }
+    if (verbose) {
+        print(paste0('. Computes ', var, ' trend'))
+    }
     
     # Get all different stations code
     Code = rle(df_data$Code)$value
@@ -111,7 +105,6 @@ get_Xtrend = function (var, df_data, period,
                             rmNApct=TRUE,
                             verbose=verbose),
                        functM_args))
-            print(df_data)
         }
 
         
