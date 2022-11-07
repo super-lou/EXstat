@@ -217,23 +217,26 @@ rollmean_center = function (X, k) {
     # print("a")
 
     N = length(X)
-    
     nNAdown = floor((k-1)/2)
     nNAup = ceiling((k-1)/2)
-    
     isNA = is.na(X)
-    IdNA = which(isNA)
 
+    # if (any(IdNA - nNAdown <= 1)) {
+    #     isNA[1:min(IdNA)] = TRUE
+    # }
 
-    if (any(IdNA - nNAdown <= 1)) {
-        isNA[1:min(IdNA)] = TRUE
-    }
+    # if (any(IdNA + k > N)) {
+    #     isNA[max(IdNA):N] = TRUE
+    # }
 
-    print(IdNA)
-    print(IdNA + k)
-    if (any(IdNA + k > N)) {
-        isNA[max(IdNA):N] = TRUE
-    }
+    res = rle(isNA)
+    lenNA = res$lengths
+    valNA = res$values
+    idNAend = cumsum(lenNA)
+    idNAstart = idNAend+1
+    idNAstart = c(1, idNAstart[1:(length(idNAstart)-1)])
+    toNA = (lenNA < k) & !valNA
+    isNA[unlist(Map(':', idNAstart[toNA], idNAend[toNA]))] = TRUE
 
     IdNA = which(isNA)
     res = rle(isNA)
@@ -242,14 +245,23 @@ rollmean_center = function (X, k) {
     dNA = length(lenNA)
     dNAstart = lenNA[1] * valNA[1]
     dNAend = lenNA[dNA] * valNA[dNA]
-
+    
     # print("b")
     
     XNoNA = X[!isNA]
-    IdNA = IdNA[(1+dNAstart):(length(IdNA)-dNAend)]
-    
-    IdNA = IdNA - nNAdown - dNAstart
 
+    if (length(IdNA) > 1) {
+        start = 1 + dNAstart
+        end = length(IdNA) - dNAend
+        if (start < end) {
+            IdNA = IdNA[start:end]
+        } else {
+            IdNA = NULL
+        }
+    }
+
+    IdNA = IdNA - nNAdown - dNAstart
+    
     # print("c")
 
     Xroll = accelerometry::movingaves(XNoNA, k)
