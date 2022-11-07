@@ -149,7 +149,6 @@ get_Xtrend = function (var, df_data, period,
                 }
             }
         }
-        
 
         # Yearly extraction
         df_XEx = do.call(
@@ -165,8 +164,6 @@ get_Xtrend = function (var, df_data, period,
                         verbose=verbose),
                    functY_args))
 
-        print(df_XEx)
-        
         # Compute the trend analysis
         df_Xtrend = trend_analyse(data=df_XEx,
                                   timeDep_option="AR1",
