@@ -75,12 +75,12 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     df_trend = list_df2plot[[i]]$trend
                     df_trend_code = df_trend[df_trend$Code == code,]
                                     # Extract start and end of trend periods
-                    Start = df_trend_code$period_start[j]
-                    End = df_trend_code$period_end[j]
+                    Start = df_trend_code$start[j]
+                    End = df_trend_code$end[j]
                     # Same for trend
                     df_trend_code_per = 
-                        df_trend_code[df_trend_code$period_start == Start 
-                                      & df_trend_code$period_end == End,]
+                        df_trend_code[df_trend_code$start == Start 
+                                      & df_trend_code$end == End,]
                 }
                 
                 # Extracts the corresponding data for the period
@@ -138,10 +138,10 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                         # Computes the mean of the data on the period
                         dataMean = mean(df_data_code_per$Value, na.rm=TRUE)
                         # Normalises the trend value by the mean of the data
-                        value = df_trend_code_per$trend / dataMean
+                        value = df_trend_code_per$a / dataMean
                         # If it is a date variable
                     } else if (unit == "jour" | unit == "jour de l'année" | unit == 'jour.an^{-1}') {
-                        value = df_trend_code_per$trend
+                        value = df_trend_code_per$a
                     }
                     
                     # If the p value is under the threshold
