@@ -48,6 +48,8 @@ get_Xtrend = function (var, df_data, period,
                        functYT_ext=NULL, functYT_ext_args=NULL,
                        isDateYT_ext=FALSE, functYT_sum=NULL,
                        functYT_sum_args=NULL,
+                       functYT_sum=NULL,
+                       functYT_sum_args=NULL,
                        df_mod=tibble(),
                        verbose=TRUE) {
 
@@ -76,6 +78,8 @@ get_Xtrend = function (var, df_data, period,
         df_mod = res$mod
     }
 
+    df_XEx = df_data
+
     # Make sure to convert the period to a list
     period = as.list(period)
     # Set the max interval period as the minimal possible
@@ -92,9 +96,9 @@ get_Xtrend = function (var, df_data, period,
         
         # Monthly extraction
         if (!is.null(functM)) {
-            df_data = do.call(
+            df_XEx = do.call(
                 what=extraction_process,
-                args=c(list(data=df_data,
+                args=c(list(data=df_XEx,
                             funct=functM,
                             period=per,
                             samplePeriod=samplePeriodM,
@@ -113,7 +117,7 @@ get_Xtrend = function (var, df_data, period,
                 
                 df_YTEx = do.call(
                     what=extraction_process,
-                    args=c(list(data=df_data,
+                    args=c(list(data=df_XEx,
                                 funct=functYT_ext,
                                 period=per,
                                 samplePeriod=samplePeriodY,
@@ -125,7 +129,7 @@ get_Xtrend = function (var, df_data, period,
                                 verbose=verbose),
                            functYT_ext_args))
             } else {
-                df_YTEx = df_data
+                df_YTEx = df_XEx
             }
 
             if (!is.null(functYT_sum)) {
@@ -139,9 +143,9 @@ get_Xtrend = function (var, df_data, period,
                 
                 names(df_YT)[names(df_YT) == "threshold"] =
                     names(functY_args)[functY_args == '*threshold*']
-                df_data = dplyr::full_join(df_data,
-                                           df_YT,
-                                           by="Code")
+                df_XEx = dplyr::full_join(df_XEx,
+                                          df_YT,
+                                          by="Code")
 
                 functY_args = functY_args[functY_args != "*threshold*"]
                 if (length(functY_args) == 0) {
@@ -151,19 +155,38 @@ get_Xtrend = function (var, df_data, period,
         }
 
         # Yearly extraction
-        df_XEx = do.call(
-            what=extraction_process,
-            args=c(list(data=df_data,
-                        funct=functY,
-                        period=per,
-                        samplePeriod=samplePeriodY,
-                        timeStep='year',
-                        isDate=isDateY,
-                        NApct_lim=NApct_lim,
-                        NAyear_lim=NAyear_lim,
-                        verbose=verbose),
-                   functY_args))
+        if (!is.null(functY)) {
+            df_XEx = do.call(
+                what=extraction_process,
+                args=c(list(data=df_XEx,
+                            funct=functY,
+                            period=per,
+                            samplePeriod=samplePeriodY,
+                            timeStep='year',
+                            isDate=isDateY,
+                            NApct_lim=NApct_lim,
+                            NAyear_lim=NAyear_lim,
+                            verbose=verbose),
+                       functY_args))
 
+        }
+
+        # Global extraction
+        if (!is.null(functG)) {
+            df_XEx = do.call(
+                what=extraction_process,
+                args=c(list(data=df_XEx,
+                            funct=functG,
+                            period=per,
+                            samplePeriod=NULL
+                            timeStep='none',
+                            isDate=FALSE,
+                            NApct_lim=NApct_lim,
+                            NAyear_lim=NAyear_lim,
+                            verbose=verbose),
+                       functG_args))
+        }
+            
         # Compute the trend analysis
         df_Xtrend = trend_analyse(data=df_XEx,
                                   timeDep_option="AR1",
