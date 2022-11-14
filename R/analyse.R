@@ -36,25 +36,37 @@
 
 ## 1. TREND ANALYSIS _________________________________________________
 ### 1.0. X ___________________________________________________________
-#' @title X trend
+#' @title dataEx
 #' @export
-get_Xtrend = function (var, df_data, period,
+get_dataEx = function (var, df_data, period,
                        df_flag=NULL, NApct_lim=NULL, NAyear_lim=NULL,
                        day_to_roll=NULL,
+
                        functM=NULL, functM_args=NULL, isDateM=FALSE,
                        samplePeriodM=NULL,
+                       isAlongYearM=TRUE,
+                       
+                       functS=NULL, functS_args=NULL, isDateS=FALSE,
+                       samplePeriodS=NULL,
+                       isAlongYearS=TRUE,
+                       
                        functY=NULL, functY_args=NULL, isDateY=FALSE,
                        samplePeriodY=NULL,
+
                        functYT_ext=NULL, functYT_ext_args=NULL,
                        isDateYT_ext=FALSE, functYT_sum=NULL,
                        functYT_sum_args=NULL,
                        functYT_sum=NULL,
                        functYT_sum_args=NULL,
+                       
+                       functG=NULL,
+                       functG_args=NULL,
+                       
                        df_mod=tibble(),
                        verbose=TRUE) {
 
     if (verbose) {
-        print(paste0('. Computes ', var, ' trend'))
+        print(paste0('. Computes ', var))
     }
     
     # Get all different stations code
@@ -78,14 +90,174 @@ get_Xtrend = function (var, df_data, period,
         df_mod = res$mod
     }
 
-    df_XEx = df_data
+    dataEx = df_data
+    
+    # Monthly extraction
+    if (!is.null(functM)) {
+        if (isAlongYearM) {
+            timeStepM = 'year-month'
+            rmNApctM = TRUE 
+        } else {
+            timeStepM = 'month'
+            rmNApctM = FALSE
+        }
+        dataEx = do.call(
+            what=extraction_process,
+            args=c(list(data=dataEx,
+                        funct=functM,
+                        period=per,
+                        samplePeriod=samplePeriodM,
+                        timeStep=timeStepM,
+                        isDate=isDateM,
+                        NApct_lim=NApct_lim,
+                        NAyear_lim=NAyear_lim,
+                        rmNApct=rmNApctM,
+                        verbose=verbose),
+                   functM_args))
+    }
+
+    # Seasonal extraction
+    if (!is.null(functS)) {
+        if (isAlongYearS) {
+            timeStepS = 'year-season'
+            rmNApctS = TRUE
+        } else {
+            timeStepS = 'season'
+            rmNApctS = FALSE
+        }
+        dataEx = do.call(
+            what=extraction_process,
+            args=c(list(data=dataEx,
+                        funct=functS,
+                        period=per,
+                        samplePeriod=samplePeriodS,
+                        timeStep=timeStepS,
+                        isDate=isDateS,
+                        NApct_lim=NApct_lim,
+                        NAyear_lim=NAyear_lim,
+                        rmNApct=rmNApctS,
+                        verbose=verbose),
+                   functS_args))
+    }
+
+    
+    if (!is.null(functYT_ext) | !is.null(functYT_sum)) {
+        if (!is.null(functYT_ext)) {
+            
+            df_YTEx = do.call(
+                what=extraction_process,
+                args=c(list(data=dataEx,
+                            funct=functYT_ext,
+                            period=per,
+                            samplePeriod=samplePeriodY,
+                            timeStep='year',
+                            isDate=isDateYT_ext,
+                            NApct_lim=NApct_lim,
+                            NAyear_lim=NAyear_lim,
+                            rmNApct=TRUE,
+                            verbose=verbose),
+                       functYT_ext_args))
+        } else {
+            df_YTEx = dataEx
+        }
+
+        if (!is.null(functYT_sum)) {
+            df_YT =
+                dplyr::summarise(
+                           dplyr::group_by(df_YTEx, Code),
+                           threshold=
+                               functYT_sum(Value,
+                                           !!!functYT_sum_args),
+                           .groups="drop")
+            
+            names(df_YT)[names(df_YT) == "threshold"] =
+                names(functY_args)[functY_args == '*threshold*']
+            dataEx = dplyr::full_join(dataEx,
+                                      df_YT,
+                                      by="Code")
+
+            functY_args = functY_args[functY_args != "*threshold*"]
+            if (length(functY_args) == 0) {
+                functY_args = NULL
+            }
+        }
+    }
+
+    # Yearly extraction
+    if (!is.null(functY)) {
+        dataEx = do.call(
+            what=extraction_process,
+            args=c(list(data=dataEx,
+                        funct=functY,
+                        period=per,
+                        samplePeriod=samplePeriodY,
+                        timeStep='year',
+                        isDate=isDateY,
+                        NApct_lim=NApct_lim,
+                        NAyear_lim=NAyear_lim,
+                        verbose=verbose),
+                   functY_args))
+
+    }
+
+    # Global extraction
+    if (!is.null(functG)) {
+        dataEx = do.call(
+            what=extraction_process,
+            args=c(list(data=dataEx,
+                        funct=functG,
+                        period=per,
+                        samplePeriod=NULL
+                        timeStep='none',
+                        isDate=FALSE,
+                        NApct_lim=NApct_lim,
+                        NAyear_lim=NAyear_lim,
+                        verbose=verbose),
+                   functG_args))
+    }
+    
+    return (dataEx)
+}
+
+#' @title X trend
+#' @export
+get_Xtrend = function (var, df_data, period, level=0.1,
+                       df_flag=NULL, NApct_lim=NULL, NAyear_lim=NULL,
+                       day_to_roll=NULL,
+
+                       functM=NULL, functM_args=NULL, isDateM=FALSE,
+                       samplePeriodM=NULL,
+                       isAlongYearM=TRUE,
+                       
+                       functS=NULL, functS_args=NULL, isDateS=FALSE,
+                       samplePeriodS=NULL,
+                       isAlongYearS=TRUE,
+                       
+                       functY=NULL, functY_args=NULL, isDateY=FALSE,
+                       samplePeriodY=NULL,
+
+                       functYT_ext=NULL, functYT_ext_args=NULL,
+                       isDateYT_ext=FALSE, functYT_sum=NULL,
+                       functYT_sum_args=NULL,
+                       functYT_sum=NULL,
+                       functYT_sum_args=NULL,
+                       
+                       functG=NULL,
+                       functG_args=NULL,
+                       
+                       df_mod=tibble(),
+                       verbose=TRUE) {
+
+    if (verbose) {
+        print(paste0('. Computes ', var, ' trend'))
+    }
 
     # Make sure to convert the period to a list
     period = as.list(period)
     # Set the max interval period as the minimal possible
     Imax = 0
     # Blank tibble for data to return
-    df_Xtrend_all = tibble()
+    Xtrend_all = tibble()
 
     # For all periods
     for (per in period) {
@@ -93,104 +265,41 @@ get_Xtrend = function (var, df_data, period,
         if (verbose) {
             print(paste0('.. For period : ', paste0(per, collapse=' / ')))
         }
+
+        dataEx = get_dataEx(var,
+                            df_data,# df_meta_missing,
+                            period=period,
+                            df_flag=df_flag,
+                            NApct_lim=NApct_lim,
+                            NAyear_lim=NAyear_lim,
+                            day_to_roll=day_to_roll,
+                            functM=functM,
+                            functM_args=functM_args,
+                            isDateM=isDateM,
+                            samplePeriodM=samplePeriodM,
+                            isAlongYearM=isAlongYearM,
+                            functS=functS,
+                            functS_args=functS_args,
+                            isDateS=isDateS,
+                            samplePeriodS=samplePeriodS,
+                            isAlongYearS=isAlongYearS,
+                            functY=functY,
+                            functY_args=functY_args,
+                            isDateY=isDateY,
+                            samplePeriodY=samplePeriodY,
+                            functYT_ext=functYT_ext,
+                            functYT_ext_args=functYT_ext_args,
+                            isDateYT_ext=isDateYT_ext,
+                            functYT_sum=functYT_sum,
+                            functYT_sum_args=functYT_sum_args,
+                            functG=functG,
+                            functG_args=functG_args)
         
-        # Monthly extraction
-        if (!is.null(functM)) {
-            df_XEx = do.call(
-                what=extraction_process,
-                args=c(list(data=df_XEx,
-                            funct=functM,
-                            period=per,
-                            samplePeriod=samplePeriodM,
-                            timeStep='year-month',
-                            isDate=isDateM,
-                            NApct_lim=NApct_lim,
-                            NAyear_lim=NAyear_lim,
-                            rmNApct=TRUE,
-                            verbose=verbose),
-                       functM_args))
-        }
-
-        
-        if (!is.null(functYT_ext) | !is.null(functYT_sum)) {
-            if (!is.null(functYT_ext)) {
-                
-                df_YTEx = do.call(
-                    what=extraction_process,
-                    args=c(list(data=df_XEx,
-                                funct=functYT_ext,
-                                period=per,
-                                samplePeriod=samplePeriodY,
-                                timeStep='year',
-                                isDate=isDateYT_ext,
-                                NApct_lim=NApct_lim,
-                                NAyear_lim=NAyear_lim,
-                                rmNApct=TRUE,
-                                verbose=verbose),
-                           functYT_ext_args))
-            } else {
-                df_YTEx = df_XEx
-            }
-
-            if (!is.null(functYT_sum)) {
-                df_YT =
-                    dplyr::summarise(
-                               dplyr::group_by(df_YTEx, Code),
-                               threshold=
-                                   functYT_sum(Value,
-                                               !!!functYT_sum_args),
-                               .groups="drop")
-                
-                names(df_YT)[names(df_YT) == "threshold"] =
-                    names(functY_args)[functY_args == '*threshold*']
-                df_XEx = dplyr::full_join(df_XEx,
-                                          df_YT,
-                                          by="Code")
-
-                functY_args = functY_args[functY_args != "*threshold*"]
-                if (length(functY_args) == 0) {
-                    functY_args = NULL
-                }
-            }
-        }
-
-        # Yearly extraction
-        if (!is.null(functY)) {
-            df_XEx = do.call(
-                what=extraction_process,
-                args=c(list(data=df_XEx,
-                            funct=functY,
-                            period=per,
-                            samplePeriod=samplePeriodY,
-                            timeStep='year',
-                            isDate=isDateY,
-                            NApct_lim=NApct_lim,
-                            NAyear_lim=NAyear_lim,
-                            verbose=verbose),
-                       functY_args))
-
-        }
-
-        # Global extraction
-        if (!is.null(functG)) {
-            df_XEx = do.call(
-                what=extraction_process,
-                args=c(list(data=df_XEx,
-                            funct=functG,
-                            period=per,
-                            samplePeriod=NULL
-                            timeStep='none',
-                            isDate=FALSE,
-                            NApct_lim=NApct_lim,
-                            NAyear_lim=NAyear_lim,
-                            verbose=verbose),
-                       functG_args))
-        }
-            
         # Compute the trend analysis
-        df_Xtrend = trend_analyse(data=df_XEx,
-                                  timeDep_option="AR1",
-                                  verbose=verbose)
+        Xtrend = trend_analyse(data=dataEx,
+                               MK_level=level,
+                               timeDep_option="AR1",
+                               verbose=verbose)
         
         # Get the associated time interval
         I = lubridate::interval(per[1], per[2])
@@ -198,14 +307,14 @@ get_Xtrend = function (var, df_data, period,
         if (I > Imax) {
             # Store it and the associated data
             Imax = I
-            df_XEx_all = df_XEx
+            dataEx_all = dataEx
         }
         # Store the trend
-        df_Xtrend_all = bind_rows(df_Xtrend_all, df_Xtrend)
+        Xtrend_all = bind_rows(Xtrend_all, Xtrend)
     }
 
     # Creates a list of results to return
-    res_analyse = list(extract=df_XEx_all, estimate=df_Xtrend_all)
+    res_analyse = list(extract=dataEx_all, estimate=Xtrend_all)
     res = list(data=df_data, mod=df_mod,
                analyse=res_analyse)
     return (res)
@@ -507,7 +616,7 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
 # Compute the break date of the flow data by station 
 #' @title Break
 #' @export
-get_break = function (df_data, df_meta, alpha=0.1) {
+get_break = function (df_data, df_meta, level=0.1) {
     
     # Get all different stations code
     Code = rle(df_data$Code)$value
@@ -542,7 +651,7 @@ get_break = function (df_data, df_meta, alpha=0.1) {
         Date_break = append(Date_break, 
                             df_data_codeNoNA$Date[ibreak])
         Code_break = append(Code_break, code)
-        Signif_break = append(Signif_break, p_value <= alpha)
+        Signif_break = append(Signif_break, p_value <= level)
 
         # step1 = mean(df_data_codeNoNA$Value[1:ibreak])
         # step2 = mean(df_data_codeNoNA$Value[(ibreak+1):nbreak])
