@@ -60,7 +60,7 @@ write_analyse = function (Ldf, resdir, filedir) {
 ### 1.2. Dataframe of modified data __________________________________
 #' @title Write dataframe
 #' @export
-write_data = function (df_data, df_mod, resdir, filedir) {
+write_data = function (data, df_mod, resdir, filedir) {
 
     Code = rle(sort(df_mod$Code))$values
     
@@ -72,11 +72,11 @@ write_data = function (df_data, df_mod, resdir, filedir) {
     print(paste('Writing of modified data in : ', outdir, sep=''))
 
     for (code in Code) {
-        df_data_code = df_data[df_data$Code == code,]
+        data_code = data[data$Code == code,]
         df_mod_code = df_mod[df_mod$Code == code,]
 
         outfile1 = paste(code, '.txt', sep='')
-        write.table(df_data_code,
+        write.table(data_code,
                     file=file.path(outdir, outfile1),
                     sep=";",
                     quote=TRUE,
@@ -115,7 +115,7 @@ write_critique = function (df_critique, resdir, filename='critique') {
 ### 1.4. Fast for R __________________________________________________
 #' @title Write data dataframe fast
 #' @export
-write_dataFST = function (df_data, resdir, filedir='fst',
+write_dataFST = function (data, resdir, filedir='fst',
                           filename='data.fst') {
     
     outdir = file.path(resdir, filedir)
@@ -123,7 +123,7 @@ write_dataFST = function (df_data, resdir, filedir='fst',
         dir.create(outdir, recursive=TRUE)
     }
     outfile = file.path(outdir, filename)
-    fst::write_fst(df_data, outfile, compress=0)
+    fst::write_fst(data, outfile, compress=0)
 }
 
 #' @title Write meta dataframe fast
@@ -212,20 +212,20 @@ read_data = function (resdir, filedir, filename, verbose=TRUE) {
         } 
 
         # Create a blank data frame
-        df_data = data.frame()
+        data = data.frame()
 
         # For all the file in the filelist
         for (f in filelist) {
             # Concatenate by raw data frames created by this function
             # when filename correspond to only one filename
-            df_data = rbind(df_data,
+            data = rbind(data,
                             read_data(resdir, 
                                       filedir, 
                                       f))
         }
         # Set the rownames by default (to avoid strange numbering)
-        rownames(df_data) = NULL
-        return (df_data)
+        rownames(data) = NULL
+        return (data)
     }
     
     # Get the filename from the vector
@@ -242,25 +242,25 @@ read_data = function (resdir, filedir, filename, verbose=TRUE) {
     if (file.exists(file_path) & substr(file_path, nchar(file_path),
                                         nchar(file_path)) != '/') {
         # Extract the data as a data frame
-        df_data = as_tibble(read.table(file_path,
+        data = as_tibble(read.table(file_path,
                                        header=TRUE,
                                        na.strings=c('NA'),
                                        sep=';',
                                        quote='"',
                                        skip=0))
 
-        for (j in 1:ncol(df_data)) {
-            if (is.factor(df_data[[j]])) {
-                d = try(as.Date(df_data[[1, j]], format="%Y-%m-%d"))
+        for (j in 1:ncol(data)) {
+            if (is.factor(data[[j]])) {
+                d = try(as.Date(data[[1, j]], format="%Y-%m-%d"))
                 if("try-error" %in% class(d) || is.na(d)) {
-                    df_data[j] = as.character(df_data[[j]])
+                    data[j] = as.character(data[[j]])
                 } else {
-                    df_data[j] = as.Date(df_data[[j]])
+                    data[j] = as.Date(data[[j]])
                 }
             }
         }
         
-        return (df_data)
+        return (data)
 
     } else {
         print(paste('filename', file_path, 'do not exist'))

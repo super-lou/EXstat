@@ -46,13 +46,13 @@ join_selection = function (list_data, list_meta, list_from) {
 
     Code = c()
     for (i in 1:nb_selec) {
-        df_datatmp = list_data[[i]]
+        datatmp = list_data[[i]]
         df_metatmp = list_meta[[i]]
         from = list_from[[i]]
         
-        if (!is.null(df_datatmp)) {
+        if (!is.null(datatmp)) {
             
-            df_datatmp = df_datatmp[!(df_datatmp$Code %in% Code),]
+            datatmp = datatmp[!(datatmp$Code %in% Code),]
             df_metatmp = df_metatmp[!(df_metatmp$Code %in% Code),]
             Code = c(Code,
                      df_metatmp$Code[!(df_metatmp$Code %in% Code)])
@@ -60,12 +60,12 @@ join_selection = function (list_data, list_meta, list_from) {
             df_metatmp$source = from
             
             if (Blank) {
-                df_data = df_datatmp
+                data = datatmp
                 df_meta = df_metatmp
                 Blank = FALSE
             } else {
                 # Joins tibble
-                df_data = full_join(df_data, df_datatmp)
+                data = full_join(data, datatmp)
                 df_meta = full_join(df_meta, df_metatmp)
             }
         }
@@ -74,7 +74,7 @@ join_selection = function (list_data, list_meta, list_from) {
     if (Blank) {
         stop('No data')
     }
-    return (list(data=df_data, meta=df_meta))
+    return (list(data=data, meta=df_meta))
 }
 
 
@@ -88,7 +88,7 @@ add_mod = function (df_mod, Code, type, fun_name, comment, df_meta=NULL) {
         Code = NA # erreur
     } else if (Code == 'all' & !is.null(df_meta)) {
         # Get all different stations code
-        Code = rle(df_data$Code)$value
+        Code = rle(data$Code)$value
     }
     
     for (code in Code) {
@@ -98,4 +98,52 @@ add_mod = function (df_mod, Code, type, fun_name, comment, df_meta=NULL) {
         df_mod = bind_rows(df_mod, df_modtmp)
     }
     return (df_mod)
+}
+
+
+sourceProcess = function (path, default=NULL) {
+    assign("ASHES", new.env(), envir=.GlobalEnv)
+    source(path, encoding='UTF-8')
+    lsASHES = ls(envir=ASHES)
+    
+    Process_def = lsASHES[grepl("P[.]", lsASHES)]
+    Process = lapply(Process_def, get, envir=ASHES)
+    names(Process) = gsub("P[.]", "", Process_def)
+    Process = list(Process)
+    names(Process) = "P"
+    
+    if (!is.null(default)) {
+        nOK = !(names(default$P) %in% names(Process$P))
+        Process$P = append(Process$P, default$P[nOK])
+    }
+    
+    process_allAtt = lsASHES[grepl("P[[:digit:]][.]", lsASHES)]
+    process_allNames = str_extract(process_allAtt, "P[[:digit:]]")
+    process_names = process_allNames[!duplicated(process_allNames)]
+    Nprocess = length(process_names)
+
+    for (i in 1:Nprocess) {
+        process_name = paste0("P", i)
+        IDprocess = grepl(paste0(process_name, "[.]"),
+                          process_allAtt)
+
+        process_att = process_allAtt[IDprocess]
+        process = lapply(process_att, get, envir=ASHES)
+        
+        names(process) = gsub("P[[:digit:]][.]", "",
+                              process_att)
+        process = list(process)
+        names(process) = process_name
+
+        if (!is.null(default)) {
+            nOK = !(names(default$P1) %in%
+                    names(process[[process_name]]))
+            process[[process_name]] =
+                append(process[[process_name]], default$P1[nOK])
+        }
+        Process = append(Process, process)
+    }
+
+    rm (list=ls(envir=ASHES), envir=ASHES)
+    return (Process)
 }

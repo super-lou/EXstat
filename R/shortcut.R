@@ -58,9 +58,9 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                 unit = list_df2plot[[i]]$unit
                 # Extracts the data corresponding to the
                 # current variable
-                df_data = list_df2plot[[i]]$data
+                data = list_df2plot[[i]]$data
                 # Extracts the data corresponding to the code
-                df_data_code = df_data[df_data$Code == code,]
+                data_code = data[data$Code == code,]
 
                 if (valueType == "break") {
                     # Get the current start and end of the sub period
@@ -84,17 +84,17 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                 }
                 
                 # Extracts the corresponding data for the period
-                df_data_code_per =
-                    df_data_code[df_data_code$Date >= Start 
-                                 & df_data_code$Date <= End,]
+                data_code_per =
+                    data_code[data_code$Date >= Start 
+                                 & data_code$Date <= End,]
 
                 if (valueType == "break") {
                     # Min max for the sub period
-                    Datemin = min(df_data_code_per$Date)
-                    Datemax = max(df_data_code_per$Date)
+                    Datemin = min(data_code_per$Date)
+                    Datemax = max(data_code_per$Date)
 
                     # Mean of the flow over the sub period
-                    dataMean = mean(df_data_code_per$Value,
+                    dataMean = mean(data_code_per$Value,
                                     na.rm=TRUE)
 
                     # If this in not the first period
@@ -136,7 +136,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     # If it is a flow variable
                     if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                         # Computes the mean of the data on the period
-                        dataMean = mean(df_data_code_per$Value, na.rm=TRUE)
+                        dataMean = mean(data_code_per$Value, na.rm=TRUE)
                         # Normalises the trend value by the mean of the data
                         value = df_trend_code_per$a / dataMean
                         # If it is a date variable
@@ -169,7 +169,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
 }
 
 
-get_Nspace = function (df_data_code, unit, lim_pct, NspaceMax=NULL) {
+get_Nspace = function (data_code, unit, lim_pct, NspaceMax=NULL) {
     
     # If variable unit is date 
     if (unit == "jour de l'année") {
@@ -183,7 +183,7 @@ get_Nspace = function (df_data_code, unit, lim_pct, NspaceMax=NULL) {
     # If it is a flow variable
     } else if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'jour' | unit == 'jour.an^{-1}') {
         # Gets the max number of digit on the label
-        maxtmp = max(df_data_code$Value, na.rm=TRUE)
+        maxtmp = max(data_code$Value, na.rm=TRUE)
 
         # If the max is greater than 10
         if (get_power(maxtmp) >= 4) {

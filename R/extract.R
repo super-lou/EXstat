@@ -606,20 +606,20 @@ extract_data = function (computer_data_path, filedir, filename,
         } 
 
         # Create a blank data frame
-        df_data = data.frame()
+        data = data.frame()
 
         # For all the file in the filelist
         for (f in filelist) {
             # Concatenate by raw data frames created by this function
             # when filename correspond to only one filename
-            df_data = rbind(df_data,
+            data = rbind(data,
                             extract_data(computer_data_path, 
                                            filedir, 
                                            f))
         }
         # Set the rownames by default (to avoid strange numbering)
-        rownames(df_data) = NULL
-        return (df_data)
+        rownames(data) = NULL
+        return (data)
     }
     
     # Get the filename from the vector
@@ -636,7 +636,7 @@ extract_data = function (computer_data_path, filedir, filename,
     if (file.exists(file_path) & substr(file_path, nchar(file_path),
                                         nchar(file_path)) != '/') {
         # Extract the data as a data frame
-        df_data = read.table(file_path,
+        data = read.table(file_path,
                              header=TRUE,
                              na.strings=c('     -99', ' -99.000'),
                              sep=';',
@@ -649,11 +649,11 @@ extract_data = function (computer_data_path, filedir, filename,
         code = df_meta$Code
         # Create a tibble with the date as Date class and the code
         # of the station
-        df_data = tibble(Date=as.Date(as.character(df_data$Date),
+        data = tibble(Date=as.Date(as.character(data$Date),
                                       format="%Y%m%d"),
-                         Value=df_data$Qls * 1E-3,
+                         Value=data$Qls * 1E-3,
                          Code=code)
-        return (df_data)
+        return (data)
 
     } else {
         print(paste('filename', file_path, 'do not exist'))
@@ -661,7 +661,7 @@ extract_data = function (computer_data_path, filedir, filename,
     }
 }
 # Example
-# df_data = extract_data(
+# data = extract_data(
 #     "/home/louis/Documents/bouleau/INRAE/CDD_stationnarite/data",
 #     '',
 #     c('H5920011_HYDRO_QJM.txt', 'K4470010_HYDRO_QJM.txt'))
@@ -690,24 +690,24 @@ extract_climate_data = function (computer_data_path, filedir,
     basin = gsub("[^[:alnum:] ].*$", '', filelist)
     
     df_meta = tibble(Code=basin)
-    df_data = tibble()
+    data = tibble()
     nfile = length(filelist)
     
     for (i in 1:nfile) {
         file_path = file.path(dirpath, filelist[i])
         # Extract the data as a data frame
-        df_data_basin = read.table(file_path,
+        data_basin = read.table(file_path,
                                     header=FALSE,
                                     sep=' ',
                                     skip=1)
 
-        df_data_basin$Code = basin[i]
+        data_basin$Code = basin[i]
 
-        df_data = bind_rows(df_data, df_data_basin)
+        data = bind_rows(data, data_basin)
     }
-    colnames(df_data) = c(colNames, 'Code')
-    df_data$Date = as.Date(df_data$Date) 
-    res = list(data=df_data, meta=df_meta)
+    colnames(data) = c(colNames, 'Code')
+    data$Date = as.Date(data$Date) 
+    res = list(data=data, meta=df_meta)
     return (res)
 }
 # Example

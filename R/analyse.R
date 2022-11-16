@@ -38,218 +38,67 @@
 ### 1.0. X ___________________________________________________________
 #' @title dataEx
 #' @export
-get_dataEx = function (var, df_data, period,
-                       df_flag=NULL, NApct_lim=NULL, NAyear_lim=NULL,
-                       day_to_roll=NULL,
-
-                       functM=NULL, functM_args=NULL, isDateM=FALSE,
-                       samplePeriodM=NULL,
-                       isAlongYearM=TRUE,
-                       
-                       functS=NULL, functS_args=NULL, isDateS=FALSE,
-                       samplePeriodS=NULL,
-                       isAlongYearS=TRUE,
-                       
-                       functY=NULL, functY_args=NULL, isDateY=FALSE,
-                       samplePeriodY=NULL,
-
-                       functYT_ext=NULL, functYT_ext_args=NULL,
-                       isDateYT_ext=FALSE, functYT_sum=NULL,
-                       functYT_sum_args=NULL,
-                       functYT_sum=NULL,
-                       functYT_sum_args=NULL,
-                       
-                       functG=NULL,
-                       functG_args=NULL,
-                       
-                       df_mod=tibble(),
-                       verbose=TRUE) {
+get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
+                       df_mod=tibble(), verbose=TRUE) {
 
     if (verbose) {
-        print(paste0('. Computes ', var))
+        print(paste0('. Computes ', Process$P$var))
     }
     
     # Get all different stations code
-    Code = rle(df_data$Code)$value
+    Code = rle(data$Code)$value
 
     if (!is.null(df_flag)) {
         # Local corrections if needed
-        res = flag_data(df_data,
+        res = flag_data(data,
                         df_flag=df_flag,
                         df_mod=df_mod,
                         verbose=verbose)
-        df_data = res$data
+        data = res$data
         df_mod = res$mod
     }
 
-    if (!is.null(day_to_roll)) {
-        # Computes the rolling average by day_to_roll days over the data
-        res = rollmean_code(df_data, day_to_roll, df_mod=df_mod,
-                            verbose=verbose)
-        df_data = res$data
-        df_mod = res$mod
-    }
 
-    dataEx = df_data
-    
-    # Monthly extraction
-    if (!is.null(functM)) {
-        if (isAlongYearM) {
-            timeStepM = 'year-month'
-            rmNApctM = TRUE 
-        } else {
-            timeStepM = 'month'
-            rmNApctM = FALSE
+    dataEx = data
+
+    nProcess = length(Process) - 1
+
+    for (i in 1:nProcess) {
+
+        process = Process[[paste0("P", i)]]
+        process_names = names(process)
+        for (i in 1:length(process)) {
+            assign(process_names[i], process[[i]])
         }
+
+        # Extraction
         dataEx = do.call(
             what=extraction_process,
             args=c(list(data=dataEx,
-                        funct=functM,
-                        period=per,
-                        samplePeriod=samplePeriodM,
-                        timeStep=timeStepM,
-                        isDate=isDateM,
-                        NApct_lim=NApct_lim,
-                        NAyear_lim=NAyear_lim,
-                        rmNApct=rmNApctM,
-                        verbose=verbose),
-                   functM_args))
-    }
-
-    # Seasonal extraction
-    if (!is.null(functS)) {
-        if (isAlongYearS) {
-            timeStepS = 'year-season'
-            rmNApctS = TRUE
-        } else {
-            timeStepS = 'season'
-            rmNApctS = FALSE
-        }
-        dataEx = do.call(
-            what=extraction_process,
-            args=c(list(data=dataEx,
-                        funct=functS,
-                        period=per,
-                        samplePeriod=samplePeriodS,
-                        timeStep=timeStepS,
-                        isDate=isDateS,
-                        NApct_lim=NApct_lim,
-                        NAyear_lim=NAyear_lim,
-                        rmNApct=rmNApctS,
-                        verbose=verbose),
-                   functS_args))
-    }
-
-    
-    if (!is.null(functYT_ext) | !is.null(functYT_sum)) {
-        if (!is.null(functYT_ext)) {
-            
-            df_YTEx = do.call(
-                what=extraction_process,
-                args=c(list(data=dataEx,
-                            funct=functYT_ext,
-                            period=per,
-                            samplePeriod=samplePeriodY,
-                            timeStep='year',
-                            isDate=isDateYT_ext,
-                            NApct_lim=NApct_lim,
-                            NAyear_lim=NAyear_lim,
-                            rmNApct=TRUE,
-                            verbose=verbose),
-                       functYT_ext_args))
-        } else {
-            df_YTEx = dataEx
-        }
-
-        if (!is.null(functYT_sum)) {
-            df_YT =
-                dplyr::summarise(
-                           dplyr::group_by(df_YTEx, Code),
-                           threshold=
-                               functYT_sum(Value,
-                                           !!!functYT_sum_args),
-                           .groups="drop")
-            
-            names(df_YT)[names(df_YT) == "threshold"] =
-                names(functY_args)[functY_args == '*threshold*']
-            dataEx = dplyr::full_join(dataEx,
-                                      df_YT,
-                                      by="Code")
-
-            functY_args = functY_args[functY_args != "*threshold*"]
-            if (length(functY_args) == 0) {
-                functY_args = NULL
-            }
-        }
-    }
-
-    # Yearly extraction
-    if (!is.null(functY)) {
-        dataEx = do.call(
-            what=extraction_process,
-            args=c(list(data=dataEx,
-                        funct=functY,
-                        period=per,
-                        samplePeriod=samplePeriodY,
-                        timeStep='year',
-                        isDate=isDateY,
+                        funct=funct,
+                        funct_args=funct_args,
+                        period=period,
+                        samplePeriod=samplePeriod,
+                        timeStep=timeStep,
+                        isDate=isDate,
                         NApct_lim=NApct_lim,
                         NAyear_lim=NAyear_lim,
                         verbose=verbose),
                    functY_args))
-
     }
 
-    # Global extraction
-    if (!is.null(functG)) {
-        dataEx = do.call(
-            what=extraction_process,
-            args=c(list(data=dataEx,
-                        funct=functG,
-                        period=per,
-                        samplePeriod=NULL
-                        timeStep='none',
-                        isDate=FALSE,
-                        NApct_lim=NApct_lim,
-                        NAyear_lim=NAyear_lim,
-                        verbose=verbose),
-                   functG_args))
-    }
-    
     return (dataEx)
 }
 
 #' @title X trend
 #' @export
-get_Xtrend = function (var, df_data, period, level=0.1,
-                       df_flag=NULL, NApct_lim=NULL, NAyear_lim=NULL,
-                       day_to_roll=NULL,
-
-                       functM=NULL, functM_args=NULL, isDateM=FALSE,
-                       samplePeriodM=NULL,
-                       isAlongYearM=TRUE,
-                       
-                       functS=NULL, functS_args=NULL, isDateS=FALSE,
-                       samplePeriodS=NULL,
-                       isAlongYearS=TRUE,
-                       
-                       functY=NULL, functY_args=NULL, isDateY=FALSE,
-                       samplePeriodY=NULL,
-
-                       functYT_ext=NULL, functYT_ext_args=NULL,
-                       isDateYT_ext=FALSE, functYT_sum=NULL,
-                       functYT_sum_args=NULL,
-                       functYT_sum=NULL,
-                       functYT_sum_args=NULL,
-                       
-                       functG=NULL,
-                       functG_args=NULL,
-                       
+get_Xtrend = function (data, Process, period=NULL, level=0.1,
+                       df_flag=NULL,
                        df_mod=tibble(),
                        verbose=TRUE) {
 
     if (verbose) {
-        print(paste0('. Computes ', var, ' trend'))
+        print(paste0('. Computes ', ' trend'))
     }
 
     # Make sure to convert the period to a list
@@ -266,34 +115,10 @@ get_Xtrend = function (var, df_data, period, level=0.1,
             print(paste0('.. For period : ', paste0(per, collapse=' / ')))
         }
 
-        dataEx = get_dataEx(var,
-                            df_data,# df_meta_missing,
-                            period=period,
-                            df_flag=df_flag,
-                            NApct_lim=NApct_lim,
-                            NAyear_lim=NAyear_lim,
-                            day_to_roll=day_to_roll,
-                            functM=functM,
-                            functM_args=functM_args,
-                            isDateM=isDateM,
-                            samplePeriodM=samplePeriodM,
-                            isAlongYearM=isAlongYearM,
-                            functS=functS,
-                            functS_args=functS_args,
-                            isDateS=isDateS,
-                            samplePeriodS=samplePeriodS,
-                            isAlongYearS=isAlongYearS,
-                            functY=functY,
-                            functY_args=functY_args,
-                            isDateY=isDateY,
-                            samplePeriodY=samplePeriodY,
-                            functYT_ext=functYT_ext,
-                            functYT_ext_args=functYT_ext_args,
-                            isDateYT_ext=isDateYT_ext,
-                            functYT_sum=functYT_sum,
-                            functYT_sum_args=functYT_sum_args,
-                            functG=functG,
-                            functG_args=functG_args)
+        dataEx = get_dataEx(data,
+                            Process,
+                            period=per,
+                            df_flag=df_flag)
         
         # Compute the trend analysis
         Xtrend = trend_analyse(data=dataEx,
@@ -315,7 +140,7 @@ get_Xtrend = function (var, df_data, period, level=0.1,
 
     # Creates a list of results to return
     res_analyse = list(extract=dataEx_all, estimate=Xtrend_all)
-    res = list(data=df_data, mod=df_mod,
+    res = list(data=data, mod=df_mod,
                analyse=res_analyse)
     return (res)
 }
@@ -343,20 +168,10 @@ expandNA = function (X, nNAdown, nNAup) {
 #' @export
 rollmean_center = function (X, k) {
 
-    # print("a")
-
     N = length(X)
     nNAdown = floor((k-1)/2)
     nNAup = ceiling((k-1)/2)
     isNA = is.na(X)
-
-    # if (any(IdNA - nNAdown <= 1)) {
-    #     isNA[1:min(IdNA)] = TRUE
-    # }
-
-    # if (any(IdNA + k > N)) {
-    #     isNA[max(IdNA):N] = TRUE
-    # }
 
     res = rle(isNA)
     lenNA = res$lengths
@@ -375,8 +190,6 @@ rollmean_center = function (X, k) {
     dNAstart = lenNA[1] * valNA[1]
     dNAend = lenNA[dNA] * valNA[dNA]
     
-    # print("b")
-    
     XNoNA = X[!isNA]
 
     if (length(IdNA) > 1) {
@@ -390,37 +203,24 @@ rollmean_center = function (X, k) {
     }
 
     IdNA = IdNA - nNAdown - dNAstart
-    
-    # print("c")
-
     Xroll = accelerometry::movingaves(XNoNA, k)
-
-    # print("d")
 
     if (!identical(IdNA, numeric(0)) & !all(is.na(IdNA))) {
 
         IdNA = IdNA - 1:length(IdNA)
         Xroll = R.utils::insert(Xroll, IdNA, NA)
     }
-
-    # print("e")
-
     Xroll = expandNA(Xroll, nNAdown, nNAup)
-    
     Xroll = c(rep(NA, dNAstart), Xroll)
     Xroll = c(Xroll, rep(NA, dNAend))
-
     Xroll = c(rep(NA, nNAdown), Xroll)
     Xroll = c(Xroll, rep(NA, nNAup))
-
-    # print("")
-    
     return (Xroll)
 }
 
 #' @title Rolling average station
 #' @export
-rollmean_code = function (df_data, nroll=10, df_mod=NULL, verbose=TRUE) {
+rollmean_code = function (data, nroll=10, df_mod=NULL, verbose=TRUE) {
 
     if (verbose) {
         print(paste0('.. Rolling average over ', nroll, " days"))
@@ -428,23 +228,23 @@ rollmean_code = function (df_data, nroll=10, df_mod=NULL, verbose=TRUE) {
 
     library(accelerometry)
     
-    df_roll = summarise(group_by(df_data, Code),
+    df_roll = summarise(group_by(data, Code),
                         Value=rollmean_center(Value,
                                               k=nroll),
                         .groups="drop")
     
-    # df_roll = summarise(group_by(df_data, Code),
+    # df_roll = summarise(group_by(data, Code),
     #                     Value=zoo::rollmean(Value,
     #                                         k=nroll,
     #                                         na.pad=TRUE),
     #                     .groups="drop")
     
-    df_data = tibble(Date=df_data$Date,
+    data = tibble(Date=data$Date,
                      Value=df_roll$Value,
                      Code=df_roll$Code)
 
     if (!is.null(df_mod)) {
-        Code = rle(df_data$Code)$value
+        Code = rle(data$Code)$value
         # For all the code
         for (code in Code) {
             df_mod = add_mod(df_mod, code,
@@ -457,20 +257,20 @@ rollmean_code = function (df_data, nroll=10, df_mod=NULL, verbose=TRUE) {
     }
     
     if (!is.null(df_mod)) {
-        res = list(data=df_data, mod=df_mod)
+        res = list(data=data, mod=df_mod)
         return (res)
     } else {
-        return (df_data)
+        return (data)
     }
 }
 
 ### 2.2. Compute square root of data _________________________________
 #' @title Square root
 #' @export
-compute_sqrt = function (df_data) {
-    df_sqrt = tibble(Date=df_data$Date,
-                     Value=sqrt(df_data$Value),
-                     Code=df_data$Code)
+compute_sqrt = function (data) {
+    df_sqrt = tibble(Date=data$Date,
+                     Value=sqrt(data$Value),
+                     Code=data$Code)
     return (df_sqrt)
 }
 
@@ -480,7 +280,7 @@ compute_sqrt = function (df_data) {
 # Computes the hydrograph of a station
 #' @title Hydrograph
 #' @export
-get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
+get_hydrograph = function (data, period=NULL, df_meta=NULL) {
     
     xref = matrix(
         c(0.099, 0.100, 0.101, 0.099, 0.088, 0.078, 0.072,
@@ -516,8 +316,8 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
     # If there is a specified period
     if (!is.null(period)) {
         # Extracts only the data of this period
-        df_data = df_data[df_data$Date >= as.Date(period[1])
-                          & df_data$Date <= as.Date(period[2]),]
+        data = data[data$Date >= as.Date(period[1])
+                          & data$Date <= as.Date(period[2]),]
     }
     
     # If there is the metadata
@@ -529,7 +329,7 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
         df_meta$minQM = NA
         
         # Get all different stations code
-        Code = rle(df_data$Code)$value
+        Code = rle(data$Code)$value
         # Number of stations
         nCode = length(Code)
         
@@ -548,20 +348,20 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
             # Gets the code
             code = Code[k]
             # Get the associated data
-            df_data_code = df_data[df_data$Code == code,]
+            data_code = data[data$Code == code,]
         } else {
             # The data are the date for the current code
-            df_data_code = df_data
+            data_code = data
         }
         
         # Gets a list of the month of the data as numeric
-        monthData = as.numeric(format(df_data_code$Date, "%m"))
+        monthData = as.numeric(format(data_code$Date, "%m"))
         # Blank list to stock month mean
         QM_code = c()
         # For all months
         for (i in 1:12) {
             # Gets all the flow data associated to the current month
-            data = df_data_code$Value[monthData == i]
+            data = data_code$Value[monthData == i]
             # Averages the data
             QM_code[i] = mean(data, na.rm=TRUE)
         }
@@ -616,10 +416,10 @@ get_hydrograph = function (df_data, period=NULL, df_meta=NULL) {
 # Compute the break date of the flow data by station 
 #' @title Break
 #' @export
-get_break = function (df_data, df_meta, level=0.1) {
+get_break = function (data, df_meta, level=0.1) {
     
     # Get all different stations code
-    Code = rle(df_data$Code)$value
+    Code = rle(data$Code)$value
     # Number of stations
     nCode = length(Code)
 
@@ -631,12 +431,12 @@ get_break = function (df_data, df_meta, level=0.1) {
     # For all accessible code
     for (code in Code) {
         # Get the associated data
-        df_data_code = df_data[df_data$Code == code,] 
+        data_code = data[data$Code == code,] 
         # Remove NA data
-        df_data_codeNoNA = df_data_code[!is.na(df_data_code$Value),]
+        data_codeNoNA = data_code[!is.na(data_code$Value),]
 
         # Perform the break analysis thanks to the Pettitt test
-        res_break = pettitt.test(df_data_codeNoNA$Value)
+        res_break = pettitt.test(data_codeNoNA$Value)
 
         # Extract p value
         p_value = res_break$p
@@ -649,12 +449,12 @@ get_break = function (df_data, df_meta, level=0.1) {
         ibreak = round(mean(ibreak), 0)
         # Store the date break with its associated code
         Date_break = append(Date_break, 
-                            df_data_codeNoNA$Date[ibreak])
+                            data_codeNoNA$Date[ibreak])
         Code_break = append(Code_break, code)
         Signif_break = append(Signif_break, p_value <= level)
 
-        # step1 = mean(df_data_codeNoNA$Value[1:ibreak])
-        # step2 = mean(df_data_codeNoNA$Value[(ibreak+1):nbreak])
+        # step1 = mean(data_codeNoNA$Value[1:ibreak])
+        # step2 = mean(data_codeNoNA$Value[(ibreak+1):nbreak])
     }
     # Create a tibble with the break analysis results
     df_break = tibble(Code=Code_break, Date=as.Date(Date_break),
@@ -666,10 +466,10 @@ get_break = function (df_data, df_meta, level=0.1) {
 # Compute the time gap by station
 #' @title Time gap
 #' @export
-get_lacune = function (df_data, df_meta) {
+get_lacune = function (data, df_meta) {
     
     # Get all different stations code
-    Code = rle(df_data$Code)$value
+    Code = rle(data$Code)$value
     
     # Create new vector to stock results for cumulative and mean
     # time gap by station
@@ -677,23 +477,23 @@ get_lacune = function (df_data, df_meta) {
     meanLac = c()
 
     # Get rows where there is no NA
-    NoNA = complete.cases(df_data)
+    NoNA = complete.cases(data)
     # Get data where there is no NA
-    df_data_NoNA = df_data[NoNA,]
+    data_NoNA = data[NoNA,]
 
     # For every station
     for (code in Code) {   
         # Get only the data rows for the selected station
-        df_data_code = df_data[df_data$Code==code,]
+        data_code = data[data$Code==code,]
         # Get date for the selected station
-        Date = df_data_code$Date
+        Date = data_code$Date
         # Get time span for the selection station
         span = as.numeric(Date[length(Date)] - Date[1])
         
         # Get only the data rows with no NA for the selected station
-        df_data_NoNA_code = df_data_NoNA[df_data_NoNA$Code==code,]
+        data_NoNA_code = data_NoNA[data_NoNA$Code==code,]
         # Get date for the selected station
-        Date_NoNA = df_data_NoNA_code$Date
+        Date_NoNA = data_NoNA_code$Date
         
         # Compute the time gap
         lac = as.numeric(diff(Date_NoNA) - 1)
@@ -727,7 +527,7 @@ add_critique = function (df_critique, Code, author, level, start_date, variable,
         Code = NA # erreur
     } else if (Code == 'all' & !is.null(df_meta)) {
         # Get all different stations code
-        Code = rle(df_data$Code)$value
+        Code = rle(data$Code)$value
     }
 
     if (is.null(end_date)) {
