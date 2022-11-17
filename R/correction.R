@@ -51,20 +51,20 @@ flag_data = function (data, df_flag, df_mod=NULL,
             nbFlag = nrow(df_flag_code)
 
             for (i in 1:nbFlag) {
-                newValue = df_flag_code$newValue[i]
+                newQ = df_flag_code$newQ[i]
                 flagDate = as.Date(df_flag_code$Date[i])
                 OKcor = data$Code == code & data$Date == flagDate
-                oldValue = data$Value[OKcor]
-                data$Value[OKcor] = newValue
+                oldQ = data$Q[OKcor]
+                data$Q[OKcor] = newQ
 
                 if (!is.null(df_mod)) {
                     df_mod =
                         add_mod(df_mod, code,
-                                type='Value correction',
+                                type='Q correction',
                                 fun_name='Manual new value assignment',
                                 comment=paste('At ', flagDate,
-                                              ' the value ', oldValue,
-                                              ' becomes ', newValue,
+                                              ' the value ', oldQ,
+                                              ' becomes ', newQ,
                                               sep=''))
                 }
             }  

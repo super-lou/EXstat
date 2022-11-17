@@ -651,7 +651,7 @@ extract_data = function (computer_data_path, filedir, filename,
         # of the station
         data = tibble(Date=as.Date(as.character(data$Date),
                                       format="%Y%m%d"),
-                         Value=data$Qls * 1E-3,
+                         Q=data$Qls * 1E-3,
                          Code=code)
         return (data)
 

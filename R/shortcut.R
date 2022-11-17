@@ -39,7 +39,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
     
     # Blank array to store mean of the trend for each
     # station, perdiod and variable
-    Value_code = array(rep(1, nPeriod*nbVar*nCode),
+    X_code = array(rep(1, nPeriod*nbVar*nCode),
                        dim=c(nPeriod, nbVar, nCode))
 
     if (valueType == "break") {
@@ -94,7 +94,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     Datemax = max(data_code_per$Date)
 
                     # Mean of the flow over the sub period
-                    dataMean = mean(data_code_per$Value,
+                    dataMean = mean(data_code_per$X,
                                     na.rm=TRUE)
 
                     # If this in not the first period
@@ -119,7 +119,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     }
                     
                     # Stores the result
-                    Value_code[j, i, k] = value
+                    X_code[j, i, k] = value
                     # Stores temporarily the mean of the current period
                     dataMeantmp[i, k] = dataMean
                 }
@@ -136,7 +136,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     # If it is a flow variable
                     if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}') {
                         # Computes the mean of the data on the period
-                        dataMean = mean(data_code_per$Value, na.rm=TRUE)
+                        dataMean = mean(data_code_per$X, na.rm=TRUE)
                         # Normalises the trend value by the mean of the data
                         value = df_trend_code_per$a / dataMean
                         # If it is a date variable
@@ -147,11 +147,11 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     # If the p value is under the threshold
                     if (df_trend_code_per$p <= alpha | colorForce) {
                         # Stores the mean trend
-                        Value_code[j, i, k] = value
+                        X_code[j, i, k] = value
                         # Otherwise
                     } else {
                         # Do not stocks it
-                        Value_code[j, i, k] = NA
+                        X_code[j, i, k] = NA
                     }
                 }
             }
@@ -160,11 +160,11 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
 
     # Computes the min and the max of the averaged trend for
     # all the station
-    minValue = apply(Value_code, c(1, 2),
+    minX = apply(X_code, c(1, 2),
                      quantile, probs=minQprob, na.rm=TRUE)
-    maxValue = apply(Value_code, c(1, 2),
+    maxX = apply(X_code, c(1, 2),
                      quantile, probs=maxQprob, na.rm=TRUE)
-    res = list(value=Value_code, min=minValue, max=maxValue)
+    res = list(value=X_code, min=minX, max=maxX)
     return (res)
 }
 
@@ -183,7 +183,7 @@ get_Nspace = function (data_code, unit, lim_pct, NspaceMax=NULL) {
     # If it is a flow variable
     } else if (unit == 'hm^{3}' | unit == 'm^{3}.s^{-1}' | unit == 'm^{3/2}.s^{-1/2}' | unit == 'jour' | unit == 'jour.an^{-1}') {
         # Gets the max number of digit on the label
-        maxtmp = max(data_code$Value, na.rm=TRUE)
+        maxtmp = max(data_code$X, na.rm=TRUE)
 
         # If the max is greater than 10
         if (get_power(maxtmp) >= 4) {

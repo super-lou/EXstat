@@ -58,13 +58,14 @@ get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
         df_mod = res$mod
     }
 
-
     dataEx = data
 
     nProcess = length(Process) - 1
 
     for (i in 1:nProcess) {
 
+        print(paste0("... Process ", i, "/", nProcess))
+        
         process = Process[[paste0("P", i)]]
         process_names = names(process)
         for (i in 1:length(process)) {
@@ -74,17 +75,20 @@ get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
         # Extraction
         dataEx = do.call(
             what=extraction_process,
-            args=c(list(data=dataEx,
-                        funct=funct,
-                        funct_args=funct_args,
-                        period=period,
-                        samplePeriod=samplePeriod,
-                        timeStep=timeStep,
-                        isDate=isDate,
-                        NApct_lim=NApct_lim,
-                        NAyear_lim=NAyear_lim,
-                        verbose=verbose),
-                   functY_args))
+            args=list(data=dataEx,
+                      funct=funct,
+                      funct_args=funct_args,
+                      timeStep=timeStep,
+                      samplePeriod=samplePeriod,
+                      period=period,
+                      isDate=isDate,
+                      NApct_lim=NApct_lim,
+                      NAyear_lim=NAyear_lim,
+                      Seasons=Seasons,
+                      nameEx=nameEx,
+                      keep=keep,
+                      rmNApct=rmNApct,
+                      verbose=verbose))
     }
 
     return (dataEx)
@@ -93,8 +97,7 @@ get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
 #' @title X trend
 #' @export
 get_Xtrend = function (data, Process, period=NULL, level=0.1,
-                       df_flag=NULL,
-                       df_mod=tibble(),
+                       df_flag=NULL, df_mod=tibble(),
                        verbose=TRUE) {
 
     if (verbose) {
@@ -110,9 +113,9 @@ get_Xtrend = function (data, Process, period=NULL, level=0.1,
 
     # For all periods
     for (per in period) {
-
         if (verbose) {
-            print(paste0('.. For period : ', paste0(per, collapse=' / ')))
+            print(paste0('.. For period : ',
+                         paste0(per, collapse=' / ')))
         }
 
         dataEx = get_dataEx(data,
@@ -229,18 +232,18 @@ rollmean_code = function (data, nroll=10, df_mod=NULL, verbose=TRUE) {
     library(accelerometry)
     
     df_roll = summarise(group_by(data, Code),
-                        Value=rollmean_center(Value,
+                        Q=rollmean_center(Q,
                                               k=nroll),
                         .groups="drop")
     
     # df_roll = summarise(group_by(data, Code),
-    #                     Value=zoo::rollmean(Value,
+    #                     Q=zoo::rollmean(Q,
     #                                         k=nroll,
     #                                         na.pad=TRUE),
     #                     .groups="drop")
     
     data = tibble(Date=data$Date,
-                     Value=df_roll$Value,
+                     Q=df_roll$Q,
                      Code=df_roll$Code)
 
     if (!is.null(df_mod)) {
@@ -269,7 +272,7 @@ rollmean_code = function (data, nroll=10, df_mod=NULL, verbose=TRUE) {
 #' @export
 compute_sqrt = function (data) {
     df_sqrt = tibble(Date=data$Date,
-                     Value=sqrt(data$Value),
+                     Q=sqrt(data$Q),
                      Code=data$Code)
     return (df_sqrt)
 }
@@ -361,7 +364,7 @@ get_hydrograph = function (data, period=NULL, df_meta=NULL) {
         # For all months
         for (i in 1:12) {
             # Gets all the flow data associated to the current month
-            data = data_code$Value[monthData == i]
+            data = data_code$Q[monthData == i]
             # Averages the data
             QM_code[i] = mean(data, na.rm=TRUE)
         }
@@ -433,10 +436,10 @@ get_break = function (data, df_meta, level=0.1) {
         # Get the associated data
         data_code = data[data$Code == code,] 
         # Remove NA data
-        data_codeNoNA = data_code[!is.na(data_code$Value),]
+        data_codeNoNA = data_code[!is.na(data_code$Q),]
 
         # Perform the break analysis thanks to the Pettitt test
-        res_break = pettitt.test(data_codeNoNA$Value)
+        res_break = pettitt.test(data_codeNoNA$Q)
 
         # Extract p value
         p_value = res_break$p
@@ -453,8 +456,8 @@ get_break = function (data, df_meta, level=0.1) {
         Code_break = append(Code_break, code)
         Signif_break = append(Signif_break, p_value <= level)
 
-        # step1 = mean(data_codeNoNA$Value[1:ibreak])
-        # step2 = mean(data_codeNoNA$Value[(ibreak+1):nbreak])
+        # step1 = mean(data_codeNoNA$Q[1:ibreak])
+        # step2 = mean(data_codeNoNA$Q[(ibreak+1):nbreak])
     }
     # Create a tibble with the break analysis results
     df_break = tibble(Code=Code_break, Date=as.Date(Date_break),
