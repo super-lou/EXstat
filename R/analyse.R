@@ -284,7 +284,6 @@ compute_sqrt = function (data) {
 #' @title Hydrograph
 #' @export
 get_hydrograph = function (data, period=NULL, df_meta=NULL) {
-    
     xref = matrix(
         c(0.099, 0.100, 0.101, 0.099, 0.088, 0.078, 0.072,
           0.064, 0.064, 0.069, 0.076, 0.089,
@@ -319,7 +318,7 @@ get_hydrograph = function (data, period=NULL, df_meta=NULL) {
     # If there is a specified period
     if (!is.null(period)) {
         # Extracts only the data of this period
-        data = data[data$Date >= as.Date(period[1])
+        subdata = data[data$Date >= as.Date(period[1])
                           & data$Date <= as.Date(period[2]),]
     }
     
@@ -332,7 +331,7 @@ get_hydrograph = function (data, period=NULL, df_meta=NULL) {
         df_meta$minQM = NA
         
         # Get all different stations code
-        Code = rle(data$Code)$value
+        Code = rle(subdata$Code)$value
         # Number of stations
         nCode = length(Code)
         
@@ -351,22 +350,22 @@ get_hydrograph = function (data, period=NULL, df_meta=NULL) {
             # Gets the code
             code = Code[k]
             # Get the associated data
-            data_code = data[data$Code == code,]
+            subdata_code = subdata[subdata$Code == code,]
         } else {
             # The data are the date for the current code
-            data_code = data
+            subdata_code = subdata
         }
         
         # Gets a list of the month of the data as numeric
-        monthData = as.numeric(format(data_code$Date, "%m"))
+        monthData = as.numeric(format(subdata_code$Date, "%m"))
         # Blank list to stock month mean
         QM_code = c()
         # For all months
         for (i in 1:12) {
             # Gets all the flow data associated to the current month
-            data = data_code$Q[monthData == i]
+            Q = subdata_code$Q[monthData == i]
             # Averages the data
-            QM_code[i] = mean(data, na.rm=TRUE)
+            QM_code[i] = mean(Q, na.rm=TRUE)
         }
 
         regime = 0
