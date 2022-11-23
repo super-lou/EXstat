@@ -35,7 +35,7 @@
 get_valueExtremes = function (list_df2plot, Code, nPeriod,
                               nbVar, nCode, valueType="trend",
                               colorForce=FALSE,
-                              minQprob=0, maxQprob=1) {
+                              minXprob=0, maxXprob=1) {
     
     # Blank array to store mean of the trend for each
     # station, perdiod and variable
@@ -56,6 +56,7 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
             
             for (i in 1:nbVar) {
                 unit = list_df2plot[[i]]$unit
+                level = list_df2plot[[i]]$level
                 # Extracts the data corresponding to the
                 # current variable
                 data = list_df2plot[[i]]$data
@@ -143,9 +144,9 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
                     } else if (unit == "jour" | unit == "jour de l'année" | unit == 'jour.an^{-1}') {
                         value = df_trend_code_per$a
                     }
-                    
+
                     # If the p value is under the threshold
-                    if (df_trend_code_per$p <= alpha | colorForce) {
+                    if (df_trend_code_per$p <= level | colorForce) {
                         # Stores the mean trend
                         X_code[j, i, k] = value
                         # Otherwise
@@ -161,9 +162,9 @@ get_valueExtremes = function (list_df2plot, Code, nPeriod,
     # Computes the min and the max of the averaged trend for
     # all the station
     minX = apply(X_code, c(1, 2),
-                     quantile, probs=minQprob, na.rm=TRUE)
+                     quantile, probs=minXprob, na.rm=TRUE)
     maxX = apply(X_code, c(1, 2),
-                     quantile, probs=maxQprob, na.rm=TRUE)
+                     quantile, probs=maxXprob, na.rm=TRUE)
     res = list(value=X_code, min=minX, max=maxX)
     return (res)
 }
