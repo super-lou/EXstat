@@ -4,7 +4,7 @@
 \alias{write_dataFST}
 \title{Write data dataframe fast}
 \usage{
-write_dataFST(df_data, resdir, filedir = "fst", filename = "data.fst")
+write_dataFST(data, resdir, filedir = "fst", filename = "data.fst")
 }
 \description{
 Write data dataframe fast

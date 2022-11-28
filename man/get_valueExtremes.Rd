@@ -12,8 +12,8 @@ get_valueExtremes(
   nCode,
   valueType = "trend",
   colorForce = FALSE,
-  minQprob = 0,
-  maxQprob = 1
+  minXprob = 0,
+  maxXprob = 1
 )
 }
 \description{

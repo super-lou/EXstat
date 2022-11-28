@@ -4,7 +4,7 @@
 \alias{write_data}
 \title{Write dataframe}
 \usage{
-write_data(df_data, df_mod, resdir, filedir)
+write_data(data, df_mod, resdir, filedir)
 }
 \description{
 Write dataframe
