@@ -10,8 +10,8 @@ License: GPL-3
 Imports:
     accelerometry,
     CircStats,
-    dplyr,
     Hmisc,
+    dplyr,
     lubridate
 Remotes:
     super-lou/dataSheep,
