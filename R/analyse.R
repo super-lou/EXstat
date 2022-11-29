@@ -85,6 +85,7 @@ get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
                       Seasons=Seasons,
                       nameEx=nameEx,
                       keep=keep,
+                      compress=compress,
                       rmNApct=rmNApct,
                       verbose=verbose))
     }
