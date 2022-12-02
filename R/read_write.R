@@ -32,6 +32,30 @@
 
 
 ## 1. WRITING ________________________________________________________
+write_tibble = function (tbl, filedir, filename='data.txt') {
+
+    if (!(file.exists(filedir))) {
+        dir.create(filedir, recursive=TRUE)
+    }
+    
+    format = gsub("^.*[.]", "", filename)
+    filepath = file.path(filedir, filename)
+    
+    if (format == "fst") {
+        fst::write_fst(tbl, filepath, compress=0)
+
+    } else if (format == "Rdata") {
+        save(tbl, file=filepath)
+        
+    } else if (format == "txt") {
+        write.table(tbl,
+                file=filepath,
+                sep=";",
+                quote=FALSE,
+                row.names=FALSE)
+    }
+}
+
 ### 1.1. List of dataframe ___________________________________________
 #' @title Write list of dataframe
 #' @export
@@ -112,6 +136,7 @@ write_critique = function (df_critique, resdir, filename='critique') {
 }
 # write_critique(df_critique, resdir)
 
+
 ### 1.4. Fast for R __________________________________________________
 #' @title Write data dataframe fast
 #' @export
@@ -126,21 +151,53 @@ write_dataFST = function (data, resdir, filedir='fst',
     fst::write_fst(data, outfile, compress=0)
 }
 
-#' @title Write meta dataframe fast
-#' @export
-write_metaFST = function (df_meta, resdir, filedir='fst',
-                          filename='meta.fst') {
-    
-    outdir = file.path(resdir, filedir)
-    if (!(file.exists(outdir))) {
-        dir.create(outdir, recursive=TRUE)
+
+## 2. READING ________________________________________________________
+read_tibble = function (filepath=NULL, filedir=NULL, filename=NULL) {
+
+    if (is.null(filepath) & !is.null(filedir) & !is.null(filename)) {
+        filepath = file.path(filedir, filename)
+    } else if (is.null(filepath) & is.null(filedir) & is.null(filename)) {
+        stop ("Neither a filepath nor a filename and a filedir are given")
     }
-    outfile = file.path(outdir, filename)
-    fst::write_fst(df_meta, outfile, compress=0)
+
+    print(filepath)
+    
+    format = gsub("^.*[.]", "", filepath)
+
+    print(format)
+    
+    if (format == "fst") {
+        tbl = dplyr::tibble(fst::read_fst(filepath))
+
+    } else if (format == "Rdata") {
+        tmp = load(filepath)
+        tbl = get(tmp)
+        rm (tmp)
+        # load(filepath)
+        # tbl = get(ls()[ls() != "filepath"])
+        
+    } else if (format == "txt") {
+        tbl = dplyr::as_tibble(read.table(file=filepath,
+                                          header=TRUE,
+                                          sep=";",
+                                          quote='"'))
+        for (j in 1:ncol(tbl)) {
+            if (is.factor(tbl[[j]])) {
+                d = try(as.Date(tbl[[1, j]], format="%Y-%m-%d"))
+                test = nchar(as.character(tbl[[1, j]])) > 10
+                if("try-error" %in% class(d) || is.na(d) | test) {
+                    tbl[j] = as.character(tbl[[j]])
+                } else {
+                    tbl[j] = as.Date(tbl[[j]])
+                }
+            }
+        }
+    }
+    return (tbl)
 }
 
 
-## 2. READING ________________________________________________________
 ### 2.1. List of dataframe ___________________________________________
 #' @title Read list of dataframe
 #' @export
@@ -237,12 +294,12 @@ read_data = function (resdir, filedir, filename, verbose=TRUE) {
     }
 
     # Get the file path to the data
-    file_path = file.path(resdir, filedir, filename)
+    filepath = file.path(resdir, filedir, filename)
     
-    if (file.exists(file_path) & substr(file_path, nchar(file_path),
-                                        nchar(file_path)) != '/') {
+    if (file.exists(filepath) & substr(filepath, nchar(filepath),
+                                        nchar(filepath)) != '/') {
         # Extract the data as a data frame
-        data = as_tibble(read.table(file_path,
+        data = as_tibble(read.table(filepath,
                                        header=TRUE,
                                        na.strings=c('NA'),
                                        sep=';',
@@ -263,7 +320,7 @@ read_data = function (resdir, filedir, filename, verbose=TRUE) {
         return (data)
 
     } else {
-        print(paste('filename', file_path, 'do not exist'))
+        print(paste('filename', filepath, 'do not exist'))
         return (NULL)
     }
 }
@@ -275,11 +332,11 @@ read_critique = function (resdir, filename='critique') {
 
     outdir = file.path(resdir)
     outfile = paste(filename, '.txt', sep='')
-    file_path = file.path(outdir, outfile)
+    filepath = file.path(outdir, outfile)
     
-    print(paste('Reading criticism in : ', file_path, sep=''))
+    print(paste('Reading criticism in : ', filepath, sep=''))
     
-    df =  as_tibble(read.table(file=file_path,
+    df =  as_tibble(read.table(file=filepath,
                                header=TRUE,
                                sep=";"))
     
@@ -301,8 +358,8 @@ read_critique = function (resdir, filename='critique') {
 ### 2.4. Fast for R __________________________________________________
 #' @title Read dataframe fast
 #' @export
-read_FST = function (resdir, filename, filedir='fst') {
-    outfile = file.path(resdir, filedir, filename)
-    df = tibble(fst::read_fst(outfile))
+read_tibbleFST = function (filedir, filename) {
+    filepath = file.path(filedir, filename)
+    df = tibble(fst::read_fst(filepath))
     return (df)
 }
