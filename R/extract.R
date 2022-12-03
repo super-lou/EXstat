@@ -425,6 +425,12 @@ extract_meta = function (computer_data_path, filedir, filename,
     # Convert the filename in vector
     filename = c(filename)
 
+    # Print metadata if asked
+    if (verbose) {
+        print("Get metadata from file :")
+        print(paste0(filename, collapse=", "))
+    }
+
     # If the filename is 'all' or regroup more than one filename
     if (all(filename == 'all') | length(filename) > 1 ) {
 
@@ -460,7 +466,8 @@ extract_meta = function (computer_data_path, filedir, filename,
             df_meta = rbind(df_meta,
                             extract_meta(computer_data_path, 
                                          filedir, 
-                                         f))
+                                         f,
+                                         verbose=FALSE))
         }
         # Set the rownames by default (to avoid strange numbering)
         rownames(df_meta) = NULL
@@ -469,11 +476,6 @@ extract_meta = function (computer_data_path, filedir, filename,
 
     # Get the filename from the vector
     filename = filename[1]
-    
-    # Print metadata if asked
-    if (verbose) {
-        print(paste(". Extraction of BH meta for file :", filename))
-    }
 
     # Get the file path to the data
     file_path = file.path(computer_data_path, filedir, filename)
@@ -581,6 +583,12 @@ extract_data = function (computer_data_path, filedir, filename,
     # Convert the filename in vector
     filename = c(filename)
 
+    # Print metadata if asked
+    if (verbose) {
+        print("Get observed data from file :")
+        print(paste0(filename, collapse=", "))
+    }
+
     # If the filename is 'all' or regroup more than one filename
     if (all(filename == 'all') | length(filename) > 1) {
         # If the filename is 'all'
@@ -615,7 +623,8 @@ extract_data = function (computer_data_path, filedir, filename,
             data = rbind(data,
                             extract_data(computer_data_path, 
                                            filedir, 
-                                           f))
+                                         f,
+                                         verbose=FALSE))
         }
         # Set the rownames by default (to avoid strange numbering)
         rownames(data) = NULL
@@ -627,7 +636,7 @@ extract_data = function (computer_data_path, filedir, filename,
     
     # Print metadata if asked
     if (verbose) {
-        print(paste(". Extraction of BH data for file :", filename))
+        print(paste("Extraction of BH data for file :", filename))
     }
 
     # Get the file path to the data

@@ -43,7 +43,7 @@ get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
                        df_mod=tibble(), verbose=TRUE) {
 
     if (verbose) {
-        print(paste0('. Computes ', Process$P$var))
+        print(paste0('Computes ', Process$P$var))
     }
     
     if (!is.null(df_flag)) {
@@ -62,7 +62,7 @@ get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
 
     for (i in 1:nProcess) {
 
-        print(paste0("... Process ", i, "/", nProcess))
+        print(paste0("Process ", i, "/", nProcess))
         
         process = Process[[paste0("P", i)]]
         process_names = names(process)
@@ -101,7 +101,7 @@ get_Xtrend = function (data, Process, period=NULL, level=0.1,
                        verbose=TRUE) {
 
     if (verbose) {
-        print(paste0('. Computes ', ' trend'))
+        print(paste0('Computes ', ' trend'))
     }
 
     # Make sure to convert the period to a list
@@ -114,7 +114,7 @@ get_Xtrend = function (data, Process, period=NULL, level=0.1,
     # For all periods
     for (per in period) {
         if (verbose) {
-            print(paste0('.. For period : ',
+            print(paste0('For period : ',
                          paste0(per, collapse=' / ')))
         }
 
@@ -226,7 +226,7 @@ rollmean_center = function (X, k) {
 rollmean_code = function (data, nroll=10, df_mod=NULL, verbose=TRUE) {
 
     if (verbose) {
-        print(paste0('.. Rolling average over ', nroll, " days"))
+        print(paste0('Rolling average over ', nroll, " days"))
     }
 
     library(accelerometry)
@@ -516,7 +516,7 @@ get_lacune = function (data, df_meta) {
     # Create tibble for lacune
     df_lac = tibble(Code=Code, tLac100=tLac100, meanLac=meanLac)
     # Join a tibble
-    df_meta = full_join(df_meta, df_lac)
+    df_meta = full_join(df_meta, df_lac, by="Code")
     return (df_meta)
 }
 

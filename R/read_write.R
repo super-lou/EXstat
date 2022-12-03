@@ -160,13 +160,9 @@ read_tibble = function (filepath=NULL, filedir=NULL, filename=NULL) {
     } else if (is.null(filepath) & is.null(filedir) & is.null(filename)) {
         stop ("Neither a filepath nor a filename and a filedir are given")
     }
-
-    print(filepath)
     
     format = gsub("^.*[.]", "", filepath)
 
-    print(format)
-    
     if (format == "fst") {
         tbl = dplyr::tibble(fst::read_fst(filepath))
 
@@ -174,8 +170,6 @@ read_tibble = function (filepath=NULL, filedir=NULL, filename=NULL) {
         tmp = load(filepath)
         tbl = get(tmp)
         rm (tmp)
-        # load(filepath)
-        # tbl = get(ls()[ls() != "filepath"])
         
     } else if (format == "txt") {
         tbl = dplyr::as_tibble(read.table(file=filepath,

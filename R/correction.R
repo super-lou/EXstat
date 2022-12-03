@@ -39,7 +39,7 @@ flag_data = function (data, df_flag, df_mod=NULL,
                       verbose=TRUE) {
 
     if (verbose) {
-        print('.. Checking of flags')
+        print('Checking of flags')
     }
 
     Code = rle(data$Code)$value
