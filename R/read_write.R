@@ -154,7 +154,7 @@ write_dataFST = function (data, resdir, filedir='fst',
 
 ## 2. READING ________________________________________________________
 read_tibble = function (filepath=NULL, filedir=NULL, filename=NULL) {
-
+    
     if (is.null(filepath) & !is.null(filedir) & !is.null(filename)) {
         filepath = file.path(filedir, filename)
     } else if (is.null(filepath) & is.null(filedir) & is.null(filename)) {
@@ -162,7 +162,7 @@ read_tibble = function (filepath=NULL, filedir=NULL, filename=NULL) {
     }
     
     format = gsub("^.*[.]", "", filepath)
-
+    
     if (format == "fst") {
         tbl = dplyr::tibble(fst::read_fst(filepath))
 
