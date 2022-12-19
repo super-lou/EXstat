@@ -39,21 +39,21 @@
 
 #' @title dataEx
 #' @export
-get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
-                       df_mod=tibble(), verbose=TRUE) {
+get_dataEx = function (data, Process, period=NULL, flag=NULL,
+                       mod=tibble(), verbose=TRUE) {
 
     if (verbose) {
         print(paste0('Computes ', Process$P$var))
     }
     
-    if (!is.null(df_flag)) {
+    if (!is.null(flag)) {
         # Local corrections if needed
         res = flag_data(data,
-                        df_flag=df_flag,
-                        df_mod=df_mod,
+                        flag=flag,
+                        mod=mod,
                         verbose=verbose)
         data = res$data
-        df_mod = res$mod
+        mod = res$mod
     }
 
     dataEx = data
@@ -96,8 +96,8 @@ get_dataEx = function (data, Process, period=NULL, df_flag=NULL,
 
 #' @title X trend
 #' @export
-get_Xtrend = function (data, Process, period=NULL, level=0.1,
-                       df_flag=NULL, df_mod=tibble(),
+get_trend = function (data, Process, period=NULL, level=0.1,
+                       flag=NULL, mod=tibble(),
                        verbose=TRUE) {
 
     if (verbose) {
@@ -109,7 +109,7 @@ get_Xtrend = function (data, Process, period=NULL, level=0.1,
     # Set the max interval period as the minimal possible
     Imax = 0
     # Blank tibble for data to return
-    Xtrend_all = tibble()
+    trend_all = tibble()
 
     # For all periods
     for (per in period) {
@@ -121,10 +121,10 @@ get_Xtrend = function (data, Process, period=NULL, level=0.1,
         dataEx = get_dataEx(data,
                             Process,
                             period=per,
-                            df_flag=df_flag)
+                            flag=flag)
         
         # Compute the trend analysis
-        Xtrend = trend_analyse(data=dataEx,
+        trend = trend_analyse(data=dataEx,
                                MK_level=level,
                                timeDep_option="AR1",
                                verbose=verbose)
@@ -138,13 +138,14 @@ get_Xtrend = function (data, Process, period=NULL, level=0.1,
             dataEx_all = dataEx
         }
         # Store the trend
-        Xtrend_all = bind_rows(Xtrend_all, Xtrend)
+        trend_all = bind_rows(trend_all, trend)
     }
 
     # Creates a list of results to return
-    res_analyse = list(extract=dataEx_all, estimate=Xtrend_all)
-    res = list(data=data, mod=df_mod,
-               analyse=res_analyse)
+    res = list(dataMod=data,
+               mod=mod,
+               dataEx=dataEx_all,
+               trend=trend_all)
     return (res)
 }
 

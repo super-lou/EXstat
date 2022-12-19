@@ -169,6 +169,7 @@ read_tibble = function (filepath=NULL, filedir=NULL, filename=NULL) {
     } else if (format == "Rdata") {
         tmp = load(filepath)
         tbl = get(tmp)
+        tbl = as_tibble(tbl)
         rm (tmp)
         
     } else if (format == "txt") {

@@ -35,7 +35,7 @@
 ## 1. LOCAL CORRECTION OF DATA _______________________________________
 #' @title Flag data
 #' @export
-flag_data = function (data, df_flag, df_mod=NULL,
+flag_data = function (data, flag, mod=NULL,
                       verbose=TRUE) {
 
     if (verbose) {
@@ -45,21 +45,21 @@ flag_data = function (data, df_flag, df_mod=NULL,
     Code = rle(data$Code)$value
 
     for (code in Code) {
-        if (code %in% df_flag$Code) {
+        if (code %in% flag$Code) {
 
-            df_flag_code = df_flag[df_flag$Code == code,]
-            nbFlag = nrow(df_flag_code)
+            flag_code = flag[flag$Code == code,]
+            nbFlag = nrow(flag_code)
 
             for (i in 1:nbFlag) {
-                newQ = df_flag_code$newQ[i]
-                flagDate = as.Date(df_flag_code$Date[i])
+                newQ = flag_code$newQ[i]
+                flagDate = as.Date(flag_code$Date[i])
                 OKcor = data$Code == code & data$Date == flagDate
                 oldQ = data$Q[OKcor]
                 data$Q[OKcor] = newQ
 
-                if (!is.null(df_mod)) {
-                    df_mod =
-                        add_mod(df_mod, code,
+                if (!is.null(mod)) {
+                    mod =
+                        add_mod(mod, code,
                                 type='Q correction',
                                 fun_name='Manual new value assignment',
                                 comment=paste('At ', flagDate,
@@ -71,8 +71,8 @@ flag_data = function (data, df_flag, df_mod=NULL,
         }
     }
     
-    if (!is.null(df_mod)) {
-        res = list(data=data, mod=df_mod)
+    if (!is.null(mod)) {
+        res = list(data=data, mod=mod)
         return (res)
     } else {
         return (data)
