@@ -1,18 +1,28 @@
-Package: ashes
-Version: 0.5.0
-Date: 2022-11-28
-Title: Analyse de Stationnarité Hydrologique des Écoulements de Surface
-Description: Ashes is a toolbox of R code that perfoms a stationarity analysis of the low water regime which in french is analyse de stationnarité du régime des étiages. In this configuration, this analysis is centered on the Adour-Garonne hydrological basin which is located in the south-west part of France.
-Author: Louis Héraut <louis.heraut@inrae.fr>
-Maintainer: Louis Héraut <louis.heraut@inrae.fr>
+Package: EXstat
+Version: 0.0.2
+Date: 2022-09-19
+Title: EXstat
+Description: Process variable extraction from time series data on which it is possible to perform statistical trend analysis with Mann-Kendall statistical test.
+Authors@R: c(
+    person(given = "Valentin",
+           family = "Mansanarez",
+           role = c("aut"),
+           email = "valentin.mansanarez@inrae.fr"),
+    person(given = "Benjamin",
+           family = "Renard",
+           role = c("aut"),
+           email = "benjamin.renard@inrae.fr"),
+    person(given = "Louis",
+           family = "Héraut",
+           role = c("cre", "aut"),
+           email = "louis.heraut@inrae.fr")
+    )
 Encoding: UTF-8
-License: GPL-3
-Imports:
-    accelerometry,
-    CircStats,
+License: GPL-3 + file LICENSE
+Imports: 
     dplyr,
-    lubridate
-Remotes:
-    super-lou/dataSheep,
-    super-lou/MKstat
+    lubridate,
+    stats,
+    rlang
 RoxygenNote: 7.1.2
+Roxygen: list(markdown = TRUE)
