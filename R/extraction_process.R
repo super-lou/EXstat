@@ -237,7 +237,7 @@ extraction_process = function(data,
     }
 
     tree("Sample period", 1, verbose=verbose)
-    
+
     if (is.null(samplePeriod) | all(is.na(samplePeriod))) {
         tree("Default sample period used", 2,
              verbose=verbose)
@@ -287,11 +287,12 @@ extraction_process = function(data,
             tree("Sample period fully given", 2, end=TRUE,
                  verbose=verbose)
         }
-        Code = rle(dataEx$Code)$values
+        # Code = levels(factor(dataEx$Code))
+        Code = names(table(dataEx$Code))
         samplePeriod = dplyr::tibble(Code=Code,
                                      sp=rep(list(samplePeriod),
                                             length(Code)))
-    }    
+    }
 
     samplePeriod$spStart = sapply(samplePeriod$sp, "[[", 1)
     samplePeriod$spEnd = sapply(samplePeriod$sp, "[[", 2)
@@ -330,7 +331,7 @@ extraction_process = function(data,
     samplePeriod$dt2add = 0
     samplePeriod$dt2add[samplePeriod$refStart >= samplePeriod$refEnd] = 1
     
-    dataEx = dplyr::full_join(dataEx,
+    dataEx = dplyr::right_join(dataEx,
                               samplePeriod[c("Code",
                                              "spStart",
                                              "spEnd",
@@ -572,7 +573,7 @@ extraction_process = function(data,
                                   sampleInfo[c("Code",
                                                "minDateRef")],
                                   by=c("Code"))
-        
+
         tree("Removing useless data", 3, end=TRUE, inEnd=2,
              verbose=verbose)
 
@@ -585,8 +586,6 @@ extraction_process = function(data,
         
         # dataEx = dplyr::filter(dplyr::group_by(dataEx, Code),
         #                        minDateRef <= Date)
-
-
 
     } else if (timeStep == "yearday") {
         

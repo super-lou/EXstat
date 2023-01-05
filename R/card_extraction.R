@@ -25,7 +25,7 @@
 #' @export
 card_extraction = function (data, card_dir, period=NULL,
                             samplePeriod_opti=NULL,
-                            verbose=TRUE) {
+                            verbose=FALSE) {
     
     CARD_dir = gsub("CARD[/].*", "CARD/", card_dir)
     
@@ -143,7 +143,8 @@ card_extraction = function (data, card_dir, period=NULL,
 
         Xex = get_dataEx(data=data,
                          Process=Process,
-                         period=period)
+                         period=period,
+                         verbose=verbose)
 
         if (verbose) {
             print(paste0("Data extracted for ", var))
@@ -326,7 +327,8 @@ get_trend = function (data, Process, period=NULL, level=0.1,
         dataEx = get_dataEx(data,
                             Process,
                             period=per,
-                            flag=flag)
+                            flag=flag,
+                            verbose=verbose)
         
         # Compute the trend analysis
         trend = trend_analyse(data=dataEx,
