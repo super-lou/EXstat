@@ -21,26 +21,22 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
-#' @title card_extraction
+#' @title CARD_extraction
 #' @export
-card_extraction = function (data, card_dir, period=NULL,
+CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
                             samplePeriod_opti=NULL,
                             verbose=FALSE) {
     
-    CARD_dir = gsub("CARD[/].*", "CARD/", card_dir)
-    
-    print(CARD_dir)
-    
-    script_to_analyse = list.files(card_dir,
+    WIP_path = file.path(CARD_path, WIP_dir)   
+    script_to_analyse = list.files(WIP_path,
                                    pattern=".R$",
                                    recursive=TRUE,
                                    include.dirs=FALSE,
                                    full.names=FALSE)
-
     script_to_analyse = script_to_analyse[!grepl("__default__.R",
                                                  script_to_analyse)]
 
-    topic_to_analyse = list.dirs(card_dir,
+    topic_to_analyse = list.dirs(WIP_path,
                                  recursive=TRUE, full.names=FALSE)
     topic_to_analyse = topic_to_analyse[topic_to_analyse != ""]
     topic_to_analyse = gsub('.*_', '', topic_to_analyse)
@@ -54,8 +50,8 @@ card_extraction = function (data, card_dir, period=NULL,
     # samplePeriod_analyse = list()
     # glose_analyse = c()
 
-    metaEx = dplyr::tibble()
-    dataEx = list()
+    metaEX = dplyr::tibble()
+    dataEX = list()
     
     for (script in script_to_analyse) {
 
@@ -73,7 +69,7 @@ card_extraction = function (data, card_dir, period=NULL,
             file.path(CARD_dir, "__default__.R"))
         
         Process = sourceProcess(
-            file.path(card_dir, script),
+            file.path(WIP_path, script),
             default=Process_default)
 
         principal = Process$P
@@ -138,10 +134,10 @@ card_extraction = function (data, card_dir, period=NULL,
         # topic_analyse = c(topic_analyse, topic)
         # unit_analyse = c(unit_analyse, unit)
         # samplePeriod_analyse = append(samplePeriod_analyse,
-        #                               list(samplePeriod))
+                                      # list(samplePeriod))
         # glose_analyse = c(glose_analyse, glose)
 
-        Xex = get_dataEx(data=data,
+        Xex = get_dataEX(data=data,
                          Process=Process,
                          period=period,
                          verbose=verbose)
@@ -155,8 +151,8 @@ card_extraction = function (data, card_dir, period=NULL,
         # vars = gsub("([_]obs)|([_]sim)", "", vars)
         # vars = vars[!duplicated(vars)]
 
-        metaEx = dplyr::bind_rows(
-                            metaEx,
+        metaEX = dplyr::bind_rows(
+                            metaEX,
                             dplyr::tibble(var=var,
                                           unit=unit,
                                           glose=glose,
@@ -172,16 +168,16 @@ card_extraction = function (data, card_dir, period=NULL,
         # Xex = dplyr::select(Xex, -ID)
         # Xex = dplyr::select(Xex, Model, Code, dplyr::everything())
 
-        dataEx = append(dataEx, list(Xex))
-        names(dataEx)[length(dataEx)] = var
+        dataEX = append(dataEX, list(Xex))
+        names(dataEX)[length(dataEX)] = var
     }
     
-    res = list(dataEx=dataEx, metaEx=metaEx)
+    res = list(dataEX=dataEX, metaEX=metaEX)
     return (res)
 }
 
 
-# card_trend = function (data, card, period=NULL, verbose=TRUE) {
+# CARD_trend = function (data, CARD, period=NULL, verbose=TRUE) {
 
 
 
@@ -199,7 +195,7 @@ sourceProcess = function (path, default=NULL) {
     assign("CARD", new.env(), envir=.GlobalEnv)
     source(path, encoding='UTF-8')
     lsCARD = ls(envir=CARD)
-    
+
     Process_def = lsCARD[grepl("P[.]", lsCARD)]
     Process = lapply(Process_def, get, envir=CARD)
     names(Process) = gsub("P[.]", "", Process_def)
@@ -212,7 +208,8 @@ sourceProcess = function (path, default=NULL) {
     }
     
     process_allAtt = lsCARD[grepl("P[[:digit:]][.]", lsCARD)]
-    process_allNames = str_extract(process_allAtt, "P[[:digit:]]")
+    process_allNames = stringr::str_extract(process_allAtt,
+                                            "P[[:digit:]]")
     process_names = process_allNames[!duplicated(process_allNames)]
     Nprocess = length(process_names)
 
@@ -243,9 +240,9 @@ sourceProcess = function (path, default=NULL) {
 }
 
 
-#' @title dataEx
+#' @title dataEX
 #' @export
-get_dataEx = function (data, Process, period=NULL, flag=NULL,
+get_dataEX = function (data, Process, period=NULL, flag=NULL,
                        mod=tibble(), verbose=TRUE) {
 
     if (verbose) {
@@ -262,7 +259,7 @@ get_dataEx = function (data, Process, period=NULL, flag=NULL,
         mod = res$mod
     }
 
-    dataEx = data
+    dataEX = data
 
     nProcess = length(Process) - 1
 
@@ -276,10 +273,10 @@ get_dataEx = function (data, Process, period=NULL, flag=NULL,
             assign(process_names[i], process[[i]])
         }
 
-        # Extraction
-        dataEx = do.call(
+        # EXtraction
+        dataEX = do.call(
             what=extraction_process,
-            args=list(data=dataEx,
+            args=list(data=dataEX,
                       funct=funct,
                       funct_args=funct_args,
                       timeStep=timeStep,
@@ -290,14 +287,14 @@ get_dataEx = function (data, Process, period=NULL, flag=NULL,
                       NAyear_lim=NAyear_lim,
                       Seasons=Seasons,
                       onlyDate4Season=onlyDate4Season,
-                      nameEx=nameEx,
+                      nameEX=nameEX,
                       keep=keep,
                       compress=compress,
                       rmNApct=rmNApct,
                       verbose=verbose))
     }
 
-    return (dataEx)
+    return (dataEX)
 }
 
 #' @title X trend
@@ -324,14 +321,14 @@ get_trend = function (data, Process, period=NULL, level=0.1,
                          paste0(per, collapse=' / ')))
         }
 
-        dataEx = get_dataEx(data,
+        dataEX = get_dataEX(data,
                             Process,
                             period=per,
                             flag=flag,
                             verbose=verbose)
         
         # Compute the trend analysis
-        trend = trend_analyse(data=dataEx,
+        trend = trend_analyse(data=dataEX,
                               MK_level=level,
                               timeDep_option="AR1",
                               verbose=verbose)
@@ -342,7 +339,7 @@ get_trend = function (data, Process, period=NULL, level=0.1,
         if (I > Imax) {
             # Store it and the associated data
             Imax = I
-            dataEx_all = dataEx
+            dataEX_all = dataEX
         }
         # Store the trend
         trend_all = bind_rows(trend_all, trend)
@@ -351,7 +348,7 @@ get_trend = function (data, Process, period=NULL, level=0.1,
     # Creates a list of results to return
     res = list(dataMod=data,
                mod=mod,
-               dataEx=dataEx_all,
+               dataEX=dataEX_all,
                trend=trend_all)
     return (res)
 }

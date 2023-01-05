@@ -4,7 +4,7 @@
 \alias{get_intercept}
 \title{Intercept of trend}
 \usage{
-get_intercept(data, data_analyse, verbose = TRUE)
+get_intercept(data, trendEX, verbose = TRUE)
 }
 \description{
 Intercept of trend

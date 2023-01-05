@@ -16,7 +16,7 @@ extraction_process(
   NAyear_lim = 10,
   Seasons = c("DJF", "MAM", "JJA", "SON"),
   onlyDate4Season = FALSE,
-  nameEx = "X",
+  nameEX = "X",
   keep = FALSE,
   compress = FALSE,
   rmNApct = FALSE,
@@ -81,7 +81,7 @@ X[as.Date("2000-03-01") <= Date & Date <= as.Date("2000-09-30")] = NA
 data = dplyr::tibble(Date=Date, ID="serie A", X=X)
 
 # Extraction
-dataEx = extraction_process(data=data,
+dataEX = extraction_process(data=data,
                             samplePeriod=c("05-01",
                                            "11-30"),
                             funct=max,
@@ -89,5 +89,5 @@ dataEx = extraction_process(data=data,
                             period=c(as.Date("1990-01-01"),
                                      as.Date("2020-12-31")),
                             timeStep="year")
-dataEx
+dataEX
 }

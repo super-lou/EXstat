@@ -49,7 +49,7 @@
 #' data = dplyr::tibble(Date=Date, ID="serie A", X=X)
 #'
 #' # Extraction
-#' dataEx = extraction_process(data=data,
+#' dataEX = extraction_process(data=data,
 #'                             samplePeriod=c("05-01",
 #'                                            "11-30"),
 #'                             funct=max,
@@ -58,8 +58,8 @@
 #'                                      as.Date("2020-12-31")),
 #'                             timeStep="year")
 #'
-#' trendEx = trend_analyse(data=dataEx)
-#' trendEx
+#' trendEX = trend_analyse(data=dataEX)
+#' trendEX
 #' @importFrom rlang .data
 #' @export
 trend_analyse = function (data,
@@ -108,7 +108,7 @@ trend_analyse = function (data,
     
     # 1pply function on values accounting for grouping variables
     # 'group.names"
-    data_analyse =
+    trendEX =
         dplyr::summarise(data,
                          GeneralMannKendall_WRAP(
                              Value,
@@ -118,8 +118,8 @@ trend_analyse = function (data,
     
     tree("Estimation of other variable",
          1, end=TRUE, verbose=verbose)
-    data_analyse = get_intercept(data, data_analyse, verbose=verbose)
-    data_analyse = get_period(data, data_analyse, verbose=verbose)
+    trendEX = get_intercept(data, trendEX, verbose=verbose)
+    trendEX = get_period(data, trendEX, verbose=verbose)
 
     # if (isFDR) { ### /!\ pas ok
     #     data.final$p.FDR =
@@ -127,12 +127,12 @@ trend_analyse = function (data,
     #                               level=FDR_level)
     # }
 
-    idCode = which(names(data_analyse) == "Code")
+    idCode = which(names(trendEX) == "Code")
 
-    names(data_analyse)[c(idCode)] =
+    names(trendEX)[c(idCode)] =
         names_save[c(idCode_save)]
 
-    return (data_analyse)
+    return (trendEX)
 }
 
 
@@ -142,7 +142,7 @@ trend_analyse = function (data,
 # according to the accessible data 
 #' @title Period of trend analysis
 #' @export
-get_period = function (data, data_analyse, verbose=TRUE) {
+get_period = function (data, trendEX, verbose=TRUE) {
 
     tree("Computing of the optimal periods of trend analysis",
          2, end=TRUE, inEnd=1, verbose=verbose)
@@ -154,10 +154,10 @@ get_period = function (data, data_analyse, verbose=TRUE) {
                            end=max(Date, na.rm=TRUE))
 
     Period = dplyr::full_join(Start, End, by="Code")
-    data_analyse = dplyr::full_join(data_analyse, Period, by="Code")
-    # data_analyse$start = Start$Start
-    # data_analyse$end = End$End
-    return (data_analyse)
+    trendEX = dplyr::full_join(trendEX, Period, by="Code")
+    # trendEX$start = Start$Start
+    # trendEX$end = End$End
+    return (trendEX)
 }
 
 #### 2.3.3. Intercept of trend _______________________________________
@@ -165,7 +165,7 @@ get_period = function (data, data_analyse, verbose=TRUE) {
 # of trends and the data on which analysis is performed.
 #' @title Intercept of trend
 #' @export
-get_intercept = function (data, data_analyse,
+get_intercept = function (data, trendEX,
                           verbose=TRUE) {
 
     tree("Computing of the intercept of trend",
@@ -179,15 +179,15 @@ get_intercept = function (data, data_analyse,
                                                  na.rm=TRUE)) /
                             mean(as.numeric(diff(Date)), na.rm=TRUE))
 
-    analyse = dplyr::tibble(Code=data_analyse$Code,
-                            a=data_analyse$a,
+    analyse = dplyr::tibble(Code=trendEX$Code,
+                            a=trendEX$a,
                             mu_X=MU_X$mu_X,
                             mu_t=MU_t$mu_t)
     
     B = dplyr::summarise(dplyr::group_by(analyse, Code),
                          b=mu_X - mu_t * a)
     
-    data_analyse = dplyr::full_join(data_analyse, B, by="Code")
+    trendEX = dplyr::full_join(trendEX, B, by="Code")
 
-    return (data_analyse)
+    return (trendEX)
 }

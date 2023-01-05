@@ -4,7 +4,7 @@
 \alias{get_period}
 \title{Period of trend analysis}
 \usage{
-get_period(data, data_analyse, verbose = TRUE)
+get_period(data, trendEX, verbose = TRUE)
 }
 \description{
 Period of trend analysis

@@ -48,7 +48,7 @@ X[as.Date("2000-03-01") <= Date & Date <= as.Date("2000-09-30")] = NA
 data = dplyr::tibble(Date=Date, ID="serie A", X=X)
 
 # Extraction
-dataEx = extraction_process(data=data,
+dataEX = extraction_process(data=data,
                             samplePeriod=c("05-01",
                                            "11-30"),
                             funct=max,
@@ -57,6 +57,6 @@ dataEx = extraction_process(data=data,
                                      as.Date("2020-12-31")),
                             timeStep="year")
 
-trendEx = trend_analyse(data=dataEx)
-trendEx
+trendEX = trend_analyse(data=dataEX)
+trendEX
 }

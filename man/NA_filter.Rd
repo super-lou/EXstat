@@ -4,7 +4,7 @@
 \alias{NA_filter}
 \title{NA filter}
 \usage{
-NA_filter(dataEx, timeStep, nValue, NApct_lim = 1, mod = NULL, verbose = TRUE)
+NA_filter(dataEX, timeStep, nValue, NApct_lim = 1, mod = NULL, verbose = TRUE)
 }
 \description{
 NA filter
