@@ -1,8 +1,8 @@
 Package: EXstat
-Version: 0.0.2
-Date: 2022-09-19
+Version: 0.1.0
+Date: 2023-01-05
 Title: EXstat
-Description: Process variable extraction from time series data on which it is possible to perform statistical trend analysis with Mann-Kendall statistical test.
+Description: Provides an efficient and simple solution to aggregate and analyze the stationarity of time series.
 Authors@R: c(
     person(given = "Valentin",
            family = "Mansanarez",

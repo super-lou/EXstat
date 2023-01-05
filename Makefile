@@ -6,4 +6,4 @@ check:
 	R -e 'devtools::check()'
 
 install:
-	R -e 'remotes::install_github("super-lou/MKstat")'
+	R -e 'remotes::install_github("super-lou/EXstat")'

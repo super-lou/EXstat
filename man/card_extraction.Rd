@@ -9,7 +9,7 @@ card_extraction(
   card_dir,
   period = NULL,
   samplePeriod_opti = NULL,
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \description{
