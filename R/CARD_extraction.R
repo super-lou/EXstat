@@ -55,7 +55,7 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
     
     for (script in script_to_analyse) {
 
-        list_path = list.files(file.path(CARD_dir,
+        list_path = list.files(file.path(CARD_path,
                                          "__tools__"),
                                pattern='*.R$',
                                recursive=TRUE,
@@ -66,7 +66,7 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
         }
 
         Process_default = sourceProcess(
-            file.path(CARD_dir, "__default__.R"))
+            file.path(CARD_path, "__default__.R"))
         
         Process = sourceProcess(
             file.path(WIP_path, script),
