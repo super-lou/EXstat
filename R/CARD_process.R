@@ -197,6 +197,8 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
 }
 
 
+#' @title CARD_trend
+#' @export
 CARD_trend = function (data, CARD_path, WIP_dir="WIP", level=0.1,
                        period=NULL, samplePeriod_opti=NULL,
                        simplify=TRUE, verbose=TRUE) {
