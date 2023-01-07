@@ -25,7 +25,7 @@
 #' @title CARD_extraction
 #' @export
 CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
-                            samplePeriod_opti=NULL, simplify=TRUE,
+                            samplePeriod_by_topic=NULL, simplify=TRUE,
                             verbose=FALSE) {
     
     WIP_path = file.path(CARD_path, WIP_dir)   
@@ -88,40 +88,45 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
             structure[[dir]] = c(structure[[dir]], var)
         }
         
-        if (!is.null(samplePeriod_opti)) {
-            if (identical(samplePeriod_opti[[topic[1]]],
-                          "min")) {
-                minQM = paste0(formatC(meta$minQM,
-                                       width=2,
-                                       flag="0"),
-                               '-01')
-                samplePeriodMOD = tibble(Code=meta$Code,
-                                         sp=minQM)
-            } else if (identical(samplePeriod_opti[[topic[1]]],
-                                 "max")) {
-                maxQM = paste0(formatC(meta$maxQM,
-                                       width=2,
-                                       flag="0"),
-                               '-01')
-                samplePeriodMOD = tibble(Code=meta$Code,
-                                         sp=maxQM)
-            } else {
-                samplePeriodMOD = samplePeriod_opti[[topic[1]]]
-            }
+        # if (!is.null(samplePeriod_opti)) {
             
-        } else {
-            samplePeriodMOD = NULL
-        }
+        #     if (identical(samplePeriod_opti[[topic[1]]],
+        #                   "min")) {
+        #         minQM = paste0(formatC(meta$minQM,
+        #                                width=2,
+        #                                flag="0"),
+        #                        '-01')
+        #         samplePeriodMOD = tibble(Code=meta$Code,
+        #                                  sp=minQM)
+        #     } else if (identical(samplePeriod_opti[[topic[1]]],
+        #                          "max")) {
+        #         maxQM = paste0(formatC(meta$maxQM,
+        #                                width=2,
+        #                                flag="0"),
+        #                        '-01')
+        #         samplePeriodMOD = tibble(Code=meta$Code,
+        #                                  sp=maxQM)
+        #     } else {
+        #         samplePeriodMOD = samplePeriod_opti[[topic[1]]]
+        #     }
+            
+        # } else {
+        #     samplePeriodMOD = NULL
+        # }
 
-        if (!is.null(samplePeriodMOD)) {
+        print(samplePeriod_by_topic)
+
+        if (!is.null(samplePeriod_by_topic)) {
             nProcess = length(Process)
             for (i in 1:nProcess) {
                 if (!is.null(Process[[i]]$samplePeriod)) {
-                    Process[[i]]$samplePeriod = samplePeriodMOD
+                    Process[[i]]$samplePeriod = samplePeriod_by_topic[[topic[1]]]
                     samplePeriod = Process[[i]]$samplePeriod
                 }
             }
         }
+
+        print(samplePeriod)
 
         if (var %in% var_analyse) {
             next

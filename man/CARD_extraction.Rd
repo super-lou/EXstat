@@ -9,7 +9,7 @@ CARD_extraction(
   CARD_path,
   WIP_dir = "WIP",
   period = NULL,
-  samplePeriod_opti = NULL,
+  samplePeriod_by_topic = NULL,
   simplify = TRUE,
   verbose = FALSE
 )
