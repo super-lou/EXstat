@@ -20,7 +20,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
-#' @title trend_analyse
+#' @title process_trend
 #' @description Applies Mann-Kendall statistical test to an extracted
 #' variable in order to determine the existence or not of a trend in
 #' the data.
@@ -49,7 +49,7 @@
 #' data = dplyr::tibble(Date=Date, ID="serie A", X=X)
 #'
 #' # Extraction
-#' dataEX = extraction_process(data=data,
+#' dataEX = process_extraction(data=data,
 #'                             samplePeriod=c("05-01",
 #'                                            "11-30"),
 #'                             funct=max,
@@ -58,11 +58,11 @@
 #'                                      as.Date("2020-12-31")),
 #'                             timeStep="year")
 #'
-#' trendEX = trend_analyse(data=dataEX)
+#' trendEX = process_trend(data=dataEX)
 #' trendEX
 #' @importFrom rlang .data
 #' @export
-trend_analyse = function (data,
+process_trend = function (data,
                           MK_level=0.1,
                           timeDep_option="INDE",
                           # isFDR=FALSE,

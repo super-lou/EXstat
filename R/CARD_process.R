@@ -1,6 +1,7 @@
 # Copyright 2021-2023 Louis Héraut (louis.heraut@inrae.fr)*1,
 #                     Éric Sauquet (eric.sauquet@inrae.fr)*1,
-#           2023 Jean-Philippe Vidal (jean-philippe.vidal@inrae.fr)*1
+#           2023 Jean-Philippe Vidal (jean-philippe.vidal@inrae.fr)*1,
+#                Nathan Pellerin (nathan.pellerin@inrae.fr)*1
 #
 # *1   INRAE, France
 #
@@ -24,7 +25,7 @@
 #' @title CARD_extraction
 #' @export
 CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
-                            samplePeriod_opti=NULL,
+                            samplePeriod_opti=NULL, simplify=TRUE,
                             verbose=FALSE) {
     
     WIP_path = file.path(CARD_path, WIP_dir)   
@@ -45,10 +46,6 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
     names(structure) = topic_to_analyse
     
     var_analyse = c()
-    # topic_analyse = c()
-    # unit_analyse = c()
-    # samplePeriod_analyse = list()
-    # glose_analyse = c()
 
     metaEX = dplyr::tibble()
     dataEX = list()
@@ -131,25 +128,53 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
         }
         
         var_analyse = c(var_analyse, var)
-        # topic_analyse = c(topic_analyse, topic)
-        # unit_analyse = c(unit_analyse, unit)
-        # samplePeriod_analyse = append(samplePeriod_analyse,
-                                      # list(samplePeriod))
-        # glose_analyse = c(glose_analyse, glose)
 
-        Xex = get_dataEX(data=data,
-                         Process=Process,
-                         period=period,
-                         verbose=verbose)
+        if (verbose) {
+            print(paste0('Computes ', Process$P$var))
+        }
+
+        dataEX_tmp = data
+
+        nProcess = length(Process) - 1
+
+        for (i in 1:nProcess) {
+
+            print(paste0("Process ", i, "/", nProcess))
+            
+            process = Process[[paste0("P", i)]]
+            process_names = names(process)
+            for (i in 1:length(process)) {
+                assign(process_names[i], process[[i]])
+            }
+
+            # EXtraction
+            dataEX_tmp = do.call(
+                what=process_extraction,
+                args=list(data=dataEX_tmp,
+                          funct=funct,
+                          funct_args=funct_args,
+                          timeStep=timeStep,
+                          samplePeriod=samplePeriod,
+                          period=period,
+                          isDate=isDate,
+                          NApct_lim=NApct_lim,
+                          NAyear_lim=NAyear_lim,
+                          Seasons=Seasons,
+                          onlyDate4Season=onlyDate4Season,
+                          nameEX=nameEX,
+                          keep=keep,
+                          compress=compress,
+                          rmNApct=rmNApct,
+                          verbose=verbose))
+        }
 
         if (verbose) {
             print(paste0("Data extracted for ", var))
-            print(Xex)
+            print(dataEX_tmp)
         }
-
-        # vars = names(Xex)[!(names(Xex) %in% c("ID", "Date"))]
-        # vars = gsub("([_]obs)|([_]sim)", "", vars)
-        # vars = vars[!duplicated(vars)]
+        
+        dataEX = append(dataEX, list(dataEX_tmp))
+        names(dataEX)[length(dataEX)] = var
 
         metaEX = dplyr::bind_rows(
                             metaEX,
@@ -162,31 +187,67 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
                                           samplePeriod=
                                               paste0(samplePeriod,
                                                      collapse="/")))
-
-        # Xex$Model = gsub("[_].*$", "", Xex$ID)
-        # Xex$Code = gsub("^.*[_]", "", Xex$ID)
-        # Xex = dplyr::select(Xex, -ID)
-        # Xex = dplyr::select(Xex, Model, Code, dplyr::everything())
-
-        dataEX = append(dataEX, list(Xex))
-        names(dataEX)[length(dataEX)] = var
     }
-    
+
+    if (simplify) {
+        dataEX = purrr::reduce(.x=dataEX, .f=full_join, , by="ID")
+    }
     res = list(dataEX=dataEX, metaEX=metaEX)
     return (res)
 }
 
 
-# CARD_trend = function (data, CARD, period=NULL, verbose=TRUE) {
+CARD_trend = function (data, CARD_path, WIP_dir="WIP", level=0.1,
+                       period=NULL, samplePeriod_opti=NULL,
+                       simplify=TRUE, verbose=TRUE) {
 
+    if (verbose) {
+        print(paste0('Computes ', ' trend'))
+    }
 
+    # Make sure to convert the period to a list
+    period = as.list(period)
+    # Set the max interval period as the minimal possible
+    Imax = 0
+    # Blank tibble for data to return
+    trend_all = tibble()
 
+    # For all periods
+    for (per in period) {
+        if (verbose) {
+            print(paste0('For period : ',
+                         paste0(per, collapse=' / ')))
+        }
 
-# }
+        dataEX = CARD_extraction(data,
+                                 CARD_path=CARD_path, WIP_dir=WIP_dir,
+                                 period=per, samplePeriod_opti=samplePeriod_opti,
+                                 simplify=TRUE, verbose=verbose)$dataEX
+        
+        # Compute the trend analysis
+        trend = process_trend(data=dataEX,
+                              MK_level=level,
+                              timeDep_option="AR1",
+                              verbose=verbose)
+        
+        # Get the associated time interval
+        I = lubridate::interval(per[1], per[2])
+        # If it is the largest interval       
+        if (I > Imax) {
+            # Store it and the associated data
+            Imax = I
+            dataEX_all = dataEX
+        }
+        # Store the trend
+        trend_all = bind_rows(trend_all, trend)
+    }
 
-
-
-
+    # Creates a list of results to return
+    res = list(dataEX=dataEX_all,
+               trend=trend_all)
+    
+    return (res)
+}
 
 
 #' @title sourceProcess
@@ -238,120 +299,3 @@ sourceProcess = function (path, default=NULL) {
     rm (list=ls(envir=CARD), envir=CARD)
     return (Process)
 }
-
-
-#' @title dataEX
-#' @export
-get_dataEX = function (data, Process, period=NULL, flag=NULL,
-                       mod=tibble(), verbose=TRUE) {
-
-    if (verbose) {
-        print(paste0('Computes ', Process$P$var))
-    }
-    
-    if (!is.null(flag)) {
-        # Local corrections if needed
-        res = flag_data(data,
-                        flag=flag,
-                        mod=mod,
-                        verbose=verbose)
-        data = res$data
-        mod = res$mod
-    }
-
-    dataEX = data
-
-    nProcess = length(Process) - 1
-
-    for (i in 1:nProcess) {
-
-        print(paste0("Process ", i, "/", nProcess))
-        
-        process = Process[[paste0("P", i)]]
-        process_names = names(process)
-        for (i in 1:length(process)) {
-            assign(process_names[i], process[[i]])
-        }
-
-        # EXtraction
-        dataEX = do.call(
-            what=extraction_process,
-            args=list(data=dataEX,
-                      funct=funct,
-                      funct_args=funct_args,
-                      timeStep=timeStep,
-                      samplePeriod=samplePeriod,
-                      period=period,
-                      isDate=isDate,
-                      NApct_lim=NApct_lim,
-                      NAyear_lim=NAyear_lim,
-                      Seasons=Seasons,
-                      onlyDate4Season=onlyDate4Season,
-                      nameEX=nameEX,
-                      keep=keep,
-                      compress=compress,
-                      rmNApct=rmNApct,
-                      verbose=verbose))
-    }
-
-    return (dataEX)
-}
-
-#' @title X trend
-#' @export
-get_trend = function (data, Process, period=NULL, level=0.1,
-                      flag=NULL, mod=tibble(),
-                      verbose=TRUE) {
-
-    if (verbose) {
-        print(paste0('Computes ', ' trend'))
-    }
-
-    # Make sure to convert the period to a list
-    period = as.list(period)
-    # Set the max interval period as the minimal possible
-    Imax = 0
-    # Blank tibble for data to return
-    trend_all = tibble()
-
-    # For all periods
-    for (per in period) {
-        if (verbose) {
-            print(paste0('For period : ',
-                         paste0(per, collapse=' / ')))
-        }
-
-        dataEX = get_dataEX(data,
-                            Process,
-                            period=per,
-                            flag=flag,
-                            verbose=verbose)
-        
-        # Compute the trend analysis
-        trend = trend_analyse(data=dataEX,
-                              MK_level=level,
-                              timeDep_option="AR1",
-                              verbose=verbose)
-        
-        # Get the associated time interval
-        I = lubridate::interval(per[1], per[2])
-        # If it is the largest interval       
-        if (I > Imax) {
-            # Store it and the associated data
-            Imax = I
-            dataEX_all = dataEX
-        }
-        # Store the trend
-        trend_all = bind_rows(trend_all, trend)
-    }
-
-    # Creates a list of results to return
-    res = list(dataMod=data,
-               mod=mod,
-               dataEX=dataEX_all,
-               trend=trend_all)
-    return (res)
-}
-
-
-

@@ -473,10 +473,10 @@ fieldSignificance_FDR = function (pvals, level=0.1) {
 # #' @description Compute the percentage of NA value in a sample.
 # #' @param Value Numeric Vector of value on which the
 # #' percentage of NA is computed
-# #' @param minDate Date vector computed by 'extraction_process' 
-# #' @param maxDate Date vector computed by 'extraction_process' 
-# #' @param sampleStart Date vector computed by 'extraction_process' 
-# #' @param sampleEnd Date vector computed by 'extraction_process' 
+# #' @param minDate Date vector computed by 'process_extraction' 
+# #' @param maxDate Date vector computed by 'process_extraction' 
+# #' @param sampleStart Date vector computed by 'process_extraction' 
+# #' @param sampleEnd Date vector computed by 'process_extraction' 
 # #' @return Percentage of NA
 # compute_exactNApct = function(Value, minDate, maxDate,
 #                               sampleStart, sampleEnd) {
@@ -500,10 +500,10 @@ fieldSignificance_FDR = function (pvals, level=0.1) {
 #' @description Compute the percentage of NA value in a sample.
 #' @param Value Numeric Vector of value on which the
 #' percentage of NA is computed
-#' @param minDate Date vector computed by 'extraction_process' 
-#' @param maxDate Date vector computed by 'extraction_process' 
-#' @param sampleStart Date vector computed by 'extraction_process' 
-#' @param sampleEnd Date vector computed by 'extraction_process' 
+#' @param minDate Date vector computed by 'process_extraction' 
+#' @param maxDate Date vector computed by 'process_extraction' 
+#' @param sampleStart Date vector computed by 'process_extraction' 
+#' @param sampleEnd Date vector computed by 'process_extraction' 
 #' @return Percentage of NA
 compute_NApct = function(Value, Date,
                          minDate, maxDate,

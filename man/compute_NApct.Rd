@@ -10,13 +10,13 @@ compute_NApct(Value, Date, minDate, maxDate, sampleStart, sampleEnd)
 \item{Value}{Numeric Vector of value on which the
 percentage of NA is computed}
 
-\item{minDate}{Date vector computed by 'extraction_process'}
+\item{minDate}{Date vector computed by 'process_extraction'}
 
-\item{maxDate}{Date vector computed by 'extraction_process'}
+\item{maxDate}{Date vector computed by 'process_extraction'}
 
-\item{sampleStart}{Date vector computed by 'extraction_process'}
+\item{sampleStart}{Date vector computed by 'process_extraction'}
 
-\item{sampleEnd}{Date vector computed by 'extraction_process'}
+\item{sampleEnd}{Date vector computed by 'process_extraction'}
 }
 \value{
 Percentage of NA

@@ -21,7 +21,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
-#' @title extraction_process
+#' @title process_extraction
 #' @description This process extract a variable from time series (for
 #' example the yearly mean of time series). Extraction can be yearly,
 #' monthly or realised each month of every year and sampled
@@ -68,7 +68,7 @@
 #' data = dplyr::tibble(Date=Date, ID="serie A", X=X)
 #'
 #' # Extraction
-#' dataEX = extraction_process(data=data,
+#' dataEX = process_extraction(data=data,
 #'                             samplePeriod=c("05-01",
 #'                                            "11-30"),
 #'                             funct=max,
@@ -79,7 +79,7 @@
 #' dataEX
 #' @importFrom rlang .data
 #' @export
-extraction_process = function(data,
+process_extraction = function(data,
                               funct=max,
                               funct_args=list(),
                               timeStep="year",
