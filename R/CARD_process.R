@@ -88,34 +88,6 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
             structure[[dir]] = c(structure[[dir]], var)
         }
         
-        # if (!is.null(samplePeriod_opti)) {
-            
-        #     if (identical(samplePeriod_opti[[topic[1]]],
-        #                   "min")) {
-        #         minQM = paste0(formatC(meta$minQM,
-        #                                width=2,
-        #                                flag="0"),
-        #                        '-01')
-        #         samplePeriodMOD = tibble(Code=meta$Code,
-        #                                  sp=minQM)
-        #     } else if (identical(samplePeriod_opti[[topic[1]]],
-        #                          "max")) {
-        #         maxQM = paste0(formatC(meta$maxQM,
-        #                                width=2,
-        #                                flag="0"),
-        #                        '-01')
-        #         samplePeriodMOD = tibble(Code=meta$Code,
-        #                                  sp=maxQM)
-        #     } else {
-        #         samplePeriodMOD = samplePeriod_opti[[topic[1]]]
-        #     }
-            
-        # } else {
-        #     samplePeriodMOD = NULL
-        # }
-
-        print(samplePeriod_by_topic)
-
         if (!is.null(samplePeriod_by_topic)) {
             nProcess = length(Process)
             for (i in 1:nProcess) {
@@ -125,8 +97,6 @@ CARD_extraction = function (data, CARD_path, WIP_dir="WIP", period=NULL,
                 }
             }
         }
-
-        print(samplePeriod)
 
         if (var %in% var_analyse) {
             next
