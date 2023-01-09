@@ -25,8 +25,8 @@
 #' @title CARD_extraction
 #' @export
 CARD_extraction = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
-                            period=NULL,
-                            samplePeriod_by_topic=NULL, simplify=TRUE,
+                            period=NULL, samplePeriod_by_topic=NULL,
+                            simplify_by=NULL,
                             verbose=FALSE) {
     
     CARD_dirpath = file.path(CARD_path, CARD_dir)   
@@ -170,8 +170,8 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
                                                      collapse="/")))
     }
 
-    if (simplify) {
-        dataEX = purrr::reduce(.x=dataEX, .f=full_join, , by="ID")
+    if (!is.null(simplify_by)) {
+        dataEX = purrr::reduce(.x=dataEX, .f=full_join, by=simplify_by)
     }
     res = list(metaEX=metaEX, dataEX=dataEX)
     return (res)
@@ -181,8 +181,9 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
 #' @title CARD_trend
 #' @export
 CARD_trend = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
+                       simplify_by=NULL,
                        level=0.1, period=NULL, samplePeriod_by_topic=NULL,
-                       simplify=TRUE, verbose=TRUE) {
+                       verbose=TRUE) {
 
     if (verbose) {
         print(paste0('Computes ', 'trend'))
@@ -194,7 +195,7 @@ CARD_trend = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
                           CARD_name=CARD_name,
                           period=period,
                           samplePeriod_by_topic=samplePeriod_by_topic,
-                          simplify=TRUE, verbose=verbose)
+                          simplify_by=simplify_by, verbose=verbose)
     dataEX = res$dataEX
     metaEX = res$metaEX
     
