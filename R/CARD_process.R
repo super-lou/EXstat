@@ -120,7 +120,9 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
 
         for (i in 1:nProcess) {
 
-            print(paste0("Process ", i, "/", nProcess))
+            if (verbose) {
+                print(paste0("Process ", i, "/", nProcess))
+            }
             
             process = Process[[paste0("P", i)]]
             process_names = names(process)
