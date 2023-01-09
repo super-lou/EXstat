@@ -1297,6 +1297,8 @@ process_extraction = function(data,
                             .groups='drop')
     }
 
+    print(dataEX)
+
     tree("Cleaning extracted tibble", 1, verbose=verbose)
 
     if (timeStep != "none") {
@@ -1316,6 +1318,8 @@ process_extraction = function(data,
         X[is.infinite(X)] = NA
         return (X)
     }
+
+    print(dataEX)
 
     dataEX = dplyr::mutate(dataEX,
                            dplyr::across(.cols=paste0("ValueEX",
@@ -1565,6 +1569,10 @@ process_extraction = function(data,
         rm (dataEX_tmp)
     }
 
+    if (verbose) {
+        print(dataEX)
+    }
+    
     return (dataEX)
 }
 
