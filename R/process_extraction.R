@@ -234,6 +234,8 @@ process_extraction = function(data,
         sampleFormat = "%d"
     }
 
+    Code = names(table(dataEX$Code))
+
     tree("Sample period", 1, verbose=verbose)
 
     if (is.null(samplePeriod) | all(is.na(samplePeriod))) {
@@ -252,20 +254,15 @@ process_extraction = function(data,
         idCode = which((names(samplePeriod) %in% names_save))
         idSP = which(!(names(samplePeriod) %in% names_save))
         names(samplePeriod)[c(idCode, idSP)] = c("Code", "sp")
-
-
-        # print(samplePeriod$sp)
+        samplePeriod = samplePeriod[samplePeriod$Code %in% Code,]
         
-
         tree("Fixing sample period for each time series", 2,
              verbose=verbose)
         samplePeriod$sp = lapply(samplePeriod$sp,
                                  fix_samplePeriod,
                                  refDate=refDate,
                                  sampleFormat=sampleFormat,
-                                 verbose=FALSE)
-
-        # print(samplePeriod)
+                                 verbose=FALSE)        
         
     } else {
 
@@ -291,7 +288,6 @@ process_extraction = function(data,
             tree("Sample period fully given", 2, end=TRUE,
                  verbose=verbose)
         }
-        Code = names(table(dataEX$Code))
         samplePeriod = dplyr::tibble(Code=Code,
                                      sp=rep(list(samplePeriod),
                                             length(Code)))
@@ -483,6 +479,11 @@ process_extraction = function(data,
         sampleInfo =
             dplyr::summarise(dplyr::group_by(dataEX, Code),
                              minDate=min(Date),
+                             .groups="drop")
+        
+        sampleInfo =
+            dplyr::summarise(dplyr::group_by(dataEX, Code),
+                             minDate=min(Date),
                              minDateRef=
                                  as.Date(paste0(
                                      lubridate::year(minDate),
@@ -587,9 +588,6 @@ process_extraction = function(data,
                                           spEnd,
                                           dt2add))
         
-        # dataEX = dplyr::filter(dplyr::group_by(dataEX, Code),
-        #                        minDateRef <= Date)
-
     } else if (timeStep == "yearday") {
         
         tree("Yearday extraction", 1, verbose=verbose)
@@ -719,9 +717,6 @@ process_extraction = function(data,
                                           spEnd,
                                           dt2add))
         
-        # dataEX = dplyr::filter(dplyr::group_by(dataEX, Code),
-        #                        minDateRef <= Date)
-
 
     } else if (timeStep %in% c("month", "year-month")) {
 
@@ -1465,9 +1460,10 @@ process_extraction = function(data,
 
     if (!is.null(keep) & !(timeStep %in% c("month", "season"))) {
         if (!(timeStep %in% c("none", "yearday"))) {
+
             dataEX = dplyr::select(dataEX, -Date)
-            dataEX = dplyr::full_join(dataEX,
-                                      dataEX_save,
+            dataEX = dplyr::left_join(dataEX_save,
+                                      dataEX,
                                       by=colGroup)
             dataEX = dplyr::select(dataEX, -Date_g)
 
