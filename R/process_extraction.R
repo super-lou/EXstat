@@ -1310,16 +1310,20 @@ process_extraction = function(data,
     }
 
     infinite2NA = function (X) {
-        X[is.infinite(X)] = NA
+        if (tibble::is_tibble(X)) {
+            X = dplyr::mutate(X, dplyr::across(.fns=infinite2NA))
+        } else {
+            X[is.infinite(X)] = NA
+        }
         return (X)
     }
-
+    
     dataEX = dplyr::mutate(dataEX,
                            dplyr::across(.cols=paste0("ValueEX",
                                                       1:nValue),
                                          .fns=infinite2NA),
                            .keep="all")
-
+    
     if (timeStep == "year") {
         sampleInfoCompress$Date = format(sampleInfoCompress$Date,
                                          groupFormat)
@@ -1425,6 +1429,9 @@ process_extraction = function(data,
                                 verbose=verbose)
     }
 
+
+    print(dataEX)
+    
     if (!is.null(NApct_lim)) {
         dataEX = NA_filter(dataEX, timeStep=timeStep,
                            nValue=nValue,
@@ -1530,6 +1537,12 @@ process_extraction = function(data,
     }
 
     if (compress & timeStep %in% c("season", "month")) {
+        if (timeStep == "season") {
+            ref = "SEA"
+        } else if (timeStep == "month") {
+            ref = "MON"
+        }
+            
         valueName = names_save[idValue_save]
         codeName = names_save[idCode_save]
 
@@ -1546,8 +1559,8 @@ process_extraction = function(data,
             for (j in 1:nValueName) {
                 dataEX_filter =
                     dplyr::rename(dataEX_filter,
-                                  !!paste0(valueName[j], "_",
-                                           Groups[i]):= !!valueName[j])
+                                  !!gsub(ref, Groups[i],
+                                         valueName[j]):= !!valueName[j])
             }
             
             if (!exists("dataEX_tmp")) {
