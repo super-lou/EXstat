@@ -1235,7 +1235,10 @@ process_extraction = function(data,
             rm (dataEX_tmp)
         }
 
+        print(dataEX)
+
         for (i in 1:nfunct) {
+
             colArg = colArgs[[i]]
             otherArg = otherArgs[[i]]
             f = funct[[i]]
@@ -1255,19 +1258,41 @@ process_extraction = function(data,
                                n=dplyr::n(),
                                .groups='drop')
             } else {
-                dataEX_tmp =
-                    dplyr::full_join(
-                               dataEX_tmp,
-                               dplyr::summarise(
-                                          dataEX,
-                                          !!!rlang::data_syms(keepDate),
-                                          !!paste0("ValueEX", i) :=
-                                              f(!!!rlang::data_syms(colArg),
-                                                !!!otherArg),
-                                          !!paste0("nNA", i) :=
-                                              sum(isNA),
-                                          .groups='drop'),
-                               by=colGroup)
+
+                if (timeStep == "none") {
+                    dataEX_tmp =
+                        dplyr::full_join(
+                                   dplyr::tibble(dataEX_tmp,
+                                                 id=1:nrow(dataEX_tmp)),
+                                   dplyr::tibble(dplyr::summarise(
+                                                            dataEX,
+                                                            !!!rlang::data_syms(keepDate),
+                                                            !!paste0("ValueEX", i) :=
+                                                                f(!!!rlang::data_syms(colArg),
+                                                                  !!!otherArg),
+                                                            !!paste0("nNA", i) :=
+                                                                sum(isNA),
+                                                            .groups='drop'),
+                                                 id=1:nrow(dataEX_tmp)),
+                                   by=c("id", colGroup))
+
+                    dataEX_tmp = select(dataEX_tmp, -id)
+                    
+                        } else {
+                            dataEX_tmp =
+                        dplyr::full_join(
+                                   dataEX_tmp,
+                                   dplyr::summarise(
+                                              dataEX,
+                                              !!!rlang::data_syms(keepDate),
+                                              !!paste0("ValueEX", i) :=
+                                                  f(!!!rlang::data_syms(colArg),
+                                                    !!!otherArg),
+                                              !!paste0("nNA", i) :=
+                                                  sum(isNA),
+                                              .groups='drop'),
+                                   by=colGroup)
+                        }
             }
             nValue = nfunct
         }
@@ -1298,6 +1323,8 @@ process_extraction = function(data,
 
     tree("Cleaning extracted tibble", 1, verbose=verbose)
 
+    print(dataEX)
+    
     if (timeStep != "none") {
         if (any(isDate)) {
             dataEX = dplyr::full_join(dataEX,
@@ -1319,8 +1346,10 @@ process_extraction = function(data,
     }
     
     dataEX = dplyr::mutate(dataEX,
-                           dplyr::across(.cols=paste0("ValueEX",
-                                                      1:nValue),
+                           dplyr::across(.cols=
+                                             dplyr::starts_with(
+                                                        paste0("ValueEX",
+                                                               1:nValue)),
                                          .fns=infinite2NA),
                            .keep="all")
     
@@ -1362,8 +1391,10 @@ process_extraction = function(data,
             return (NApct)
         }
         dataEX = dplyr::mutate(dataEX,
-                               dplyr::across(.cols=paste0("nNA",
-                                                          1:nValue),
+                               dplyr::across(.cols=
+                                                 dplyr::starts_with(
+                                                            paste0("nNA",
+                                                                   1:nValue)),
                                              .fns=compute_NApct ,
                                              .names=paste0("NApct{1:",
                                                            nValue, "}"),
@@ -1387,8 +1418,10 @@ process_extraction = function(data,
             return (NApct)
         }
         dataEX = dplyr::mutate(dataEX,
-                               dplyr::across(.cols=paste0("nNA",
-                                                          1:nValue),
+                               dplyr::across(.cols=
+                                                 dplyr::starts_with(
+                                                            paste0("nNA",
+                                                                   1:nValue)),
                                              .fns=compute_NApct ,
                                              .names=paste0("NApct{1:",
                                                            nValue, "}"),
@@ -1429,9 +1462,6 @@ process_extraction = function(data,
                                 verbose=verbose)
     }
 
-
-    print(dataEX)
-    
     if (!is.null(NApct_lim)) {
         dataEX = NA_filter(dataEX, timeStep=timeStep,
                            nValue=nValue,
@@ -1591,6 +1621,10 @@ process_extraction = function(data,
         dataEX = dplyr::select(dataEX, names_to_keep)
     }
 
+    dataEX = tidyr::unnest(dataEX,
+                           dplyr::everything(),
+                           names_sep="_")
+    
     if (verbose) {
         print(dataEX)
     }
@@ -1708,8 +1742,10 @@ convert_dateEX = function(dataEX, isDate, nValue, isColArgs,
             dataEX[paste0("ValueEX", 1:nValue)] + dataEX$Shift
         
         dataEX = dplyr::mutate(dplyr::group_by(dataEX, Code),
-                               dplyr::across(.cols=paste0("ValueEX",
-                                                          1:nValue),
+                               dplyr::across(.cols=
+                                                 dplyr::starts_with(
+                                                            paste0("ValueEX",
+                                                                   1:nValue)),
                                              .fns=convert_dataEX_hide),
                                .keep="all")       
         
@@ -1748,14 +1784,16 @@ NA_filter = function (dataEX, timeStep, nValue, NApct_lim=1,
     }
     
     dataEX = dplyr::mutate(dataEX,
-                           dplyr::across(.cols=paste0("NApct",
-                                                      1:nValue),
+                           dplyr::across(.cols=
+                                             dplyr::starts_with(
+                                                        paste0("NApct",
+                                                               1:nValue)),
                                          .fns=NApct2filter,
                                          NApct_lim=NApct_lim,
                                          .names=paste0("filter{1:",
                                                        nValue, "}")),
                            .keep="all")
-
+    
     filter2NA = function (X, filter) {
         X[filter] = NA
         return (X)
