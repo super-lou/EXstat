@@ -1235,8 +1235,6 @@ process_extraction = function(data,
             rm (dataEX_tmp)
         }
 
-        print(dataEX)
-
         for (i in 1:nfunct) {
 
             colArg = colArgs[[i]]
@@ -1323,8 +1321,6 @@ process_extraction = function(data,
 
     tree("Cleaning extracted tibble", 1, verbose=verbose)
 
-    print(dataEX)
-    
     if (timeStep != "none") {
         if (any(isDate)) {
             dataEX = dplyr::full_join(dataEX,
@@ -1470,7 +1466,7 @@ process_extraction = function(data,
     }
     
     tree("Last cleaning", 1, end=TRUE, verbose=verbose)
-    
+
     if (onlyDate4Season) {
         dataEX = dplyr::select(dataEX, -YearSeason)
     }
@@ -1519,7 +1515,7 @@ process_extraction = function(data,
     }
 
     idCode = which(names(dataEX) == "Code")
-    if (timeStep != "none") {
+    if (!(timeStep == "none" & is.null(keep))) {
         idDate = which(names(dataEX) == "Date")
     }
     
@@ -1535,7 +1531,7 @@ process_extraction = function(data,
         names_save[idDate_save] = groupName
     }
 
-    if (timeStep == "none") {
+    if (timeStep == "none" & is.null(keep)) {
         names(dataEX)[c(idCode, idValue)] =
             names_save[c(idCode_save, idValue_save)]
     } else {

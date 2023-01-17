@@ -162,8 +162,6 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
                           verbose=verbose))
         }
 
-        print(dataEX_tmp)
-
         if (verbose) {
             print(paste0("Data extracted for ", var))
             print(dataEX_tmp)
