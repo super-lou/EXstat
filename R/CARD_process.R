@@ -190,7 +190,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
                                               paste0(samplePeriod,
                                                      collapse="/")))
     }
-
+    
     if (!is.null(simplify_by)) {
         dataEX = purrr::reduce(.x=dataEX, .f=full_join, by=simplify_by)
     }
