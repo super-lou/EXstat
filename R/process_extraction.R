@@ -1561,14 +1561,14 @@ process_extraction = function(data,
                 names_keepSave[idValue_keepSave]
         }
     }
-
+    
     if (compress & timeStep %in% c("season", "month")) {
         if (timeStep == "season") {
             ref = "SEA"
         } else if (timeStep == "month") {
             ref = "MON"
         }
-            
+
         valueName = names_save[idValue_save]
         codeName = names_save[idCode_save]
 
@@ -1588,7 +1588,7 @@ process_extraction = function(data,
                                   !!gsub(ref, Groups[i],
                                          valueName[j]):= !!valueName[j])
             }
-            
+
             if (!exists("dataEX_tmp")) {
                 dataEX_tmp = dataEX_filter
 
