@@ -1491,6 +1491,10 @@ process_extraction = function(data,
                                                  1:nValue)))
     }
 
+    if (timeStep == "yearday") {
+        dataEX = dplyr::filter(dataEX, Date < 366)
+    }
+
     if (!is.null(keep) & !(timeStep %in% c("month", "season"))) {
         if (!(timeStep %in% c("none", "yearday"))) {
 
@@ -1523,6 +1527,7 @@ process_extraction = function(data,
 
     if (timeStep == "yearday") {
         names_save[idDate_save] = "Yearday"
+        dataEX = dplyr::filter(dataEX, Date < 366)
     } else if (timeStep == "month") {
         groupName = "Month"
         names_save[idDate_save] = groupName
