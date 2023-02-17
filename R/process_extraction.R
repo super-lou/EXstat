@@ -84,8 +84,8 @@ process_extraction = function(data,
                               samplePeriod=NULL,
                               period=NULL,
                               isDate=FALSE,
-                              NApct_lim=10,
-                              NAyear_lim=10,
+                              NApct_lim=NULL,
+                              NAyear_lim=NULL,
                               Seasons=c("DJF", "MAM", "JJA", "SON"),
                               onlyDate4Season=FALSE,
                               nameEX="X",
@@ -135,7 +135,7 @@ process_extraction = function(data,
     if (!is.list(funct_args[[1]])) {
         funct_args = list(funct_args)
     }
-    
+
     nfunct = length(funct)
     
     colArgs_save = list()
@@ -205,6 +205,21 @@ process_extraction = function(data,
         names_save[idValue_save[1:nfunct]] = nameEX
     }
 
+    if (!is.null(samplePeriod) & dplyr::is.tbl(samplePeriod)) {
+        if ("args" %in% names(samplePeriod)) {
+            apply_name = function (X, table, name) {
+                Xres = name[match(X, table)]
+                Xres[is.na(Xres)] = X[is.na(Xres)]
+                names(Xres) = names(X)
+                return (Xres)
+            }
+            samplePeriod$args = lapply(samplePeriod$args, apply_name, table=names(data), name=names(dataEX))
+            
+        } else {
+            samplePeriop$args = NA
+        }
+    }
+
     if (!is.null(NAyear_lim) & !is.null(idDate_save)) {
         dataEX = missing_year(dataEX, nValue, NAyear_lim,
                               verbose=verbose)
@@ -251,18 +266,39 @@ process_extraction = function(data,
     }
 
     if (dplyr::is.tbl(samplePeriod)) {
-        idCode = which((names(samplePeriod) %in% names_save))
-        idSP = which(!(names(samplePeriod) %in% names_save))
-        names(samplePeriod)[c(idCode, idSP)] = c("Code", "sp")
-        samplePeriod = samplePeriod[samplePeriod$Code %in% Code,]
-        
+
+        if (nrow(samplePeriod) == 1) {
+            samplePeriod = dplyr::tibble(Code=Code,
+                                         samplePeriod)
+            
+        } else {
+            idCode = which((names(samplePeriod) %in% names_save))        
+            names(samplePeriod)[idCode] = c("Code")
+            samplePeriod = samplePeriod[samplePeriod$Code %in% Code,]
+        }
+
         tree("Fixing sample period for each time series", 2,
              verbose=verbose)
-        samplePeriod$sp = lapply(samplePeriod$sp,
-                                 fix_samplePeriod,
-                                 refDate=refDate,
-                                 sampleFormat=sampleFormat,
-                                 verbose=FALSE)        
+        # samplePeriod$sp = lapply(samplePeriod$sp,
+        #                          fix_samplePeriod,
+        #                          dataEX=dataEX,
+        #                          refDate=refDate,
+        #                          sampleFormat=sampleFormat,
+        #                          verbose=FALSE)
+        samplePeriod =
+            dplyr::summarise(dplyr::group_by(samplePeriod,
+                                             Code),
+                             sp=list(
+                                 fix_samplePeriod(
+                                     sp,
+                                     dataEX_code=
+                                         dataEX[dataEX$Code ==
+                                                dplyr::cur_group()$Code,],
+                                     args=args,
+                                     refDate=refDate,
+                                     sampleFormat=sampleFormat,
+                                     verbose=FALSE)),
+                             .groups="drop")
         
     } else {
 
@@ -1274,7 +1310,7 @@ process_extraction = function(data,
                                                  id=1:nrow(dataEX_tmp)),
                                    by=c("id", colGroup))
 
-                    dataEX_tmp = select(dataEX_tmp, -id)
+                    dataEX_tmp = dplyr::select(dataEX_tmp, -id)
                     
                         } else {
                             dataEX_tmp =
@@ -1635,9 +1671,24 @@ process_extraction = function(data,
 
 
 
-fix_samplePeriod = function (samplePeriod, refDate,
-                             sampleFormat, verbose=FALSE) {
+fix_samplePeriod = function (samplePeriod, dataEX_code, args=NA,
+                             refDate="1972", sampleFormat="%m-%d",
+                             verbose=FALSE) {
+    
+    if (is.function(samplePeriod[[1]]) & sampleFormat == "%m-%d") {
+        dataM = process_extraction(data=dataEX_code,
+                                   funct=list(XM=mean),
+                                   funct_args=args,
+                                   timeStep="month",
+                                   rmNApct=TRUE,
+                                   verbose=FALSE)
+        samplePeriod = dataM$Month[dataM$XM ==
+                                   samplePeriod[[1]](dataM$XM)]
+        samplePeriod = paste0(samplePeriod, "-01")
+    }
 
+    samplePeriod = unlist(samplePeriod)
+    
     if (length(samplePeriod) == 1 | any(is.na(samplePeriod))) {
         if (length(samplePeriod) == 1) {
             
