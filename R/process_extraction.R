@@ -279,12 +279,6 @@ process_extraction = function(data,
 
         tree("Fixing sample period for each time series", 2,
              verbose=verbose)
-        # samplePeriod$sp = lapply(samplePeriod$sp,
-        #                          fix_samplePeriod,
-        #                          dataEX=dataEX,
-        #                          refDate=refDate,
-        #                          sampleFormat=sampleFormat,
-        #                          verbose=FALSE)
         samplePeriod =
             dplyr::summarise(dplyr::group_by(samplePeriod,
                                              Code),
@@ -328,6 +322,14 @@ process_extraction = function(data,
                                      sp=rep(list(samplePeriod),
                                             length(Code)))
     }
+
+    samplePeriod =
+        dplyr::summarise(dplyr::group_by(samplePeriod,
+                                         Code),
+                         sp=list(fix_samplePeriod_FUCKING29FEB(
+                             sp,
+                             sampleFormat=sampleFormat)),
+                         .groups="drop")
 
     samplePeriod$spStart = sapply(samplePeriod$sp, "[[", 1)
     samplePeriod$spEnd = sapply(samplePeriod$sp, "[[", 2)
@@ -1730,6 +1732,15 @@ fix_samplePeriod = function (samplePeriod, dataEX_code, args=NA,
 }
     
 
+
+fix_samplePeriod_FUCKING29FEB = function (samplePeriod,
+                                          sampleFormat) {
+    samplePeriod = unlist(samplePeriod)
+    if (sampleFormat == "%m-%d") {
+        samplePeriod[samplePeriod == "02-29"] = "02-28"
+    }
+    return (samplePeriod)
+}
 
 
 convert_dataEX_hide = function (Value) {
