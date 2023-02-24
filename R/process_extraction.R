@@ -224,7 +224,7 @@ process_extraction = function(data,
         dataEX = missing_year(dataEX, nValue, NAyear_lim,
                               verbose=verbose)
     }
-    
+
     tree("Period", 1, verbose=verbose)
     if (is.null(period) | is.null(idDate_save)) {
         tree("Selecting all the data",
