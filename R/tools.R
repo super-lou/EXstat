@@ -572,10 +572,16 @@ tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {
         nextLine = x
         nbNewline = 0
         nbChar = nchar(nextLine) + nh + nd
+
         while (nbChar > lim) {
             nbNewline = nbNewline + 1
             posSpace = which(strsplit(nextLine, "")[[1]] == " ")
-            posNewline = tail(posSpace[posSpace + nh + nd < lim], 1)
+            ok = posSpace + nh + nd < lim
+            if (all(!ok)) {
+                posNewline = lim - (nh + nd)
+            } else {
+                posNewline = tail(posSpace[ok], 1)
+            }
             line = substring(nextLine, 1, posNewline-1)
             nextLine = substring(nextLine, posNewline+1, nchar(nextLine))
             nbChar = nchar(nextLine) + nh + nd

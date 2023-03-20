@@ -150,7 +150,7 @@ process_extraction = function(data,
         otherArgs = append(otherArgs,
                            list(arg[!(arg %in% names_save)]))
         isColArgs = append(isColArgs, any(arg %in% names_save))
-
+        
         if (isColArgs[[i]]) {
             colArgs_order = append(colArgs_order,
                                    list(match(colArgs_save[[i]],
@@ -160,9 +160,10 @@ process_extraction = function(data,
                                          colArgs_order[[i]])))
             names(colArgs[[i]]) =
                 names(colArgs_save[[i]])
+            
         }
     }
-
+    
     if (length(colArgs) == 0) {
         stop (paste0("Are the given parameters that refer to column names spelled correctly ? ",
                      funct_args, " is given but only names in ",

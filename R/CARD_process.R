@@ -29,7 +29,6 @@
 #' @param CARD_dir default="WIP", specify the name of the subdirectory in which to find the script files.
 #' @param CARD_name specify the name of the script files to be used
 #' @param period specify a period to extract from data
-#' @param samplePeriod_by_topic specify a sample period per topic
 #' @param simplify_by specify whether or not to simplify the extracted data by a column name
 #' @param verbose default=FALSE, if set to TRUE, the function will print out the process details
 #' @return a list of extracted data, along with meta data.
@@ -38,7 +37,8 @@
 CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             CARD_name=NULL,
                             period=NULL,
-                            # samplePeriod_by_topic=NULL,
+                            variable_names=NULL,
+                            no_lim=FALSE,
                             simplify_by=NULL,
                             verbose=FALSE) {
     
@@ -75,7 +75,6 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                          "__tools__"),
                                pattern='*.R$',
                                recursive=TRUE,
-                               # include.dirs=FALSE,
                                full.names=TRUE)
         for (path in list_path) {
             source(path, encoding='UTF-8')    
@@ -106,21 +105,6 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             dir = gsub('.*_', '', dir)
             structure[[dir]] = c(structure[[dir]], var)
         }
-        
-        # if (!is.null(samplePeriod_by_topic)) {
-        #     nProcess = length(Process)
-        #     for (i in 1:nProcess) {
-        #         if (!is.null(Process[[i]]$samplePeriod)) {
-        #             Process[[i]]$samplePeriod = samplePeriod_by_topic[[topic[1]]]
-        #             samplePeriod = Process[[i]]$samplePeriod
-        #         }
-        #     }
-        # }
-
-        # samplePeriod = dplyr::tibble(ID=c("serie 1", "serie 2"),
-        #                      sp=list(min,
-        #                              c("01-01", "11-30")),
-        #                      args=list(list("X", na.rm=TRUE), NA))
 
         if (any(var %in% var_analyse)) {
             next
@@ -153,6 +137,23 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                              args=samplePeriod[2])
             }
 
+            if (no_lim) {
+                NApct_lim = NULL
+                NAyear_lim = NULL
+            }
+
+            if (!is.null(variable_names)) {
+                for (j in 1:length(variable_names)) {
+                    if (variable_names[[j]] %in% names(dataEX_tmp)) {
+                        dataEX_tmp =
+                            dplyr::rename(
+                                       dataEX_tmp,
+                                       !!names(variable_names)[j]:=
+                                           variable_names[[j]])
+                    }
+                }
+            }
+
             # EXtraction
             dataEX_tmp = do.call(
                 what=process_extraction,
@@ -174,6 +175,18 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                           verbose=verbose))
         }
 
+        if (!is.null(variable_names)) {
+            for (j in 1:length(variable_names)) {
+                if (names(variable_names)[j] %in% names(dataEX_tmp)) {
+                    dataEX_tmp =
+                        dplyr::rename(
+                                   dataEX_tmp,
+                                   !!variable_names[[j]]:=
+                                       names(variable_names)[j])
+                }
+            }
+        }
+        
         if (verbose) {
             print(paste0("Data extracted for ", var))
             print(dataEX_tmp)
