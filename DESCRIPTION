@@ -23,6 +23,7 @@ Imports:
     dplyr,
     lubridate,
     stats,
-    rlang
+    rlang,
+    CircStats
 RoxygenNote: 7.1.2
 Roxygen: list(markdown = TRUE)

@@ -1,4 +1,4 @@
-# EXstat [<img src="man/figures/flower_hex.png" align="right" width=160 height=160 alt=""/>](https://makaho.sk8.inrae.fr/)
+# EXstat [<img src="figures/flower_hex.png" align="right" width=160 height=160 alt=""/>](https://makaho.sk8.inrae.fr/)
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/super-lou/EXstat/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/super-lou/EXstat/actions/workflows/R-CMD-check.yaml)

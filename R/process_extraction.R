@@ -137,7 +137,7 @@ process_extraction = function(data,
     }
 
     nfunct = length(funct)
-    
+
     colArgs_save = list()
     colArgs = list()
     otherArgs = list()
@@ -145,6 +145,18 @@ process_extraction = function(data,
     colArgs_order = list()
     for (i in 1:nfunct) {
         arg = funct_args[[i]]
+
+        isDateColArgs = any(arg %in% names_save[idDate_save])
+        if (isDateColArgs) {
+            names_save = c(names_save, "ValueDate")
+            idValue_save = c(idValue_save, max(idValue_save)+1)
+            colName = c(colName, paste0("Value", length(idValue_save)))
+            data["ValueDate"] = data[idDate_save]
+            funct_args[[i]][arg %in% names_save[idDate_save]] =
+                "ValueDate"
+            arg = funct_args[[i]]
+        }
+        
         colArgs_save = append(colArgs_save,
                               list(arg[arg %in% names_save]))
         otherArgs = append(otherArgs,
@@ -152,15 +164,15 @@ process_extraction = function(data,
         isColArgs = append(isColArgs, any(arg %in% names_save))
         
         if (isColArgs[[i]]) {
-            colArgs_order = append(colArgs_order,
-                                   list(match(colArgs_save[[i]],
-                                              names_save[idValue_save])))
+            colArgs_order =
+                append(colArgs_order,
+                       list(match(colArgs_save[[i]],
+                                  names_save[idValue_save])))
             colArgs = append(colArgs,
                              list(paste0("Value",
                                          colArgs_order[[i]])))
             names(colArgs[[i]]) =
                 names(colArgs_save[[i]])
-            
         }
     }
     
@@ -1279,9 +1291,11 @@ process_extraction = function(data,
             colArg = colArgs[[i]]
             otherArg = otherArgs[[i]]
             f = funct[[i]]
-           
+
             dataEX$isNA =
-                is.na(rowSums(dataEX[unlist(colArg)]))
+                is.na(rowSums(
+                    dplyr::mutate_all(dataEX[unlist(colArg)],
+                                      as.numeric)))
 
             if (!exists("dataEX_tmp")) {
                 dataEX_tmp =
@@ -1575,6 +1589,11 @@ process_extraction = function(data,
         names_save[idDate_save] = groupName
     }
 
+    if (isDateColArgs) {
+        names_save = names_save[-length(names_save)]
+        idValue_save = idValue_save[-length(idValue_save)]
+    }
+    
     if (timeStep == "none" & is.null(keep)) {
         names(dataEX)[c(idCode, idValue)] =
             names_save[c(idCode_save, idValue_save)]
