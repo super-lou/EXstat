@@ -22,6 +22,103 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
+
+CARD_extraction_hide = function (Process, no_lim,
+                                 variable_names, data, verbose,
+                                 period, var) {
+
+    nProcess = length(Process) - 1
+
+    for (i in 1:nProcess) {
+
+        if (verbose) {
+            print(paste0("Process ", i, "/", nProcess))
+        }
+        
+        process = Process[[paste0("P", i)]]
+        process_names = names(process)
+        for (i in 1:length(process)) {
+            assign(process_names[i], process[[i]])
+        }
+
+        if (is.function(samplePeriod[[1]])) {
+            samplePeriod = dplyr::tibble(sp=list(samplePeriod[[1]]),
+                                         args=samplePeriod[2])
+        }
+
+        if (no_lim) {
+            NApct_lim = NULL
+            NAyear_lim = NULL
+        }
+
+        if (!is.null(variable_names)) {
+            for (j in 1:length(variable_names)) {
+                if (variable_names[[j]] %in% names(data)) {
+                    data =
+                        dplyr::rename(
+                                   data,
+                                   !!names(variable_names)[j]:=
+                                       variable_names[[j]])
+                }
+            }
+        }
+
+        # EXtraction
+        data = do.call(
+            what=process_extraction,
+            args=list(data=data,
+                      funct=funct,
+                      funct_args=funct_args,
+                      timeStep=timeStep,
+                      samplePeriod=samplePeriod,
+                      period=period,
+                      isDate=isDate,
+                      NApct_lim=NApct_lim,
+                      NAyear_lim=NAyear_lim,
+                      Seasons=Seasons,
+                      onlyDate4Season=onlyDate4Season,
+                      nameEX=nameEX,
+                      keep=keep,
+                      compress=compress,
+                      rmNApct=rmNApct,
+                      verbose=verbose))
+        gc()
+    }
+
+    if (!is.null(variable_names)) {
+        for (j in 1:length(variable_names)) {
+            if (names(variable_names)[j] %in% names(data)) {
+                data =
+                    dplyr::rename(
+                               data,
+                               !!variable_names[[j]]:=
+                                   names(variable_names)[j])
+            }
+        }
+    }
+    
+    if (verbose) {
+        print(paste0("Data extracted for ", var))
+        print(data)
+    }
+    
+    return (data)
+}
+
+get_last_Process = function (Process) {
+    nProcess = length(Process) - 1
+    for (i in 1:nProcess) {
+        process = Process[[paste0("P", i)]]
+        process_names = names(process)
+        for (i in 1:length(process)) {
+            assign(process_names[i], process[[i]])
+        }
+    }
+    res = list(compress=compress, timeStep=timeStep, Seasons=Seasons)
+    return (res)
+}
+
+
 #' @title CARD_extraction
 #' @description The function extract specified data from a set of script files.
 #' @param data Tibble used in the extraction
@@ -116,85 +213,20 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             print(paste0('Computes ', Process$P$var))
         }
 
-        dataEX_tmp = data
-
-        nProcess = length(Process) - 1
-
-        for (i in 1:nProcess) {
-
-            if (verbose) {
-                print(paste0("Process ", i, "/", nProcess))
-            }
-            
-            process = Process[[paste0("P", i)]]
-            process_names = names(process)
-            for (i in 1:length(process)) {
-                assign(process_names[i], process[[i]])
-            }
-
-            if (is.function(samplePeriod[[1]])) {
-                samplePeriod = dplyr::tibble(sp=list(samplePeriod[[1]]),
-                                             args=samplePeriod[2])
-            }
-
-            if (no_lim) {
-                NApct_lim = NULL
-                NAyear_lim = NULL
-            }
-
-            if (!is.null(variable_names)) {
-                for (j in 1:length(variable_names)) {
-                    if (variable_names[[j]] %in% names(dataEX_tmp)) {
-                        dataEX_tmp =
-                            dplyr::rename(
-                                       dataEX_tmp,
-                                       !!names(variable_names)[j]:=
-                                           variable_names[[j]])
-                    }
-                }
-            }
-
-            # EXtraction
-            dataEX_tmp = do.call(
-                what=process_extraction,
-                args=list(data=dataEX_tmp,
-                          funct=funct,
-                          funct_args=funct_args,
-                          timeStep=timeStep,
-                          samplePeriod=samplePeriod,
-                          period=period,
-                          isDate=isDate,
-                          NApct_lim=NApct_lim,
-                          NAyear_lim=NAyear_lim,
-                          Seasons=Seasons,
-                          onlyDate4Season=onlyDate4Season,
-                          nameEX=nameEX,
-                          keep=keep,
-                          compress=compress,
-                          rmNApct=rmNApct,
-                          verbose=verbose))
-        }
-
-        if (!is.null(variable_names)) {
-            for (j in 1:length(variable_names)) {
-                if (names(variable_names)[j] %in% names(dataEX_tmp)) {
-                    dataEX_tmp =
-                        dplyr::rename(
-                                   dataEX_tmp,
-                                   !!variable_names[[j]]:=
-                                       names(variable_names)[j])
-                }
-            }
-        }
+        dataEX = append(dataEX,
+                        list(CARD_extraction_hide(Process,
+                                                  no_lim,
+                                                  variable_names,
+                                                  data, verbose,
+                                                  period, var)))
         
-        if (verbose) {
-            print(paste0("Data extracted for ", var))
-            print(dataEX_tmp)
-        }
-        
-        dataEX = append(dataEX, list(dataEX_tmp))
         names(dataEX)[length(dataEX)] = paste0(var, collapse=" / ")
 
+        res = get_last_Process(Process)
+        compress = res$compress
+        timeStep = res$timeStep
+        Seasons = res$Seasons
+        
         if (compress) {
             if (timeStep == "season") {
                 var = sapply(X=Seasons, gsub, pattern="SEA", x=var)
@@ -220,8 +252,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         dataEX = purrr::reduce(.x=dataEX, .f=full_join, by=simplify_by)
     }
     
-    res = list(metaEX=metaEX, dataEX=dataEX)
-    return (res)
+    return (list(metaEX=metaEX, dataEX=dataEX))
 }
 
 
@@ -255,18 +286,16 @@ CARD_trend = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
                           period=period,
                           samplePeriod_by_topic=samplePeriod_by_topic,
                           simplify_by=simplify_by, verbose=verbose)
-    dataEX = res$dataEX
-    metaEX = res$metaEX
     
     # Compute the trend analysis
-    trendEX = process_trend(data=dataEX,
+    trendEX = process_trend(data=res$dataEX,
                             MK_level=level,
                             timeDep_option="AR1",
                             verbose=verbose)
         
     # Creates a list of results to return
-    res = list(metaEX=metaEX,
-               dataEX=dataEX,
+    res = list(metaEX=res$metaEX,
+               dataEX=res$dataEX,
                trendEX=trendEX)
     
     return (res)
