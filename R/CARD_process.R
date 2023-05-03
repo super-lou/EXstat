@@ -309,14 +309,26 @@ CARD_trend = function (data, CARD_path, CARD_dir="WIP", CARD_name=NULL,
                           simplify_by=simplify_by,
                           samplePeriod_overwrite=samplePeriod_overwrite,
                           verbose=verbose)
-        
+
     
-    # Compute the trend analysis
-    trendEX = process_trend(data=res$dataEX,
-                            MK_level=level,
-                            timeDep_option="AR1",
-                            verbose=verbose)
-        
+    if (!is.null(simplify_by)) {
+        # Compute the trend analysis
+        trendEX = process_trend(data=res$dataEX,
+                                MK_level=level,
+                                timeDep_option="AR1",
+                                verbose=verbose)
+    } else {
+        trendEX = list()
+        for (i in 1:length(res$dataEX)) {
+            trendEX = append(trendEX,
+                             list(process_trend(data=res$dataEX[[i]],
+                                                MK_level=level,
+                                                timeDep_option="AR1",
+                                                verbose=verbose)))
+            names(trendEX)[length(trendEX)] = names(res$dataEX)[i]
+        }
+    }
+    
     # Creates a list of results to return
     res = list(metaEX=res$metaEX,
                dataEX=res$dataEX,
