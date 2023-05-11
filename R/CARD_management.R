@@ -32,25 +32,27 @@ remind = function (args) {
     }
 }
 
-CARD_management = function (dir="", type=1, layout="QA", white=TRUE,
+CARD_management = function (CARD="", type=1, layout="QA", white=TRUE,
                             blank=FALSE, verbose=FALSE, args=NULL) {
 
     if (is.null(args)) {
-        args = list(dir=dir, type=type, layout=layout,
+        args = list(CARD=CARD, type=type, layout=layout,
                     white=white, blank=blank, verbose=verbose)        
     }
         
     if (args$verbose) {
         remind(args)
     }
-    if (all(args$l == "")) {
+    if (all(args$layout == "")) {
         write("Error : --layout is void\n", stderr())
         stop ()
     }
 
-    source_dir = file.path(args$d, "__all__", args$t)
+    print(args$layout)
 
-    OUT = unlist(args$l)
+    source_dir = file.path(args$CARD, "__all__", args$type)
+
+    OUT = unlist(args$layout)
     nOUT = length(OUT)
     test1 = "[[]|[(]|[]]|[)]"
     test2 = "[[]|[(]"
@@ -74,6 +76,9 @@ CARD_management = function (dir="", type=1, layout="QA", white=TRUE,
     OUT = gsub("[)][']", ")", OUT)
     OUT = paste0("'", OUT)
     OUT = paste0("list(", OUT, ")")
+
+    print(OUT)
+    
     OUT = eval(parse(text=OUT))
     OUT = unlist(OUT)
     OUT = names(OUT)
@@ -119,7 +124,7 @@ CARD_management = function (dir="", type=1, layout="QA", white=TRUE,
                 }
 
                 obj = path[(j+1)]
-                if (args$w) {
+                if (args$white) {
                     obj = gsub("[_]", " ", obj)
                 }
 
