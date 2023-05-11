@@ -32,8 +32,8 @@ remind = function (args) {
     }
 }
 
-manage_CARD = function (dir="", type=1, layout="QA", white=TRUE,
-                        blank=FALSE, verbose=FALSE, args=NULL) {
+CARD_management = function (dir="", type=1, layout="QA", white=TRUE,
+                            blank=FALSE, verbose=FALSE, args=NULL) {
 
     if (is.null(args)) {
         args = list(dir=dir, type=type, layout=layout,
