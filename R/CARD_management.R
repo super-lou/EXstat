@@ -32,11 +32,11 @@ remind = function (args) {
     }
 }
 
-manage_CARD = function (CARD="", type=1, layout="QA", white=TRUE,
+manage_CARD = function (dir="", type=1, layout="QA", white=TRUE,
                         blank=FALSE, verbose=FALSE, args=NULL) {
 
     if (is.null(args)) {
-        args = list(CARD=CARD, type=type, layout=layout,
+        args = list(dir=dir, type=type, layout=layout,
                     white=white, blank=blank, verbose=verbose)        
     }
         
@@ -48,7 +48,7 @@ manage_CARD = function (CARD="", type=1, layout="QA", white=TRUE,
         stop ()
     }
 
-    source_dir = file.path(args$C, "__all__", args$t)
+    source_dir = file.path(args$d, "__all__", args$t)
 
     OUT = unlist(args$l)
     nOUT = length(OUT)
