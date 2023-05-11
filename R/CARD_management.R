@@ -32,7 +32,7 @@ remind = function (args) {
     }
 }
 
-manage_CARD = function (CARD="CARD", type=1, layout="QA", white=TRUE,
+manage_CARD = function (CARD="", type=1, layout="QA", white=TRUE,
                         blank=FALSE, verbose=FALSE, args=NULL) {
 
     if (is.null(args)) {
