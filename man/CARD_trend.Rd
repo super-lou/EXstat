@@ -9,11 +9,13 @@ CARD_trend(
   CARD_path,
   CARD_dir = "WIP",
   CARD_name = NULL,
+  period = NULL,
+  variable_names = NULL,
+  cancel_lim = FALSE,
   simplify_by = NULL,
   level = 0.1,
-  period = NULL,
-  samplePeriod_by_topic = NULL,
-  verbose = TRUE
+  samplePeriod_overwrite = NULL,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -25,15 +27,15 @@ CARD_trend(
 
 \item{CARD_name}{specify the name of the script files to be used}
 
+\item{period}{specify a period to extract from data}
+
 \item{simplify_by}{specify whether or not to simplify the extracted data}
 
 \item{level}{default=0.1, level for the trend analysis}
 
-\item{period}{specify a period to extract from data}
+\item{verbose}{default=TRUE, if set to TRUE, the function will print out the process details}
 
 \item{samplePeriod_by_topic}{specify a sample period per topic}
-
-\item{verbose}{default=TRUE, if set to TRUE, the function will print out the process details}
 }
 \value{
 a list of extracted data, meta data, and trend data.

@@ -10,7 +10,10 @@ CARD_extraction(
   CARD_dir = "WIP",
   CARD_name = NULL,
   period = NULL,
+  variable_names = NULL,
+  cancel_lim = FALSE,
   simplify_by = NULL,
+  samplePeriod_overwrite = NULL,
   verbose = FALSE
 )
 }
@@ -28,8 +31,6 @@ CARD_extraction(
 \item{simplify_by}{specify whether or not to simplify the extracted data by a column name}
 
 \item{verbose}{default=FALSE, if set to TRUE, the function will print out the process details}
-
-\item{samplePeriod_by_topic}{specify a sample period per topic}
 }
 \value{
 a list of extracted data, along with meta data.

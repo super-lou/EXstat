@@ -25,5 +25,5 @@ Imports:
     stats,
     rlang,
     CircStats
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
