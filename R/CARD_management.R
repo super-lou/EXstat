@@ -36,12 +36,15 @@ remind = function (args) {
 #' @title CARD_management
 #' @description 
 #' @export
-CARD_management = function (CARD=".", type=1, layout=c("EX", "[", "QA", "]"), white=TRUE,
-                            blank=FALSE, verbose=FALSE, args=NULL) {
+CARD_management = function (CARD=".", type=1,
+                            layout=c("EX", "[", "QA", "]"), white=TRUE,
+                            blank=FALSE, overwrite=TRUE,
+                            verbose=FALSE, args=NULL) {
     
     if (is.null(args)) {
         args = list(CARD=CARD, type=type, layout=layout,
-                    white=white, blank=blank, verbose=verbose)        
+                    white=white, blank=blank, overwrite=overwrite,
+                    verbose=verbose)        
     }
         
     if (args$verbose) {
@@ -152,19 +155,21 @@ CARD_management = function (CARD=".", type=1, layout=c("EX", "[", "QA", "]"), wh
 
     DIR = file.path(args$CARD, DIR)
 
-    if (any(file.exists(DIR))) {
-        unlink(DIR, recursive=TRUE, force=TRUE)
-    }
+    if (any(file.exists(DIR)) & args$overwrite |
+        !any(file.exists(DIR))) {
+        if (any(file.exists(DIR)) & args$overwrite) {
+            unlink(DIR, recursive=TRUE, force=TRUE)
+        }
+        for (i in 1:n) {
+            dir.create(DIR[i], recursive=TRUE)
+        }
 
-    for (i in 1:n) {
-        dir.create(DIR[i], recursive=TRUE)
-    }
-
-    for (i in 1:n) {
-        files = list.files(source_dir, recursive=TRUE)
-        names(files) = basename(files)
-        file.copy(file.path(source_dir, files[IN[i]]),
-                  file.path(args$CARD, OUT[i]))
+        for (i in 1:n) {
+            files = list.files(source_dir, recursive=TRUE)
+            names(files) = basename(files)
+            file.copy(file.path(source_dir, files[IN[i]]),
+                      file.path(args$CARD, OUT[i]))
+        }
     }
 
     if (args$verbose) {
