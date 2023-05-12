@@ -103,10 +103,11 @@ process_extraction = function(data,
         period = as.Date(period)
     }
 
-    ID_colnames = names(dplyr::select(data,
-                                      dplyr::where(is.character)))    
-    data = tidyr::unite(data, "ID", dplyr:: where(is.character),
-                        sep="_")
+    ID_colnames = names(dplyr::select(data, dplyr::where(is.character)))
+    if (length(ID_colnames) > 1) {
+        data = tidyr::unite(data, "ID", dplyr:: where(is.character),
+                            sep="_")
+    }
     
     names_save = names(data)
     idValue_save = c()
@@ -1688,8 +1689,11 @@ process_extraction = function(data,
     dataEX = tidyr::unnest(dataEX,
                            dplyr::everything(),
                            names_sep="_")
-    dataEX = tidyr::separate(dataEX, col="ID",
-                             into=ID_colnames, sep="_")
+
+        if (length(ID_colnames) > 1) {
+        dataEX = tidyr::separate(dataEX, col="ID",
+                                 into=ID_colnames, sep="_")
+    }
     
     if (verbose) {
         print(dataEX)

@@ -36,9 +36,9 @@ remind = function (args) {
 #' @title CARD_management
 #' @description 
 #' @export
-CARD_management = function (CARD="", type=1, layout="QA", white=TRUE,
+CARD_management = function (CARD=".", type=1, layout=c("EX", "[", "QA", "]"), white=TRUE,
                             blank=FALSE, verbose=FALSE, args=NULL) {
-
+    
     if (is.null(args)) {
         args = list(CARD=CARD, type=type, layout=layout,
                     white=white, blank=blank, verbose=verbose)        
@@ -51,8 +51,6 @@ CARD_management = function (CARD="", type=1, layout="QA", white=TRUE,
         write("Error : --layout is void\n", stderr())
         stop ()
     }
-
-    print(args$layout)
 
     source_dir = file.path(args$CARD, "__all__", args$type)
 
@@ -79,10 +77,7 @@ CARD_management = function (CARD="", type=1, layout="QA", white=TRUE,
     OUT = gsub("[,]['][)]", ")", OUT)
     OUT = gsub("[)][']", ")", OUT)
     OUT = paste0("'", OUT)
-    OUT = paste0("list(", OUT, ")")
-
-    print(OUT)
-    
+    OUT = paste0("list(", OUT, ")")    
     OUT = eval(parse(text=OUT))
     OUT = unlist(OUT)
     OUT = names(OUT)
@@ -155,6 +150,8 @@ CARD_management = function (CARD="", type=1, layout="QA", white=TRUE,
 
     DIR = DIR[!duplicated(DIR)]
 
+    DIR = file.path(args$CARD, DIR)
+
     if (any(file.exists(DIR))) {
         unlink(DIR, recursive=TRUE, force=TRUE)
     }
@@ -166,7 +163,8 @@ CARD_management = function (CARD="", type=1, layout="QA", white=TRUE,
     for (i in 1:n) {
         files = list.files(source_dir, recursive=TRUE)
         names(files) = basename(files)
-        file.copy(file.path(source_dir, files[IN[i]]), OUT[i])
+        file.copy(file.path(source_dir, files[IN[i]]),
+                  file.path(args$CARD, OUT[i]))
     }
 
     if (args$verbose) {
