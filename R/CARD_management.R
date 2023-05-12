@@ -155,6 +155,9 @@ CARD_management = function (CARD=".", type=1,
 
     DIR = file.path(args$CARD, DIR)
 
+    print(DIR)
+    print(file.exists(DIR))
+
     if (any(file.exists(DIR)) & args$overwrite |
         !any(file.exists(DIR))) {
         if (any(file.exists(DIR)) & args$overwrite) {
