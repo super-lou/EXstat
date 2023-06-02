@@ -269,7 +269,8 @@ getMKStat = function(X) {
                     count.m = count.m+1
                 }
             }
-        }}
+        }
+    }
     stat = count.p-count.m
     trend = stats::median(slope.list[!is.na(slope.list)])
     return (list(stat=stat, trend=trend))
