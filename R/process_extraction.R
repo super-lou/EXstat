@@ -91,13 +91,17 @@ process_extraction = function(data,
                               nameEX="X",
                               keep=NULL,
                               compress=FALSE,
-                              chunk=FALSE,
+                              expand=FALSE,
                               rmNApct=FALSE,
                               verbose=FALSE, 
                               ...) {
-    
+
     tree("EXTRACTION PROCESS", 0, verbose=verbose)
 
+    if (expand) {
+        compress = TRUE
+    }
+    
     if (is.character(period)) {
         period = as.Date(period)
     }
@@ -1628,10 +1632,14 @@ process_extraction = function(data,
                                    "month", "season")) {
         if (timeStep == "season") {
             Ref = Seasons
-
+            expandRef = Seasons
+            shiftRef = startSeasonsMonth
+            
         } else if (timeStep == "year-season") {
             dataEX = dplyr::select(dataEX, -"YearSeason")
             Ref = get_Season
+            expandRef = Seasons
+            shiftRef = startSeasonsMonth
             
         } else if (timeStep %in% c("year-month", "month")) {
             Ref = format(seq.Date(as.Date("1970-01-01"),
@@ -1640,6 +1648,8 @@ process_extraction = function(data,
             Ref = gsub("û", "u", Ref)
             Ref = gsub("é", "e", Ref)
             Ref = gsub("[.]", "", Ref)
+            expandRef = Ref
+            shiftRef = 1:12
         }
 
         dateName = names_save[idDate_save]
@@ -1666,6 +1676,11 @@ process_extraction = function(data,
                        names_from=Ref,
                        values_from=valueName,
                        names_prefix=paste0(valueName, "_"))
+
+        if (timeStep %in% c("year-month", "year-season")) {
+            dataEX[[dateName]] = as.Date(paste0(dataEX[[dateName]],
+                                                "-01-01"))
+        }
     }
 
     if (!is.null(keep)) {
@@ -1685,9 +1700,39 @@ process_extraction = function(data,
                            dplyr::everything(),
                            names_sep="_")
 
-        if (length(ID_colnames) > 1) {
+    if (length(ID_colnames) > 1) {
         dataEX = tidyr::separate(dataEX, col="ID",
                                  into=ID_colnames, sep="_")
+    }
+
+    if (expand) {
+        is.character_or_date = function (x) {
+            is.character(x) | lubridate::is.Date(x)
+        }
+        valueName = as.list(paste0(valueName, "_", expandRef))
+        valueName_select = lapply(
+            valueName,
+            append,
+            x=names(dataEX)[sapply(dataEX,
+                                   is.character_or_date)])
+        dataEX = lapply(valueName_select, dplyr::select,
+                        .data=dataEX)
+        names(dataEX) = valueName
+
+
+        for (i in 1:length(valueName)) {
+            dateName =
+                names(dataEX[[i]])[sapply(dataEX[[i]],
+                                          lubridate::is.Date)]
+            dataEX[[i]] =
+                dplyr::mutate(
+                           dataEX[[i]],
+                           !!dateName:=
+                               lubridate::add_with_rollback(
+                                              get(dateName),
+                                              months(shiftRef[i]
+                                                     -1)))
+        }
     }
     
     if (verbose) {

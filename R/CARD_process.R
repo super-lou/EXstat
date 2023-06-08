@@ -26,7 +26,8 @@
 CARD_extraction_hide = function (Process, cancel_lim,
                                  variable_names, data, verbose,
                                  period, var,
-                                 samplePeriod_overwrite) {
+                                 samplePeriod_overwrite,
+                                 expand=FALSE) {
 
     nProcess = length(Process) - 1
 
@@ -86,6 +87,7 @@ CARD_extraction_hide = function (Process, cancel_lim,
                       nameEX=nameEX,
                       keep=keep,
                       compress=compress,
+                      expand=expand,
                       rmNApct=rmNApct,
                       verbose=verbose))
         gc()
@@ -224,29 +226,32 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             print(paste0('Computes ', Process$P$var))
         }
 
-        dataEX = append(dataEX,
-                        list(CARD_extraction_hide(
-                            Process,
-                            cancel_lim,
-                            variable_names,
-                            data, verbose,
-                            period, var,
-                            samplePeriod_overwrite)))
-        
-        names(dataEX)[length(dataEX)] = paste0(var, collapse=" / ")
+        if (length(var) > 1) {
+            dataEX = append(dataEX,
+                            CARD_extraction_hide(Process,
+                                                 cancel_lim,
+                                                 variable_names,
+                                                 data, verbose,
+                                                 period, var,
+                                                 samplePeriod_overwrite,
+                                                 expand=TRUE))
+            
+        } else {
+            dataEX = append(dataEX,
+                            list(CARD_extraction_hide(
+                                Process,
+                                cancel_lim,
+                                variable_names,
+                                data, verbose,
+                                period, var,
+                                samplePeriod_overwrite)))
+            names(dataEX)[length(dataEX)] = var
+        }
 
         res = get_last_Process(Process)
         compress = res$compress
         timeStep = res$timeStep
         Seasons = res$Seasons
-        
-        if (compress) {
-            if (timeStep == "season") {
-                var = sapply(X=Seasons, gsub, pattern="SEA", x=var)
-            } else if (timeStep == "month") {
-                var = sapply(X=1:12, gsub, pattern="MON", x=var)
-            }
-        }
 
         metaEX = dplyr::bind_rows(
                             metaEX,
