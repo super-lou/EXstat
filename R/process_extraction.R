@@ -1586,13 +1586,7 @@ process_extraction = function(data,
     if (timeStep == "yearday") {
         names_save[idDate_save] = "Yearday"
         dataEX = dplyr::filter(dataEX, Date < 366)
-    } else if (timeStep %in% c("month")) {
-        # groupName = "Month"
-        # names_save[idDate_save] = groupName
-    } else if (timeStep  %in% c("season")) {
-        # groupName = "Season"
-        # names_save[idDate_save] = groupName
-    }
+    } 
 
     if (isDateColArgs) {
         names_save = names_save[-length(names_save)]
@@ -1630,54 +1624,8 @@ process_extraction = function(data,
         }
     }
     
-    # if (compress & timeStep %in% c("season", "month")) {
-    #     if (timeStep == "season") {
-    #         ref = "season"
-    #     } else if (timeStep == "month") {
-    #         ref = "month"
-    #     }
-
-    #     valueName = names_save[idValue_save]
-    #     codeName = names_save[idCode_save]
-
-    #     Groups = levels(factor(dataEX[[groupName]]))
-    #     nGroups = length(Groups)
-    #     nValueName = length(valueName)
-
-    #     for (i in 1:nGroups) {
-    #         dataEX_filter = dataEX[dataEX[[groupName]] == Groups[i],]
-    #         dataEX_filter =
-    #             dplyr::select(dataEX_filter,
-    #                           -dplyr::contains(groupName))
-
-    #         for (j in 1:nValueName) {
-    #             dataEX_filter =
-    #                 dplyr::rename(dataEX_filter,
-    #                               !!gsub(ref, Groups[i],
-    #                                      valueName[j]):= !!valueName[j])
-    #         }
-
-    #         if (!exists("dataEX_tmp")) {
-    #             dataEX_tmp = dataEX_filter
-
-    #         } else {
-    #             dataEX_tmp =
-    #                 dplyr::full_join(dataEX_tmp,
-    #                                  dataEX_filter,
-    #                                  by=codeName)
-    #         }
-    #     }
-    #     dataEX = dataEX_tmp
-    #     rm (dataEX_filter)
-    #     rm (dataEX_tmp)
-    # }
-
-
-
-    
-    print(dataEX)
-
-    if (compress & timeStep %in% c("year-season", "year-month", "month", "season")) {
+    if (compress & timeStep %in% c("year-season", "year-month",
+                                   "month", "season")) {
         if (timeStep == "season") {
             Ref = Seasons
 
@@ -1696,8 +1644,6 @@ process_extraction = function(data,
 
         dateName = names_save[idDate_save]
         valueName = names_save[idValue_save]
-
-        print(dataEX)
 
         if (timeStep %in% c("year-month", "year-season")) {
             dataEX = dplyr::mutate(
@@ -1721,16 +1667,6 @@ process_extraction = function(data,
                        values_from=valueName,
                        names_prefix=paste0(valueName, "_"))
     }
-
-    print(dataEX)
-
-
-
-
-
-
-
-    
 
     if (!is.null(keep)) {
         if (any(keep == "all")) {
