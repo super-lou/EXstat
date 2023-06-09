@@ -208,17 +208,12 @@ process_extraction = function(data,
 
     dataEX = data
 
-
-    print(dataEX)
-    print(names(dataEX))
-    print("colArgs")
-    print(colArgs)
-    print("otherArgs")
-    print(otherArgs)
-
-
-
-    
+    # print(dataEX)
+    # print(names(dataEX))
+    # print("colArgs")
+    # print(colArgs)
+    # print("otherArgs")
+    # print(otherArgs)
     
     if (!is.null(idDate_save)) {
         names(dataEX)[c(idCode_save, idDate_save, idValue_save)] =
@@ -341,10 +336,14 @@ process_extraction = function(data,
                              sp=list(
                                  fix_samplePeriod(
                                      sp,
+                                     # dataEX_code=
+                                         # dataEX[dataEX$Code ==
+                                                # dplyr::cur_group()$Code,],
                                      dataEX_code=
-                                         dataEX[dataEX$Code ==
+                                         data[dataEX$Code ==
                                                 dplyr::cur_group()$Code,],
                                      args=args,
+                                     suffix=suffix[1],
                                      refDate=refDate,
                                      sampleFormat=sampleFormat,
                                      verbose=FALSE)),
@@ -1335,11 +1334,6 @@ process_extraction = function(data,
             otherArg = otherArgs[[i]]
             f = funct[[i]]
 
-
-            print(colArg)
-            print("")
-            print(otherArg)
-
             dataEX$isNA =
                 is.na(rowSums(
                     dplyr::mutate_all(dataEX[unlist(colArg)],
@@ -1568,10 +1562,6 @@ process_extraction = function(data,
                                           spStart))   
     }
 
-
-
-    print(dataEX)
-
     if (any(isDate)) {
         if (length(isDate) != nfunct) {
             isDate = rep(isDate[1], nfunct)
@@ -1690,7 +1680,8 @@ process_extraction = function(data,
     }
     
     if (compress & timeStep %in% c("year-season", "year-month",
-                                   "month", "season")) {
+                                   "month", "season")
+        & nfunct == 1) {
         if (timeStep == "season") {
             Ref = Seasons
             expandRef = Seasons
@@ -1716,6 +1707,19 @@ process_extraction = function(data,
         dateName = names_save[idDate_save]
         valueName = names_save[idValue_save]
 
+        valueName_in = valueName
+        if (!is.null(suffix)) {
+            valueName_out = gsub(suffix, "", valueName, fixed=TRUE)   
+        } else {
+            valueName_out = valueName_in
+        }
+        
+        print(valueName_in)
+        print(valueName_out)
+        print(dateName)
+        print(Ref)
+        
+
         if (timeStep %in% c("year-month", "year-season")) {
             dataEX = dplyr::mutate(
                                 dataEX,
@@ -1735,8 +1739,10 @@ process_extraction = function(data,
             tidyr::pivot_wider(
                        dataEX,
                        names_from=Ref,
-                       values_from=valueName,
-                       names_prefix=paste0(valueName, "_"))
+                       values_from=valueName_in,
+                       # names_prefix=paste0(valueName_out, "_"),
+                       # names_suffix=suffix
+                       names_glue=paste0(valueName_out, "_{Ref}", suffix))
 
         if (timeStep %in% c("year-month", "year-season")) {
             dataEX[[dateName]] = as.Date(paste0(dataEX[[dateName]],
@@ -1766,11 +1772,18 @@ process_extraction = function(data,
                                  into=ID_colnames, sep="_")
     }
 
-    if (expand) {
+    if (expand & nfunct == 1) {
         is.character_or_date = function (x) {
             is.character(x) | lubridate::is.Date(x)
         }
-        valueName = as.list(paste0(valueName, "_", expandRef))
+        valueName = as.list(paste0(valueName_out, "_", expandRef, suffix))
+
+        # if (!is.null(suffix)) {
+            # valueName_out = gsub(suffix, "", valueName, fixed=TRUE)   
+        # } else {
+            # valueName_out = valueName_in
+        # }
+        
         valueName_select = lapply(
             valueName,
             append,
@@ -1805,19 +1818,28 @@ process_extraction = function(data,
 
 
 
-fix_samplePeriod = function (samplePeriod, dataEX_code, args=NA,
+fix_samplePeriod = function (samplePeriod, dataEX_code=NULL, args=NA,
+                             suffix=NULL,
                              refDate="1972", sampleFormat="%m-%d",
                              verbose=FALSE) {
-    
+
     if (is.function(samplePeriod[[1]]) & sampleFormat == "%m-%d") {
         dataM = process_extraction(data=dataEX_code,
                                    funct=list(XM=mean),
                                    funct_args=args,
+                                   suffix=suffix,
                                    timeStep="month",
                                    rmNApct=TRUE,
                                    verbose=FALSE)
-        samplePeriod = dataM$Month[dataM$XM ==
-                                   samplePeriod[[1]](dataM$XM)]
+
+
+        if (!is.null(suffix)) {
+            XM = paste0("XM", suffix)
+        } else {
+            XM = "XM"
+        }
+        samplePeriod = dataM$Date[dataM[[XM]] ==
+                                  samplePeriod[[1]](dataM[[XM]])]
         samplePeriod = paste0(samplePeriod, "-01")
     }
 

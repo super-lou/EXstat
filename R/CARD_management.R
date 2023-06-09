@@ -36,13 +36,13 @@ remind = function (args) {
 #' @title CARD_management
 #' @description 
 #' @export
-CARD_management = function (CARD=".", tmp="", n=1,
+CARD_management = function (CARD=".", tmp="",
                             layout=c("EX", "[", "QA", "]"), white=TRUE,
                             blank=FALSE, overwrite=TRUE,
                             verbose=FALSE, args=NULL) {
     
     if (is.null(args)) {
-        args = list(CARD=CARD, tmp=tmp, n=n, layout=layout,
+        args = list(CARD=CARD, tmp=tmp, layout=layout,
                     white=white, blank=blank, overwrite=overwrite,
                     verbose=verbose)        
     }
@@ -59,7 +59,7 @@ CARD_management = function (CARD=".", tmp="", n=1,
         stop ()
     }
 
-    source_dir = file.path(args$CARD, "__all__", args$n)
+    source_dir = file.path(args$CARD, "__all__")
 
     OUT = unlist(args$layout)
     nOUT = length(OUT)
