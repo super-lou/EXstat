@@ -98,10 +98,12 @@ process_extraction = function(data,
                               ...) {
 
     tree("EXTRACTION PROCESS", 0, verbose=verbose)
+
+    # print(expand)
     
-    if (expand) {
-        compress = TRUE
-    }
+    # if (expand) {
+        # compress = TRUE
+    # }
     
     if (is.character(period)) {
         period = as.Date(period)
@@ -1806,8 +1808,13 @@ process_extraction = function(data,
         dataEX = tidyr::separate(dataEX, col="ID",
                                  into=ID_colnames, sep="_")
     }
+
+    # print("AAAAAAAAAAAa")
+    # print(expand)
     
-    if (expand) {
+    if (compress & expand) {
+
+     # print("BBBBBBBBBBBBBb")   
         
         is.character_or_date = function (x) {
             is.character(x) | lubridate::is.Date(x)
