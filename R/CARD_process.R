@@ -24,12 +24,10 @@
 
 
 CARD_extraction_hide = function (Process, cancel_lim,
-                                 # variable_names,
                                  suffix,
                                  data, verbose,
                                  period, var,
-                                 samplePeriod_overwrite,
-                                 expand=FALSE) {
+                                 samplePeriod_overwrite) {
 
     nProcess = length(Process) - 1
 
@@ -71,6 +69,12 @@ CARD_extraction_hide = function (Process, cancel_lim,
         #         }
         #     }
         # }
+
+        if (compress) {
+            expand = TRUE
+        } else {
+            expand = FALSE
+        }
 
         # EXtraction
         data = do.call(
@@ -146,7 +150,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             CARD_name=NULL, CARD_tmp=NULL,
                             period=NULL,
                             # variable_names=NULL,
-                            suffix=NULL,
+                            suffix="",
                             cancel_lim=FALSE,
                             simplify=NULL,
                             samplePeriod_overwrite=NULL,
@@ -230,23 +234,24 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             print(paste0('Computes ', Process$P$var))
         }
 
+        if (length(suffix) == 1) {
+            var = paste0(var, suffix)
+        }
+
         if (length(var) > 1) {
             dataEX = append(dataEX,
                             CARD_extraction_hide(Process,
                                                  cancel_lim,
-                                                 # variable_names,
                                                  suffix,
                                                  data, verbose,
                                                  period, var,
-                                                 samplePeriod_overwrite,
-                                                 expand=TRUE))
+                                                 samplePeriod_overwrite))
             
         } else {
             dataEX = append(dataEX,
                             list(CARD_extraction_hide(
                                 Process,
                                 cancel_lim,
-                                # variable_names,
                                 suffix,
                                 data, verbose,
                                 period, var,
@@ -271,6 +276,14 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                               paste0(samplePeriod,
                                                      collapse="/")))
     }
+
+    # print(var)
+    # print(suffix)
+    # print(names(dataEX))
+    # print(metaEX$var)
+    
+    dataEX = dataEX[match(names(dataEX), table=metaEX$var)]
+    
 
     if (simplify) {
         by = names(dplyr::select(dataEX[[1]],

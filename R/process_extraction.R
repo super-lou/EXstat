@@ -147,11 +147,26 @@ process_extraction = function(data,
     }
 
     if (!is.null(suffix)) {
-        nfunct_save = length(funct)
-        funct_args = replicate(length(suffix), funct_args)
-        funct = replicate(length(suffix), funct)
-        suffix = rep(suffix, nfunct_save)
+        nfunct_tmp = length(funct)
+        nsuffix_tmp = length(suffix)
+        if (nsuffix_tmp > 1) {
+            funct_args = rep(funct_args, nsuffix_tmp)
+            funct = rep(funct, nsuffix_tmp)
+        }
+        
+        # if (nsuffix_tmp < nfunct_tmp) {
+            suffix = rep(suffix, each=nfunct_tmp)
+        # }
     }
+
+
+    
+    # print("")
+    # print(suffix)
+    # print(funct)
+    # print(funct_args)
+    # print("")
+
     
     nfunct = length(funct)
 
@@ -236,7 +251,11 @@ process_extraction = function(data,
     if (!is.null(suffix)) {
         nameEX = paste0(nameEX, suffix)
         # nfunct = nfunct * length(suffix)
-    } 
+    }
+
+
+
+    # print(nameEX)
     
         if (nValue > nfunct) {
             names_save = names_save[-c(idValue_save[(nfunct+1):nValue])]
@@ -1334,6 +1353,18 @@ process_extraction = function(data,
             otherArg = otherArgs[[i]]
             f = funct[[i]]
 
+
+
+            # print(i)
+            # print("f")
+            # print(f)
+            # print("colArg")
+            # print(colArg)
+            # print("otherArg")
+            # print(otherArg)
+            # print("")
+            
+
             dataEX$isNA =
                 is.na(rowSums(
                     dplyr::mutate_all(dataEX[unlist(colArg)],
@@ -1432,6 +1463,9 @@ process_extraction = function(data,
     #                         .groups='drop')
     # }
 
+
+    # print(dataEX)
+    
     tree("Cleaning extracted tibble", 1, verbose=verbose)
 
     if (timeStep != "none") {
@@ -1681,7 +1715,8 @@ process_extraction = function(data,
     
     if (compress & timeStep %in% c("year-season", "year-month",
                                    "month", "season")
-        & nfunct == 1) {
+        # & nfunct == 1
+        ) {
         if (timeStep == "season") {
             Ref = Seasons
             expandRef = Seasons
@@ -1706,20 +1741,7 @@ process_extraction = function(data,
 
         dateName = names_save[idDate_save]
         valueName = names_save[idValue_save]
-
-        valueName_in = valueName
-        if (!is.null(suffix)) {
-            valueName_out = gsub(suffix, "", valueName, fixed=TRUE)   
-        } else {
-            valueName_out = valueName_in
-        }
         
-        print(valueName_in)
-        print(valueName_out)
-        print(dateName)
-        print(Ref)
-        
-
         if (timeStep %in% c("year-month", "year-season")) {
             dataEX = dplyr::mutate(
                                 dataEX,
@@ -1734,15 +1756,28 @@ process_extraction = function(data,
             dataEX$Ref = Ref[as.numeric(dataEX[[dateName]])]
             dataEX = dplyr::select(dataEX, -dateName)
         }
-        
+
         dataEX =
             tidyr::pivot_wider(
                        dataEX,
                        names_from=Ref,
-                       values_from=valueName_in,
-                       # names_prefix=paste0(valueName_out, "_"),
-                       # names_suffix=suffix
-                       names_glue=paste0(valueName_out, "_{Ref}", suffix))
+                       values_from=valueName,
+                       names_glue="{.value}_{Ref}")
+
+        if (!is.null(suffix)) {
+            valueName = c()
+            for (i in 1:length(suffix)) {
+                ok = grepl(suffix[i], names(dataEX), fixed=TRUE)
+                valueName_no_suffix = gsub(suffix[i], "",
+                                           names(dataEX)[ok],
+                                           fixed=TRUE)
+                valueName = c(valueName, valueName_no_suffix)
+                valueName_suffix = paste0(valueName_no_suffix,
+                                          suffix[i])
+                names(dataEX)[ok] = valueName_suffix
+            }
+            valueName = valueName[!duplicated(valueName)]
+        }
 
         if (timeStep %in% c("year-month", "year-season")) {
             dataEX[[dateName]] = as.Date(paste0(dataEX[[dateName]],
@@ -1771,21 +1806,20 @@ process_extraction = function(data,
         dataEX = tidyr::separate(dataEX, col="ID",
                                  into=ID_colnames, sep="_")
     }
-
-    if (expand & nfunct == 1) {
+    
+    if (expand) {
+        
         is.character_or_date = function (x) {
             is.character(x) | lubridate::is.Date(x)
         }
-        valueName = as.list(paste0(valueName_out, "_", expandRef, suffix))
-
-        # if (!is.null(suffix)) {
-            # valueName_out = gsub(suffix, "", valueName, fixed=TRUE)   
-        # } else {
-            # valueName_out = valueName_in
-        # }
+        if (!is.null(suffix)) {
+            valueName_suffix = lapply(valueName, paste0, suffix)
+        } else {
+            valueName_suffix = valueName
+        }
         
         valueName_select = lapply(
-            valueName,
+            valueName_suffix,
             append,
             x=names(dataEX)[sapply(dataEX,
                                    is.character_or_date)])
@@ -1793,19 +1827,20 @@ process_extraction = function(data,
                         .data=dataEX)
         names(dataEX) = valueName
 
-
-        for (i in 1:length(valueName)) {
-            dateName =
-                names(dataEX[[i]])[sapply(dataEX[[i]],
-                                          lubridate::is.Date)]
-            dataEX[[i]] =
-                dplyr::mutate(
-                           dataEX[[i]],
-                           !!dateName:=
-                               lubridate::add_with_rollback(
-                                              get(dateName),
-                                              months(shiftRef[i]
-                                                     -1)))
+        if (timeStep %in% c("year-month", "year-season")) {
+            for (i in 1:length(valueName)) {
+                dateName =
+                    names(dataEX[[i]])[sapply(dataEX[[i]],
+                                              lubridate::is.Date)]
+                dataEX[[i]] =
+                    dplyr::mutate(
+                               dataEX[[i]],
+                               !!dateName:=
+                                   lubridate::add_with_rollback(
+                                                  get(dateName),
+                                                  months(shiftRef[i]
+                                                         -1)))
+            }
         }
     }
     
