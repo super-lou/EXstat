@@ -660,3 +660,10 @@ split_path = function (path) {
     if (dirname(path) %in% c(".", path)) return(basename(path))
     return(c(basename(path), split_path(dirname(path))))
 }
+
+is.character_or_date = function (x) {
+    is.character(x) | lubridate::is.Date(x)
+}
+
+
+

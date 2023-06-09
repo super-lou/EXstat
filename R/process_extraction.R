@@ -89,6 +89,7 @@ process_extraction = function(data,
                               Seasons=c("DJF", "MAM", "JJA", "SON"),
                               onlyDate4Season=FALSE,
                               nameEX="X",
+                              suffix=NULL,
                               keep=NULL,
                               compress=FALSE,
                               expand=FALSE,
@@ -97,7 +98,7 @@ process_extraction = function(data,
                               ...) {
 
     tree("EXTRACTION PROCESS", 0, verbose=verbose)
-
+    
     if (expand) {
         compress = TRUE
     }
@@ -145,12 +146,19 @@ process_extraction = function(data,
         funct_args = list(funct_args)
     }
 
+    if (!is.null(suffix)) {
+        nfunct_save = length(funct)
+        funct_args = replicate(length(suffix), funct_args)
+        funct = replicate(length(suffix), funct)
+        suffix = rep(suffix, nfunct_save)
+    }
+    
     nfunct = length(funct)
 
     colArgs_save = list()
     colArgs = list()
     otherArgs = list()
-    isColArgs = list()
+    # isColArgs = list()
     colArgs_order = list()
     for (i in 1:nfunct) {
         arg = funct_args[[i]]
@@ -165,24 +173,30 @@ process_extraction = function(data,
                 "ValueDate"
             arg = funct_args[[i]]
         }
-        
-        colArgs_save = append(colArgs_save,
-                              list(arg[arg %in% names_save]))
-        otherArgs = append(otherArgs,
-                           list(arg[!(arg %in% names_save)]))
-        isColArgs = append(isColArgs, any(arg %in% names_save))
-        
-        if (isColArgs[[i]]) {
-            colArgs_order =
-                append(colArgs_order,
-                       list(match(colArgs_save[[i]],
-                                  names_save[idValue_save])))
-            colArgs = append(colArgs,
-                             list(paste0("Value",
-                                         colArgs_order[[i]])))
-            names(colArgs[[i]]) =
-                names(colArgs_save[[i]])
+
+        if (!is.null(suffix)) {
+            arg_match = lapply(lapply(arg, paste0, suffix[i]),
+                               match,
+                               table=names_save[idValue_save])
+        } else {
+            arg_match = lapply(arg,
+                               match,
+                               table=names_save[idValue_save])
         }
+
+        okNA = sapply(lapply(arg_match, is.na), any)
+        
+        get_colarg = function (arg_match, colName) {
+            colName[arg_match]
+        }
+        colarg = lapply(arg_match[!okNA], get_colarg, colName)
+        otherarg = arg[okNA]
+
+        colArgs = append(colArgs,
+                         list(colarg))
+        
+        otherArgs = append(otherArgs,
+                         list(otherarg))
     }
     
     if (length(colArgs) == 0) {
@@ -194,6 +208,18 @@ process_extraction = function(data,
 
     dataEX = data
 
+
+    print(dataEX)
+    print(names(dataEX))
+    print("colArgs")
+    print(colArgs)
+    print("otherArgs")
+    print(otherArgs)
+
+
+
+    
+    
     if (!is.null(idDate_save)) {
         names(dataEX)[c(idCode_save, idDate_save, idValue_save)] =
             c("Code", "Date", unlist(colName))
@@ -202,7 +228,7 @@ process_extraction = function(data,
             c("Code", unlist(colName))
     }
     
-    if (any(unlist(isColArgs))) {
+    # if (any(unlist(isColArgs))) {
 
         if (!is.null(names(funct)) & all(names(funct) != "")) {
             nameEX = names(funct)
@@ -212,6 +238,11 @@ process_extraction = function(data,
             }
         }
 
+    if (!is.null(suffix)) {
+        nameEX = paste0(nameEX, suffix)
+        # nfunct = nfunct * length(suffix)
+    } 
+    
         if (nValue > nfunct) {
             names_save = names_save[-c(idValue_save[(nfunct+1):nValue])]
             idValue_save = idValue_save[1:nfunct]
@@ -223,10 +254,13 @@ process_extraction = function(data,
             maxId = max(idValue_save, na.rm=TRUE)
             idValue_save[isNA] = (maxId + 1):(maxId + nNA)
         }
-        
+    
         names_save[idValue_save[1:nfunct]] = nameEX
-    }
+    # }
 
+
+    
+    
     if (!is.null(samplePeriod) & dplyr::is.tbl(samplePeriod)) {
         if ("args" %in% names(samplePeriod)) {
             apply_name = function (X, table, name) {
@@ -1289,7 +1323,7 @@ process_extraction = function(data,
         keepDate = NULL
     }
 
-    if (any(unlist(isColArgs))) {
+    # if (any(unlist(isColArgs))) {
 
         if (exists("dataEX_tmp")) {
             rm (dataEX_tmp)
@@ -1300,6 +1334,11 @@ process_extraction = function(data,
             colArg = colArgs[[i]]
             otherArg = otherArgs[[i]]
             f = funct[[i]]
+
+
+            print(colArg)
+            print("")
+            print(otherArg)
 
             dataEX$isNA =
                 is.na(rowSums(
@@ -1314,6 +1353,12 @@ process_extraction = function(data,
                                !!paste0("ValueEX", i) :=
                                    f(!!!rlang::data_syms(colArg),
                                      !!!otherArg),
+
+                               # dplyr::across(.cols=!!!colArg,
+                                             # .fns=f,
+                                             # !!!otherArg,
+                                             # .names=paste0("ValueEX", i, ".{.col}")),
+                               
                                !!paste0("nNA", i) := sum(isNA),
                                n=dplyr::n(),
                                .groups='drop')
@@ -1330,6 +1375,12 @@ process_extraction = function(data,
                                                             !!paste0("ValueEX", i) :=
                                                                 f(!!!rlang::data_syms(colArg),
                                                                   !!!otherArg),
+                                                            # dplyr::across(.cols=!!!colArg,
+                                                                          # .fns=f,
+                                                                          # !!!otherArg,
+                                                                          # .names=paste0(
+                                                                              # "ValueEX",
+                                                                              # i, ".{.col}")),
                                                             !!paste0("nNA", i) :=
                                                                 sum(isNA),
                                                             .groups='drop'),
@@ -1348,6 +1399,12 @@ process_extraction = function(data,
                                               !!paste0("ValueEX", i) :=
                                                   f(!!!rlang::data_syms(colArg),
                                                     !!!otherArg),
+                                              # dplyr::across(.cols=!!!colArg,
+                                                            # .fns=f,
+                                                            # !!!otherArg,
+                                                            # .names=paste0(
+                                                                # "ValueEX",
+                                                                # i, ".{.col}")),
                                               !!paste0("nNA", i) :=
                                                   sum(isNA),
                                               .groups='drop'),
@@ -1357,29 +1414,29 @@ process_extraction = function(data,
             nValue = nfunct
         }
         dataEX = dataEX_tmp
-        rm (dataEX_tmp)
+    rm (dataEX_tmp)
 
-    } else {
+    # } else {
         
-        sumNA = function (X) {
-            return (sum(is.na(X)))
-        }
+    #     sumNA = function (X) {
+    #         return (sum(is.na(X)))
+    #     }
 
-        dataEX = dplyr::summarise(
-                            dataEX,
-                            !!!rlang::data_syms(keepDate),
-                            dplyr::across(.cols=unlist(colArgs),
-                                          .fns=funct,
-                                          !!!funct_args,
-                                          .names=paste0("ValueEX{1:",
-                                                        nValue, "}")),
-                            dplyr::across(.cols=unlist(colArgs),
-                                          .fns=sumNA,
-                                          .names=paste0("nNA{1:",
-                                                        nValue, "}")),
-                            n=dplyr::n(),
-                            .groups='drop')
-    }
+    #     dataEX = dplyr::summarise(
+    #                         dataEX,
+    #                         !!!rlang::data_syms(keepDate),
+    #                         dplyr::across(.cols=unlist(colArgs),
+    #                                       .fns=funct,
+    #                                       !!!funct_args,
+    #                                       .names=paste0("ValueEX{1:",
+    #                                                     nValue, "}")),
+    #                         dplyr::across(.cols=unlist(colArgs),
+    #                                       .fns=sumNA,
+    #                                       .names=paste0("nNA{1:",
+    #                                                     nValue, "}")),
+    #                         n=dplyr::n(),
+    #                         .groups='drop')
+    # }
 
     tree("Cleaning extracted tibble", 1, verbose=verbose)
 
@@ -1511,12 +1568,16 @@ process_extraction = function(data,
                                           spStart))   
     }
 
+
+
+    print(dataEX)
+
     if (any(isDate)) {
         if (length(isDate) != nfunct) {
             isDate = rep(isDate[1], nfunct)
         }
         dataEX = convert_dateEX(dataEX, isDate, nValue=nValue,
-                                isColArgs=isColArgs,
+                                # isColArgs=isColArgs,
                                 verbose=verbose)
     }
 
@@ -1533,7 +1594,7 @@ process_extraction = function(data,
         dataEX = dplyr::select(dataEX, -YearSeason)
     }
 
-    if (!rmNApct & !(!is.null(keep)) & !compress & any(unlist(isColArgs))) {
+    if (!rmNApct & !(!is.null(keep)) & !compress) {#& any(unlist(isColArgs))) {
         if (nfunct == 1) {
             dataEX = dplyr::rename(dataEX, NApct=NApct1)
             
@@ -1596,7 +1657,7 @@ process_extraction = function(data,
         names_save = names_save[-length(names_save)]
         idValue_save = idValue_save[-length(idValue_save)]
     }
-    
+
     if (timeStep == "none" & is.null(keep)) {
         names(dataEX)[c(idCode, idValue)] =
             names_save[c(idCode_save, idValue_save)]
@@ -1604,7 +1665,7 @@ process_extraction = function(data,
         names(dataEX)[c(idCode, idDate, idValue)] =
             names_save[c(idCode_save, idDate_save, idValue_save)] 
     }
-
+    
     if (!is.null(keep) & !compress) {
         test = grepl("Value[[:digit:]]", names(dataEX))
         if (any(test)) {
@@ -1845,7 +1906,8 @@ convert_dataEX_hide = function (Value) {
 #' @return A tibble containing a column named "Date" which corresponds to the date of each sample and one or several columns named "ValueEXx" (x being a number) that correspond to the extracted variables.
 #' @note documentation generated by chatGPT
 #' @export
-convert_dateEX = function(dataEX, isDate, nValue, isColArgs,
+convert_dateEX = function(dataEX, isDate, nValue,
+                          # isColArgs,
                           verbose=TRUE) {
 
     tree('Converting index to date', 1, verbose=verbose)
@@ -1855,35 +1917,44 @@ convert_dateEX = function(dataEX, isDate, nValue, isColArgs,
 
     nfunct = length(isDate)
     
-    if (any(unlist(isColArgs))) {
+    # if (any(unlist(isColArgs))) {
 
         for (i in 1:nfunct) {
             if (isDate[i]) {
 
                 Value = paste0("ValueEX", i)
-                dataEX[Value] = dataEX[Value] + dataEX$Shift
+                # dataEX[Value] = dataEX[Value] + dataEX$Shift
+                add = function (x, y) {x+y}
 
                 dataEX = dplyr::mutate(dplyr::group_by(dataEX, Code),
-                                       !!Value := convert_dataEX_hide(
-                                           !!!rlang::data_syms(Value)),
+
+                                        dplyr::across(.cols=dplyr::starts_with(
+                                                                      Value),
+                                                      .fns=add,
+                                                      y=Shift),
+                                       
+                                       # !!Value := convert_dataEX_hide(
+                                       # !!!rlang::data_syms(Value)),
+                                       dplyr::across(.cols=dplyr::starts_with(
+                                                                      Value),
+                                                     .fns=convert_dataEX_hide),
                                        .keep="all")
             }
         }
+
+    # } else {
+    #     dataEX[paste0("ValueEX", 1:nValue)] =
+    #         dataEX[paste0("ValueEX", 1:nValue)] + dataEX$Shift
         
+    #     dataEX = dplyr::mutate(dplyr::group_by(dataEX, Code),
+    #                            dplyr::across(.cols=
+    #                                              dplyr::starts_with(
+    #                                                         paste0("ValueEX",
+    #                                                                1:nValue)),
+    #                                          .fns=convert_dataEX_hide),
+    #                            .keep="all")       
         
-    } else {
-        dataEX[paste0("ValueEX", 1:nValue)] =
-            dataEX[paste0("ValueEX", 1:nValue)] + dataEX$Shift
-        
-        dataEX = dplyr::mutate(dplyr::group_by(dataEX, Code),
-                               dplyr::across(.cols=
-                                                 dplyr::starts_with(
-                                                            paste0("ValueEX",
-                                                                   1:nValue)),
-                                             .fns=convert_dataEX_hide),
-                               .keep="all")       
-        
-    }
+    # }
     
     dataEX = dplyr::select(dataEX, -c(minDateRef,
                                       sampleStart,
@@ -2100,6 +2171,3 @@ missing_year = function (data, nValue, NAyear_lim=10,
         return (data)
     }
 }
-
-
-

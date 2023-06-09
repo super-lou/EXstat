@@ -24,7 +24,9 @@
 
 
 CARD_extraction_hide = function (Process, cancel_lim,
-                                 variable_names, data, verbose,
+                                 # variable_names,
+                                 suffix,
+                                 data, verbose,
                                  period, var,
                                  samplePeriod_overwrite,
                                  expand=FALSE) {
@@ -58,17 +60,17 @@ CARD_extraction_hide = function (Process, cancel_lim,
             NAyear_lim = NULL
         }
 
-        if (!is.null(variable_names)) {
-            for (j in 1:length(variable_names)) {
-                if (variable_names[[j]] %in% names(data)) {
-                    data =
-                        dplyr::rename(
-                                   data,
-                                   !!names(variable_names)[j]:=
-                                       variable_names[[j]])
-                }
-            }
-        }
+        # if (!is.null(variable_names)) {
+        #     for (j in 1:length(variable_names)) {
+        #         if (variable_names[[j]] %in% names(data)) {
+        #             data =
+        #                 dplyr::rename(
+        #                            data,
+        #                            !!names(variable_names)[j]:=
+        #                                variable_names[[j]])
+        #         }
+        #     }
+        # }
 
         # EXtraction
         data = do.call(
@@ -85,6 +87,7 @@ CARD_extraction_hide = function (Process, cancel_lim,
                       Seasons=Seasons,
                       onlyDate4Season=onlyDate4Season,
                       nameEX=nameEX,
+                      suffix=suffix,
                       keep=keep,
                       compress=compress,
                       expand=expand,
@@ -93,17 +96,17 @@ CARD_extraction_hide = function (Process, cancel_lim,
         gc()
     }
 
-    if (!is.null(variable_names)) {
-        for (j in 1:length(variable_names)) {
-            if (names(variable_names)[j] %in% names(data)) {
-                data =
-                    dplyr::rename(
-                               data,
-                               !!variable_names[[j]]:=
-                                   names(variable_names)[j])
-            }
-        }
-    }
+    # if (!is.null(variable_names)) {
+    #     for (j in 1:length(variable_names)) {
+    #         if (names(variable_names)[j] %in% names(data)) {
+    #             data =
+    #                 dplyr::rename(
+    #                            data,
+    #                            !!variable_names[[j]]:=
+    #                                names(variable_names)[j])
+    #         }
+    #     }
+    # }
     
     if (verbose) {
         print(paste0("Data extracted for ", var))
@@ -142,7 +145,8 @@ get_last_Process = function (Process) {
 CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             CARD_name=NULL, CARD_tmp=NULL,
                             period=NULL,
-                            variable_names=NULL,
+                            # variable_names=NULL,
+                            suffix=NULL,
                             cancel_lim=FALSE,
                             simplify=NULL,
                             samplePeriod_overwrite=NULL,
@@ -230,7 +234,8 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             dataEX = append(dataEX,
                             CARD_extraction_hide(Process,
                                                  cancel_lim,
-                                                 variable_names,
+                                                 # variable_names,
+                                                 suffix,
                                                  data, verbose,
                                                  period, var,
                                                  samplePeriod_overwrite,
@@ -241,7 +246,8 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             list(CARD_extraction_hide(
                                 Process,
                                 cancel_lim,
-                                variable_names,
+                                # variable_names,
+                                suffix,
                                 data, verbose,
                                 period, var,
                                 samplePeriod_overwrite)))
