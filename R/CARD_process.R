@@ -297,22 +297,18 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                           expand_overwrite=expand_overwrite,
                           samplePeriod_overwrite=samplePeriod_overwrite,
                           .init=data)
-
+        
+        
         if (tibble::is_tibble(dataEX[[ss]])) {
             if (length(suffix) == 1) {
                 var = paste0(var, suffix)
             }
             var = paste0(var, collapse=" ")
             glose = paste0(glose, collapse=" ")
-            names(dataEX)[ss] = var
-        } else {
-            print(names(dataEX))
-            names(dataEX)[ss] = NULL
-        }
+            dataEX[[ss]] = list(dataEX[[ss]])
+            names(dataEX[[ss]]) = var
+        }  
 
-        # rm ("dataEX_tmp")
-        # gc()
-        
         res = get_last_Process(Process)
         rm ("Process")
         gc()
@@ -337,34 +333,8 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
     rm ("data")
     gc()
 
-    # print(dataEX)
-
-    list_only_tbl = function (x) {
-        print(x)
-        if (tibble::is_tibble(x)) {
-            list(x)
-        } else {
-            x
-        }
-    }
-
-
-    print(dataEX)
-    print("aaaa")
-    dataEX = lapply(dataEX, list_only_tbl)
-    print("bbbb")
-    print(dataEX)
-    print(names(dataEX))
-    
-    names(dataEX)[is.na(names(dataEX))] = NULL
     dataEX = unlist(dataEX, recursive=FALSE)
-    
-    # print(dataEX)
-    
     dataEX = dataEX[match(names(dataEX), table=metaEX$var)]
-
-    # print(dataEX)
-
     
     if (simplify) {
         by = names(dplyr::select(dataEX[[1]],
