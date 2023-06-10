@@ -23,22 +23,77 @@
 
 
 
-# CARD_extraction_hide = function (Process, cancel_lim,
-#                                  suffix,
-#                                  data, verbose,
-#                                  period, var,
-#                                  expand_overwrite,
-#                                  samplePeriod_overwrite) {
-#     return (data)
-# }
+
+reduce_process = function (data, id, Process,
+                           period=NULL,
+                           suffix=NULL,
+                           cancel_lim=FALSE,
+                           expand_overwrite=NULL,
+                           samplePeriod_overwrite=NULL) {
+
+    if (verbose) {
+        print(paste0("Process ", id, "/", length(Process)))
+    }
+    
+    process = Process[[paste0("P", id)]]
+    process_names = names(process)
+    for (pp in 1:length(process)) {
+        assign(process_names[pp], process[[pp]])
+    }
+
+    rm ("process")
+    gc()
+    
+    if (!is.null(expand_overwrite)) {
+        expand = expand_overwrite
+    }
+    
+    if (is.null(samplePeriod_overwrite)) {
+        if (is.function(samplePeriod[[1]])) {
+            samplePeriod = dplyr::tibble(sp=list(samplePeriod[[1]]),
+                                         args=samplePeriod[2])
+        }
+    } else {
+        samplePeriod = samplePeriod_overwrite
+    }
+
+    if (cancel_lim) {
+        NApct_lim = NULL
+        NAyear_lim = NULL
+    }
+
+    # EXtraction
+    data = process_extraction(data=data,
+                              funct=funct,
+                              funct_args=funct_args,
+                              timeStep=timeStep,
+                              samplePeriod=samplePeriod,
+                              period=period,
+                              isDate=isDate,
+                              NApct_lim=NApct_lim,
+                              NAyear_lim=NAyear_lim,
+                              Seasons=Seasons,
+                              onlyDate4Season=onlyDate4Season,
+                              nameEX=nameEX,
+                              suffix=suffix,
+                              keep=keep,
+                              compress=compress,
+                              expand=expand,
+                              rmNApct=rmNApct,
+                              verbose=verbose)
+    return (data)
+}
+
+
+
 
 get_last_Process = function (Process) {
     nProcess = length(Process) - 1
     for (i in 1:nProcess) {
         process = Process[[paste0("P", i)]]
         process_names = names(process)
-        for (i in 1:length(process)) {
-            assign(process_names[i], process[[i]])
+        for (pp in 1:length(process)) {
+            assign(process_names[pp], process[[pp]])
         }
     }
     res = list(compress=compress, timeStep=timeStep, Seasons=Seasons)
@@ -98,10 +153,13 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
 
     var_analyse = c()
 
+    nScript = length(script_to_analyse)
     metaEX = dplyr::tibble()
-    dataEX = list()
+    dataEX = replicate(nScript, list(NULL))
 
-    for (script in script_to_analyse) {
+    for (ss in 1:nScript) {
+
+        script = script_to_analyse[ss]
 
         list_path = list.files(file.path(CARD_path,
                                          "__tools__"),
@@ -121,8 +179,8 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
 
         principal = Process$P
         principal_names = names(principal)
-        for (i in 1:length(principal)) {
-            assign(principal_names[i], principal[[i]])
+        for (pp in 1:length(principal)) {
+            assign(principal_names[pp], principal[[pp]])
         }
         
         split_script = split_path(script)
@@ -148,83 +206,112 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             print(paste0('Computes ', Process$P$var))
         }
 
-        dataEX_tmp = data
-        nProcess = length(Process) - 1
+        # nProcess = length(Process) - 1
+        # dataEX_tmp = data
 
-        for (i in 1:nProcess) {
+        # for (i in 1:nProcess) {
 
-            if (verbose) {
-                print(paste0("Process ", i, "/", nProcess))
-            }
+        #     if (verbose) {
+        #         print(paste0("Process ", i, "/", nProcess))
+        #     }
             
-            process = Process[[paste0("P", i)]]
-            process_names = names(process)
-            for (i in 1:length(process)) {
-                assign(process_names[i], process[[i]])
-            }
+        #     process = Process[[paste0("P", i)]]
+        #     process_names = names(process)
+        #     for (pp in 1:length(process)) {
+        #         assign(process_names[pp], process[[pp]])
+        #     }
 
-            rm ("process")
-            gc()
+        #     rm ("process")
+        #     gc()
             
-            if (!is.null(expand_overwrite)) {
-                expand = expand_overwrite
-            }
+        #     if (!is.null(expand_overwrite)) {
+        #         expand = expand_overwrite
+        #     }
             
-            if (is.null(samplePeriod_overwrite)) {
-                if (is.function(samplePeriod[[1]])) {
-                    samplePeriod = dplyr::tibble(sp=list(samplePeriod[[1]]),
-                                                 args=samplePeriod[2])
-                }
-            } else {
-                samplePeriod = samplePeriod_overwrite
-            }
+        #     if (is.null(samplePeriod_overwrite)) {
+        #         if (is.function(samplePeriod[[1]])) {
+        #             samplePeriod = dplyr::tibble(sp=list(samplePeriod[[1]]),
+        #                                          args=samplePeriod[2])
+        #         }
+        #     } else {
+        #         samplePeriod = samplePeriod_overwrite
+        #     }
 
-            if (cancel_lim) {
-                NApct_lim = NULL
-                NAyear_lim = NULL
-            }
+        #     if (cancel_lim) {
+        #         NApct_lim = NULL
+        #         NAyear_lim = NULL
+        #     }
 
-            # EXtraction
-            dataEX_tmp = do.call(
-                what=process_extraction,
-                args=list(data=dataEX_tmp,
-                          funct=funct,
-                          funct_args=funct_args,
-                          timeStep=timeStep,
-                          samplePeriod=samplePeriod,
-                          period=period,
-                          isDate=isDate,
-                          NApct_lim=NApct_lim,
-                          NAyear_lim=NAyear_lim,
-                          Seasons=Seasons,
-                          onlyDate4Season=onlyDate4Season,
-                          nameEX=nameEX,
-                          suffix=suffix,
-                          keep=keep,
-                          compress=compress,
-                          expand=expand,
-                          rmNApct=rmNApct,
-                          verbose=verbose))
-        }
+        #     # EXtraction
+        #     dataEX_tmp = do.call(
+        #         what=process_extraction,
+        #         args=list(data=dataEX_tmp,
+        #                   funct=funct,
+        #                   funct_args=funct_args,
+        #                   timeStep=timeStep,
+        #                   samplePeriod=samplePeriod,
+        #                   period=period,
+        #                   isDate=isDate,
+        #                   NApct_lim=NApct_lim,
+        #                   NAyear_lim=NAyear_lim,
+        #                   Seasons=Seasons,
+        #                   onlyDate4Season=onlyDate4Season,
+        #                   nameEX=nameEX,
+        #                   suffix=suffix,
+        #                   keep=keep,
+        #                   compress=compress,
+        #                   expand=expand,
+        #                   rmNApct=rmNApct,
+        #                   verbose=verbose))
+        # }
+
+        ###################
+        # if (verbose) {
+        #     print(paste0("Data extracted for ", var))
+        #     print(dataEX_tmp)
+        # }
+
+        # if (tibble::is_tibble(dataEX_tmp)) {
+        #     if (length(suffix) == 1) {
+        #         var = paste0(var, suffix)
+        #     }
+        #     dataEX_tmp = list(dataEX_tmp)
+        #     var = paste0(var, collapse=" ")
+        #     glose = paste0(glose, collapse=" ")
+        #     names(dataEX_tmp) = var
+        # }
+        ####################
         
-        if (verbose) {
-            print(paste0("Data extracted for ", var))
-            print(dataEX_tmp)
-        }
+        # dataEX = append(dataEX, dataEX_tmp)
 
-        if (tibble::is_tibble(dataEX_tmp)) {
+
+        nProcess = length(Process) - 1
+        
+        dataEX[[ss]] =
+            purrr::reduce(1:nProcess,
+                          reduce_process,
+                          Process=Process,
+                          period=period,
+                          suffix=suffix,
+                          cancel_lim=cancel_lim,
+                          expand_overwrite=expand_overwrite,
+                          samplePeriod_overwrite=samplePeriod_overwrite,
+                          .init=data)
+
+        if (tibble::is_tibble(dataEX[[ss]])) {
             if (length(suffix) == 1) {
                 var = paste0(var, suffix)
             }
-            dataEX_tmp = list(dataEX_tmp)
             var = paste0(var, collapse=" ")
             glose = paste0(glose, collapse=" ")
-            names(dataEX_tmp) = var
-        } 
-        dataEX = append(dataEX, dataEX_tmp)
+            names(dataEX)[ss] = var
+        } else {
+            print(names(dataEX))
+            names(dataEX)[ss] = NULL
+        }
 
-        rm ("dataEX_tmp")
-        gc()
+        # rm ("dataEX_tmp")
+        # gc()
         
         res = get_last_Process(Process)
         rm ("Process")
@@ -249,9 +336,36 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
 
     rm ("data")
     gc()
+
+    # print(dataEX)
+
+    list_only_tbl = function (x) {
+        print(x)
+        if (tibble::is_tibble(x)) {
+            list(x)
+        } else {
+            x
+        }
+    }
+
+
+    print(dataEX)
+    print("aaaa")
+    dataEX = lapply(dataEX, list_only_tbl)
+    print("bbbb")
+    print(dataEX)
+    print(names(dataEX))
+    
+    names(dataEX)[is.na(names(dataEX))] = NULL
+    dataEX = unlist(dataEX, recursive=FALSE)
+    
+    # print(dataEX)
     
     dataEX = dataEX[match(names(dataEX), table=metaEX$var)]
 
+    # print(dataEX)
+
+    
     if (simplify) {
         by = names(dplyr::select(dataEX[[1]],
                                  dplyr::where(is.character)))
