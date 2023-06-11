@@ -1534,17 +1534,14 @@ process_extraction = function(data,
                               verbose=verbose)
     }
 
-
-    if (!is.null(keep) &
-        !(timeStep %in% c("month", "season", "yearday"))) {
-        data = dplyr::select(data, -"Date_g") 
-    } else {
-        data = dplyr::rename(data, Date=Date_g)
+    if (timeStep != "none") {
+        if (!is.null(keep) &
+            !(timeStep %in% c("month", "season", "yearday"))) {
+            data = dplyr::select(data, -"Date_g") 
+        } else {
+            data = dplyr::rename(data, Date=Date_g)
+        }
     }
-
-
-
-
 
     
     if (!is.null(NApct_lim)) {
