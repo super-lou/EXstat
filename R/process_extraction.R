@@ -140,9 +140,9 @@ process_extraction = function(data,
         funct_args = list(funct_args)
     }
 
-
+    nfunct = length(funct)
+    
     if (!is.null(suffix)) {
-        nfunct = length(funct)
         where_no_suffix = c()
         for (i in 1:nfunct) {
             arg = funct_args[[i]]            
@@ -158,6 +158,8 @@ process_extraction = function(data,
                                 !any(arg_suffix %in%
                                     names_save))
         }
+    } else {
+        where_no_suffix = rep(TRUE, nfunct)
     }
 
 
@@ -181,20 +183,17 @@ process_extraction = function(data,
                                   nsuffix_tmp)
         }
         suffix = rep(suffix, each=nfunct_tmp)
+
+        funct2keep =
+            !duplicated(as.numeric(where_no_suffix),
+                        incomparables=0)
+        funct = funct[funct2keep]
+        funct_args = funct_args[funct2keep]
+        suffix = suffix[funct2keep]
+        where_no_suffix = where_no_suffix[funct2keep]
     }
 
-    funct2keep =
-        !duplicated(as.numeric(where_no_suffix),
-                    incomparables=0)
 
-
-    # print(funct2keep)
-    
-
-    funct = funct[funct2keep]
-    funct_args = funct_args[funct2keep]
-    suffix = suffix[funct2keep]
-    where_no_suffix = where_no_suffix[funct2keep]
 
     get_colarg = function (arg_match, colName) {
         colName[arg_match]
