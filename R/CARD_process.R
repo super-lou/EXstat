@@ -29,7 +29,8 @@ reduce_process = function (data, id, Process,
                            suffix=NULL,
                            cancel_lim=FALSE,
                            expand_overwrite=NULL,
-                           samplePeriod_overwrite=NULL) {
+                           samplePeriod_overwrite=NULL,
+                           verbose=FALSE) {
 
     if (verbose) {
         print(paste0("Process ", id, "/", length(Process)))
@@ -296,6 +297,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                           cancel_lim=cancel_lim,
                           expand_overwrite=expand_overwrite,
                           samplePeriod_overwrite=samplePeriod_overwrite,
+                          verbose=verbose,
                           .init=data)
         
         
