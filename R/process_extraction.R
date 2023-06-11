@@ -1326,6 +1326,8 @@ process_extraction = function(data,
     }
 
 
+    
+
     if (!is.null(keep) & !(timeStep %in% c("month",
                                            "season",
                                            "yearday"))) {
@@ -1358,8 +1360,10 @@ process_extraction = function(data,
                              .f=dplyr::full_join, by=colGroup)
     }
 
+
     if (!is.null(keep) & timeStep %in% c("yearday")) {
-        data$Date = as.Date(data$Date-1, origin=as.Date("1970-01-01"))
+        data$Date_g = as.Date(data$Date_g-1,
+                              origin=as.Date("1970-01-01"))
     }
 
     
