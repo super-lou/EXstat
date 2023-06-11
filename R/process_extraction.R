@@ -140,23 +140,73 @@ process_extraction = function(data,
         funct_args = list(funct_args)
     }
 
+
+    if (!is.null(suffix)) {
+        nfunct = length(funct)
+        where_no_suffix = c()
+        for (i in 1:nfunct) {
+            arg = funct_args[[i]]            
+            arg_suffix =
+                unlist(lapply(unlist(arg),
+                              paste0, suffix))
+
+            # print(arg_suffix)
+            # print(names_save)
+            # print("")
+            
+            where_no_suffix = c(where_no_suffix,
+                                !any(arg_suffix %in%
+                                    names_save))
+        }
+    }
+
+
+    # print("")
+    # print("suffix")
+    # print(suffix)
+
+    # print("nfunct")
+    # print(nfunct)
+    # print("where_no_suffix")
+    # print(where_no_suffix)
+
+    
     if (!is.null(suffix)) {
         nfunct_tmp = length(funct)
         nsuffix_tmp = length(suffix)
         if (nsuffix_tmp > 1) {
             funct_args = rep(funct_args, nsuffix_tmp)
             funct = rep(funct, nsuffix_tmp)
+            where_no_suffix = rep(where_no_suffix,
+                                  nsuffix_tmp)
         }
-        
         suffix = rep(suffix, each=nfunct_tmp)
     }
-    
-    nfunct = length(funct)
 
+    funct2keep =
+        !duplicated(as.numeric(where_no_suffix),
+                    incomparables=0)
+
+
+    # print(funct2keep)
+    
+
+    funct = funct[funct2keep]
+    funct_args = funct_args[funct2keep]
+    suffix = suffix[funct2keep]
+    where_no_suffix = where_no_suffix[funct2keep]
+
+    get_colarg = function (arg_match, colName) {
+        colName[arg_match]
+    }
+    
     colArgs_save = list()
     colArgs = list()
     otherArgs = list()
     colArgs_order = list()
+    
+    nfunct = length(funct)
+    
     for (i in 1:nfunct) {
         arg = funct_args[[i]]
 
@@ -164,14 +214,15 @@ process_extraction = function(data,
         if (isDateColArgs) {
             names_save = c(names_save, "ValueDate")
             idValue_save = c(idValue_save, max(idValue_save)+1)
-            colName = c(colName, paste0("Value", length(idValue_save)))
+            colName = c(colName, paste0("Value",
+                                        length(idValue_save)))
             data["ValueDate"] = data[idDate_save]
             funct_args[[i]][arg %in% names_save[idDate_save]] =
                 "ValueDate"
             arg = funct_args[[i]]
         }
-
-        if (!is.null(suffix)) {
+        
+        if (!is.null(suffix) & !where_no_suffix[i]) {
             arg_match = lapply(lapply(arg, paste0, suffix[i]),
                                match,
                                table=names_save[idValue_save])
@@ -179,13 +230,14 @@ process_extraction = function(data,
             arg_match = lapply(arg,
                                match,
                                table=names_save[idValue_save])
-        }
 
+            if (!is.null(suffix)) {
+                suffix[i] = ""
+            }
+        }
+        
         okNA = sapply(lapply(arg_match, is.na), any)
         
-        get_colarg = function (arg_match, colName) {
-            colName[arg_match]
-        }
         colarg = lapply(arg_match[!okNA], get_colarg, colName)
         otherarg = arg[okNA]
 
@@ -195,7 +247,7 @@ process_extraction = function(data,
         otherArgs = append(otherArgs,
                            list(otherarg))
     }
-    
+
     if (length(colArgs) == 0) {
         stop (paste0("Are the given parameters that refer to column names spelled correctly ? ",
                      funct_args, " is given but only names in ",
@@ -203,6 +255,16 @@ process_extraction = function(data,
                      " are possible."))
     }
 
+
+    
+    # print(data)
+    # print("colArgs")
+    # print(colArgs)
+    # print("otherArgs")
+    # print(otherArgs)
+
+    # print("suffix")
+    # print(suffix)
     
     # data = data
 
@@ -226,6 +288,11 @@ process_extraction = function(data,
     if (!is.null(suffix)) {
         nameEX = paste0(nameEX, suffix)
     }
+
+    # print(nfunct)
+    # print("nameEX")
+    # print(nameEX)
+    
 
     if (nValue > nfunct) {
         names_save = names_save[-c(idValue_save[(nfunct+1):nValue])]
@@ -1290,14 +1357,8 @@ process_extraction = function(data,
 
     
     if (timeStep != "none") {
-        # if (!is.null(keep)) {
-            # data_save$Date_g = data$Date_g
-        # }
         nOK = data$minDateRef <= data$Date
         data = data[nOK,]
-        # if (!is.null(keep)) {
-            # data_save = data_save[nOK,]
-        # }
         if (any(isDate)) {
             minDateRef_save = dplyr::select(dplyr::ungroup(data),
                                             c(Code,
@@ -1323,10 +1384,10 @@ process_extraction = function(data,
         }
     } else {
         keepDate = NULL
+        if (timeStep == "none") {
+            colGroup = c("Code", "id")
+        }
     }
-
-
-    
 
     if (!is.null(keep) & !(timeStep %in% c("month",
                                            "season",
@@ -1360,6 +1421,7 @@ process_extraction = function(data,
                              .f=dplyr::full_join, by=colGroup)
     }
 
+    data = dplyr::select(data, -dplyr::starts_with("id"))
 
     if (!is.null(keep) & timeStep %in% c("yearday")) {
         data$Date_g = as.Date(data$Date_g-1,
@@ -1584,14 +1646,6 @@ process_extraction = function(data,
     if (timeStep == "yearday") {
         data = dplyr::filter(data, Date < 366)
     }
-
-
-
-
-    
-
-
-
     
     if (!is.null(keep) & !(timeStep %in% c("month", "season"))) {
         if (timeStep %in% c("yearday")) {
@@ -1601,12 +1655,6 @@ process_extraction = function(data,
         data = dplyr::select(data, Code, dplyr::everything())
         data = dplyr::relocate(data, Date, .after=Code)
     }
-
-
-
-
-
-    
 
     idCode = which(names(data) == "Code")
     if (!(timeStep == "none" & is.null(keep))) {
@@ -1742,7 +1790,7 @@ process_extraction = function(data,
     data = tidyr::unnest(data,
                          dplyr::everything(),
                          names_sep="_")
-
+    
     if (length(ID_colnames) > 1) {
         data = tidyr::separate(data, col="ID",
                                into=ID_colnames, sep="_")
@@ -1805,7 +1853,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
         is.na(rowSums(
             dplyr::mutate_all(data[unlist(colArg)],
                               as.numeric)))
-    
+
     if (i == 1) {
         data = dplyr::summarise(
                           data,
@@ -1816,6 +1864,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
                           !!paste0("nNA", i) :=
                               sum(isNA),
                           n=dplyr::n(),
+                          id=1:length(get(paste0("ValueEX", i))),
                           .groups='drop')
     } else {
         data = dplyr::summarise(
@@ -1826,6 +1875,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
                                 !!!otherArg),
                           !!paste0("nNA", i) :=
                               sum(isNA),
+                          id=1:length(get(paste0("ValueEX", i))),
                           .groups='drop')
     }
     return (data)
