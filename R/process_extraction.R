@@ -1426,9 +1426,6 @@ process_extraction = function(data,
     
     nValue = nfunct
 
-
-    
-    
     tree("Cleaning extracted tibble", 1, verbose=verbose)
 
     if (timeStep != "none" & any(isDate)) {
@@ -1634,14 +1631,14 @@ process_extraction = function(data,
     }
 
     if (timeStep == "yearday") {
-        data = dplyr::filter(data, Date < 366)
+        data = dplyr::filter(data, lubridate::year(Date) == 1970)
     }
 
     if (!is.null(keep) & !(timeStep %in% c("month", "season"))) {
-        if (timeStep %in% c("yearday")) {
-            data$Date = as.Date(data$Date, origin=as.Date("1970-01-01"))
+        # if (timeStep %in% c("yearday")) {
+            # data$Date = as.Date(data$Date, origin=as.Date("1970-01-01"))
             
-        }
+        # }
         data = dplyr::select(data, Code, dplyr::everything())
         data = dplyr::relocate(data, Date, .after=Code)
     }
