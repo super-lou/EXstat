@@ -179,6 +179,7 @@ process_extraction = function(data,
         if (nsuffix_tmp > 1) {
             funct_args = rep(funct_args, nsuffix_tmp)
             funct = rep(funct, nsuffix_tmp)
+            isDate = rep(isDate, nsuffix_tmp)
             where_no_suffix = rep(where_no_suffix,
                                   nsuffix_tmp)
         }
@@ -189,6 +190,7 @@ process_extraction = function(data,
                         incomparables=0)
         funct = funct[funct2keep]
         funct_args = funct_args[funct2keep]
+        isDate = isDate[funct2keep]
         suffix = suffix[funct2keep]
         where_no_suffix = where_no_suffix[funct2keep]
     }
@@ -1552,7 +1554,7 @@ process_extraction = function(data,
                               .keep="all")
         }
 
-        if (isDate & timeStep == "month") {
+        if (any(isDate) & timeStep == "month") {
             data =
                 dplyr::mutate(dplyr::group_by(data, Code),
                               Date_g=as.Date(paste0(
@@ -1564,7 +1566,7 @@ process_extraction = function(data,
                               .keep="all")
         }
 
-        if (isDate & timeStep == "season") {
+        if (any(isDate) & timeStep == "season") {
             data =
                 dplyr::mutate(dplyr::group_by(data, Code),
                               Date_g=as.Date(paste0(
@@ -1702,7 +1704,7 @@ process_extraction = function(data,
                 names_keepSave[idValue_keepSave]
         }
     }
-    
+
     if (compress & timeStep %in% c("year-season", "year-month",
                                    "month", "season")) {
         if (timeStep == "season") {
@@ -1725,7 +1727,7 @@ process_extraction = function(data,
             Ref = gsub("[.]", "", Ref)
             expandRef = Ref
             shiftRef = 1:12
-        }
+        } 
 
         dateName = names_save[idDate_save]
         valueName = names_save[idValue_save]
@@ -1751,6 +1753,13 @@ process_extraction = function(data,
                        names_from=Ref,
                        values_from=valueName,
                        names_glue="{.value}_{Ref}")
+
+
+    }
+
+    if ((compress & timeStep %in%
+         c("year-season", "year-month", "month", "season")) |
+        expand & timeStep %in% c("none", "year")) {
 
         if (!is.null(suffix)) {
             valueName = c()
