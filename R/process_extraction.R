@@ -1382,7 +1382,7 @@ process_extraction = function(data,
                                            "yearday"))) {
         if (timeStep == "none") {
             keepDate = list(Date="Date")
-            colGroup = c("Code", "Date")
+            # colGroup = c("Code", "Date")
         } else {
             keepDate = NULL
         }
@@ -1395,8 +1395,6 @@ process_extraction = function(data,
             colGroup = c("Code", "id")
         }
     }
-
-
     
     data = purrr::reduce(.x=lapply(1:nfunct,
                                    apply_extraction,
