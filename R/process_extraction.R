@@ -1451,6 +1451,7 @@ process_extraction = function(data,
                                                              1:nValue)),
                                        .fns=infinite2NA),
                          .keep="all")
+    data = dplyr::ungroup(data)
     
     if (timeStep == "year") {
         sampleInfoCompress$Date = format(sampleInfoCompress$Date,
@@ -1501,6 +1502,7 @@ process_extraction = function(data,
                                                          nValue, "}"),
                                            n=n),
                              .keep="all")
+        data = dplyr::ungroup(data)
 
         data = dplyr::select(data, -c(paste0("nNA",
                                              1:nValue), n))
@@ -1531,6 +1533,7 @@ process_extraction = function(data,
                                            dNA=dNA,
                                            nDay=nDay),
                              .keep="all")
+        data = dplyr::ungroup(data)
         
         data = dplyr::full_join(data,
                                 samplePeriod[c("Code",
@@ -1545,6 +1548,7 @@ process_extraction = function(data,
                                                     "-",
                                                     spStart[1])),
                               .keep="all")
+            data = dplyr::ungroup(data)
         }
         
         if (any(isDate) & timeStep == "month") {
@@ -1557,6 +1561,7 @@ process_extraction = function(data,
                                   "-",
                                   spStart[1])),
                               .keep="all")
+            data = dplyr::ungroup(data)
         }
 
         if (any(isDate) & timeStep == "season") {
@@ -1571,6 +1576,7 @@ process_extraction = function(data,
                                   "-",
                                   spStart[1])),
                               .keep="all")
+            data = dplyr::ungroup(data)
         }
         
         data = dplyr::select(data, -c(paste0("nNA",
@@ -1907,6 +1913,8 @@ apply_extraction = function (i, data, colArgs, otherArgs,
                               .groups='drop')
         }
     }
+
+    data = dplyr::ungroup(data)
         
     return (data)
 }
@@ -2009,6 +2017,7 @@ reduce_convert_data_hide = function (data, i, isDate) {
                                            .fns=convert_data_hide),
                              .keep="all")
     }
+    data = dplyr::ungroup(data)
     return (data)
 }
 
@@ -2099,6 +2108,7 @@ NA_filter = function (data, timeStep, nValue, NApct_lim=1,
                                        .names=paste0("filter{1:",
                                                      nValue, "}")),
                          .keep="all")
+    data = dplyr::ungroup(data)
     
     filter2NA = function (X, filter) {
         X[filter] = NA
@@ -2224,6 +2234,7 @@ missing_year = function (data, nValue, NAyear_lim=10,
                                        Date=Date,
                                        NAyear_lim=NAyear_lim),
                          .keep="all")
+    dataMOD = dplyr::ungroup(dataMOD)
 
     # if (!is.null(mod)) {
     #     tree('Wrinting modifications', 2, !is.null(mod),
