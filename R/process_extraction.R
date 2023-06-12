@@ -1630,15 +1630,17 @@ process_extraction = function(data,
                                              1:nValue)))
     }
 
+
+    
     if (timeStep == "yearday") {
-        data = dplyr::filter(data, lubridate::year(Date) == 1970)
+        if (!is.null(keep)) {
+            data = dplyr::filter(data, lubridate::year(Date) == 1970)
+        } else {
+            data = dplyr::filter(data, Date < 366)
+        }
     }
 
     if (!is.null(keep) & !(timeStep %in% c("month", "season"))) {
-        # if (timeStep %in% c("yearday")) {
-            # data$Date = as.Date(data$Date, origin=as.Date("1970-01-01"))
-            
-        # }
         data = dplyr::select(data, Code, dplyr::everything())
         data = dplyr::relocate(data, Date, .after=Code)
     }
@@ -1652,7 +1654,7 @@ process_extraction = function(data,
 
     if (timeStep == "yearday") {
         names_save[idDate_save] = "Yearday"
-        data = dplyr::filter(data, Date < 366)
+        # data = dplyr::filter(data, Date < 366)
     } 
 
     if (isDateColArgs) {
