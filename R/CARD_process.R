@@ -285,6 +285,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         
         # dataEX = append(dataEX, dataEX_tmp)
 
+        var_meta = var
 
         nProcess = length(Process) - 1
         
@@ -305,11 +306,13 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             if (length(suffix) == 1) {
                 var = paste0(var, suffix)
             }
-            var = paste0(var, collapse=" ")
-            glose = paste0(glose, collapse=" ")
             dataEX[[ss]] = list(dataEX[[ss]])
-            names(dataEX[[ss]]) = var
-        }  
+            if (!simplify) {
+                var = paste0(var, collapse=" ")
+                glose = paste0(glose, collapse=" ")
+                names(dataEX[[ss]]) = var
+            }
+        }
 
         res = get_last_Process(Process)
         rm ("Process")
@@ -321,7 +324,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
 
         metaEX = dplyr::bind_rows(
                             metaEX,
-                            dplyr::tibble(var=var,
+                            dplyr::tibble(var=var_meta,
                                           unit=unit,
                                           glose=glose,
                                           topic=
@@ -336,7 +339,9 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
     gc()
 
     dataEX = unlist(dataEX, recursive=FALSE)
-    dataEX = dataEX[match(names(dataEX), table=metaEX$var)]
+    if (!simplify) {
+        dataEX = dataEX[match(names(dataEX), table=metaEX$var)]
+    }
     
     if (simplify) {
         by = names(dplyr::select(dataEX[[1]],
