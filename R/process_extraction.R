@@ -141,6 +141,11 @@ process_extraction = function(data,
     }
 
     nfunct = length(funct)
+
+    if (length(isDate) != nfunct) {
+        isDate = rep(isDate[1], nfunct)
+    }
+    
     
     if (!is.null(suffix)) {
         where_no_suffix = c()
@@ -171,7 +176,6 @@ process_extraction = function(data,
     # print(nfunct)
     # print("where_no_suffix")
     # print(where_no_suffix)
-
     
     if (!is.null(suffix)) {
         nfunct_tmp = length(funct)
@@ -184,18 +188,16 @@ process_extraction = function(data,
                                   nsuffix_tmp)
         }
         suffix = rep(suffix, each=nfunct_tmp)
-
         funct2keep =
             !duplicated(as.numeric(where_no_suffix),
                         incomparables=0)
+        
         funct = funct[funct2keep]
         funct_args = funct_args[funct2keep]
         isDate = isDate[funct2keep]
         suffix = suffix[funct2keep]
         where_no_suffix = where_no_suffix[funct2keep]
     }
-
-
 
     get_colarg = function (arg_match, colName) {
         colName[arg_match]
@@ -1553,7 +1555,7 @@ process_extraction = function(data,
                                                     spStart[1])),
                               .keep="all")
         }
-
+        
         if (any(isDate) & timeStep == "month") {
             data =
                 dplyr::mutate(dplyr::group_by(data, Code),
@@ -1589,14 +1591,7 @@ process_extraction = function(data,
     }
 
 
-
-    
-
-    
     if (any(isDate)) {
-        if (length(isDate) != nfunct) {
-            isDate = rep(isDate[1], nfunct)
-        }
         data = convert_dateEX(data, isDate, nValue=nValue,
                               verbose=verbose)
     }
