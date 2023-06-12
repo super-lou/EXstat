@@ -1376,15 +1376,19 @@ process_extraction = function(data,
     tree("Application of the function",
          1, verbose=verbose)
 
-    if (!is.null(keep)) {
+
+    if (!is.null(keep) & !(timeStep %in% c("month",
+                                           "season",
+                                           "yearday"))) {
         if (timeStep == "none") {
             keepDate = list(Date="Date")
             colGroup = c("Code", "Date")
-        } else if (timeStep == "yearday") {
-            keepDate = NULL
         } else {
             keepDate = NULL
         }
+
+        colGroup = c(colGroup, "id")
+        
     } else {
         keepDate = NULL
         if (timeStep == "none") {
@@ -1392,40 +1396,30 @@ process_extraction = function(data,
         }
     }
 
+
+    
+    data = purrr::reduce(.x=lapply(1:nfunct,
+                                   apply_extraction,
+                                   data=data,
+                                   colArgs=colArgs,
+                                   otherArgs=otherArgs,
+                                   funct=funct,
+                                   keepDate=keepDate,
+                                   timeStep=timeStep,
+                                   keep=keep,
+                                   colGroup=colGroup),
+                         .f=dplyr::full_join, by=colGroup)
+
+
+    
+    data = dplyr::select(data, -dplyr::starts_with("id"))
+
     if (!is.null(keep) & !(timeStep %in% c("month",
                                            "season",
                                            "yearday"))) {
-        data =
-            dplyr::left_join(
-                       data,
-                       purrr::reduce(
-                                  .x=lapply(
-                                      1:nfunct,
-                                      apply_extraction,
-                                      data=data,
-                                      colArgs=colArgs,
-                                      otherArgs=otherArgs,
-                                      funct=funct,
-                                      keepDate=keepDate,
-                                      timeStep=timeStep,
-                                      colGroup=colGroup),
-                                  .f=dplyr::full_join, by=colGroup),
-                       by=colGroup)
-    } else {
-        data = purrr::reduce(.x=lapply(1:nfunct,
-                                       apply_extraction,
-                                       data=data,
-                                       colArgs=colArgs,
-                                       otherArgs=otherArgs,
-                                       funct=funct,
-                                       keepDate=keepDate,
-                                       timeStep=timeStep,
-                                       colGroup=colGroup),
-                             .f=dplyr::full_join, by=colGroup)
+        data = dplyr::select(data, -"isNA") 
     }
-
-    data = dplyr::select(data, -dplyr::starts_with("id"))
-
+    
     if (!is.null(keep) & timeStep %in% c("yearday")) {
         data$Date_g = as.Date(data$Date_g-1,
                               origin=as.Date("1970-01-01"))
@@ -1433,6 +1427,8 @@ process_extraction = function(data,
 
     
     nValue = nfunct
+
+
     
     
     tree("Cleaning extracted tibble", 1, verbose=verbose)
@@ -1846,7 +1842,8 @@ process_extraction = function(data,
 
 
 apply_extraction = function (i, data, colArgs, otherArgs,
-                              funct, keepDate, timeStep, colGroup) {
+                             funct, keepDate, timeStep,
+                             keep, colGroup) {
     
     colArg = colArgs[[i]]
     otherArg = otherArgs[[i]]
@@ -1856,33 +1853,69 @@ apply_extraction = function (i, data, colArgs, otherArgs,
         is.na(rowSums(
             dplyr::mutate_all(data[unlist(colArg)],
                               as.numeric)))
-
-    if (i == 1) {
-        data = dplyr::summarise(
-                          data,
-                          !!!rlang::data_syms(keepDate),
-                          !!paste0("ValueEX", i) :=
-                              f(!!!rlang::data_syms(colArg),
-                                !!!otherArg),
-                          !!paste0("nNA", i) :=
-                              sum(isNA),
-                          n=dplyr::n(),
-                          id=1:max(c(length(get(paste0("ValueEX", i))), 1)),
-                          .groups='drop')
+    
+    if (!is.null(keep) & !(timeStep %in% c("month",
+                                           "season",
+                                           "yearday"))) {
+        
+        if (i == 1) {
+            data = dplyr::mutate(
+                              data,
+                              !!!rlang::data_syms(keepDate),
+                              !!paste0("ValueEX", i) :=
+                                  f(!!!rlang::data_syms(colArg),
+                                    !!!otherArg),
+                              !!paste0("nNA", i) :=
+                                  sum(isNA),
+                              n=dplyr::n(),
+                              id=1:max(c(length(get(paste0("ValueEX",
+                                                           i))), 1)))
+        } else {
+            data = dplyr::mutate(
+                              data,
+                              !!paste0("ValueEX", i) :=
+                                  f(!!!rlang::data_syms(colArg),
+                                    !!!otherArg),
+                              !!paste0("nNA", i) :=
+                                  sum(isNA),
+                              id=1:max(c(length(get(paste0("ValueEX",
+                                                           i))), 1)),
+                              .keep="none"
+                          )
+        }
+        
     } else {
-        data = dplyr::summarise(
-                          data,
-                          !!!rlang::data_syms(keepDate),
-                          !!paste0("ValueEX", i) :=
-                              f(!!!rlang::data_syms(colArg),
-                                !!!otherArg),
-                          !!paste0("nNA", i) :=
-                              sum(isNA),
-                          id=1:max(c(length(get(paste0("ValueEX", i))), 1)),
-                          .groups='drop')
+        if (i == 1) {
+            data = dplyr::summarise(
+                              data,
+                              !!!rlang::data_syms(keepDate),
+                              !!paste0("ValueEX", i) :=
+                                  f(!!!rlang::data_syms(colArg),
+                                    !!!otherArg),
+                              !!paste0("nNA", i) :=
+                                  sum(isNA),
+                              n=dplyr::n(),
+                              id=1:max(c(length(get(paste0("ValueEX", i))), 1)),
+                              .groups='drop')
+        } else {
+            data = dplyr::summarise(
+                              data,
+                              !!!rlang::data_syms(keepDate),
+                              !!paste0("ValueEX", i) :=
+                                  f(!!!rlang::data_syms(colArg),
+                                    !!!otherArg),
+                              !!paste0("nNA", i) :=
+                                  sum(isNA),
+                              id=1:max(c(length(get(paste0("ValueEX", i))), 1)),
+                              .groups='drop')
+        }
     }
+        
     return (data)
 }
+
+
+
 
 
 
