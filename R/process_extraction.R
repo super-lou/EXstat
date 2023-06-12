@@ -1863,7 +1863,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
                           !!paste0("nNA", i) :=
                               sum(isNA),
                           n=dplyr::n(),
-                          id=1:length(get(paste0("ValueEX", i))),
+                          id=1:max(c(length(get(paste0("ValueEX", i))), 1)),
                           .groups='drop')
     } else {
         data = dplyr::summarise(
@@ -1874,7 +1874,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
                                 !!!otherArg),
                           !!paste0("nNA", i) :=
                               sum(isNA),
-                          id=1:length(get(paste0("ValueEX", i))),
+                          id=1:max(c(length(get(paste0("ValueEX", i))), 1)),
                           .groups='drop')
     }
     return (data)
