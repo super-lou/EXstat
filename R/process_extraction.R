@@ -118,7 +118,7 @@ process_extraction = function(data,
             idCode_save = id
         } else if (lubridate::is.Date(x)) {
             idDate_save = id
-        } else if (is.numeric(x)) {
+        } else if (is.numeric(x) | is.logical(x)) {
             idValue_save = c(idValue_save, id)
         }
     }
@@ -1856,6 +1856,11 @@ apply_extraction = function (i, data, colArgs, otherArgs,
         is.na(rowSums(
             dplyr::mutate_all(data[unlist(colArg)],
                               as.numeric)))
+
+    # print(data)
+    # print(colArg)
+    # print(otherArg)
+    
     
     if (!is.null(keep) & !(timeStep %in% c("month",
                                            "season",
