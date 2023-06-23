@@ -9,10 +9,11 @@ CARD_trend(
   CARD_path,
   CARD_dir = "WIP",
   CARD_name = NULL,
+  CARD_tmp = NULL,
   period = NULL,
   variable_names = NULL,
   cancel_lim = FALSE,
-  simplify_by = NULL,
+  simplify = NULL,
   level = 0.1,
   samplePeriod_overwrite = NULL,
   verbose = FALSE
@@ -29,7 +30,7 @@ CARD_trend(
 
 \item{period}{specify a period to extract from data}
 
-\item{simplify_by}{specify whether or not to simplify the extracted data}
+\item{simplify}{specify whether or not to simplify the extracted data}
 
 \item{level}{default=0.1, level for the trend analysis}
 

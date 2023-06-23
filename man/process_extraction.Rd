@@ -17,8 +17,10 @@ process_extraction(
   Seasons = c("DJF", "MAM", "JJA", "SON"),
   onlyDate4Season = FALSE,
   nameEX = "X",
+  suffix = NULL,
   keep = NULL,
   compress = FALSE,
+  expand = FALSE,
   rmNApct = FALSE,
   verbose = FALSE,
   ...

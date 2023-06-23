@@ -9,10 +9,12 @@ CARD_extraction(
   CARD_path,
   CARD_dir = "WIP",
   CARD_name = NULL,
+  CARD_tmp = NULL,
   period = NULL,
-  variable_names = NULL,
+  suffix = NULL,
   cancel_lim = FALSE,
-  simplify_by = NULL,
+  simplify = NULL,
+  expand_overwrite = NULL,
   samplePeriod_overwrite = NULL,
   verbose = FALSE
 )
@@ -28,7 +30,7 @@ CARD_extraction(
 
 \item{period}{specify a period to extract from data}
 
-\item{simplify_by}{specify whether or not to simplify the extracted data by a column name}
+\item{simplify}{specify whether or not to simplify the extracted data by a column name}
 
 \item{verbose}{default=FALSE, if set to TRUE, the function will print out the process details}
 }

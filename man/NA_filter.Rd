@@ -4,10 +4,10 @@
 \alias{NA_filter}
 \title{NA filter}
 \usage{
-NA_filter(dataEX, timeStep, nValue, NApct_lim = 1, mod = NULL, verbose = TRUE)
+NA_filter(data, timeStep, nValue, NApct_lim = 1, mod = NULL, verbose = TRUE)
 }
 \arguments{
-\item{dataEX}{Data after extraction that should be filtered.}
+\item{data}{Data after extraction that should be filtered.}
 
 \item{timeStep}{Character string indicating the time step of the extraction, could be 'none' if the time step doesn't matter, 'year' or 'year-month'.}
 
@@ -20,7 +20,7 @@ NA_filter(dataEX, timeStep, nValue, NApct_lim = 1, mod = NULL, verbose = TRUE)
 \item{verbose}{Logical, when true prints message indicating the removal of data due to high NA percentage}
 }
 \value{
-dataEX filtered by the percentage of NA allowed in input.
+data filtered by the percentage of NA allowed in input.
 }
 \description{
 Filters the rows with a NA percentage above the threshold given in parameter.

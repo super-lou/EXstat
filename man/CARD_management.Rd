@@ -5,15 +5,16 @@
 \title{CARD_management}
 \usage{
 CARD_management(
-  CARD = "",
-  type = 1,
-  layout = "QA",
+  CARD = ".",
+  tmp = "",
+  layout = c("EX", "[", "QA", "]"),
   white = TRUE,
   blank = FALSE,
+  overwrite = TRUE,
   verbose = FALSE,
   args = NULL
 )
 }
 \description{
-CARD_management
+A
 }

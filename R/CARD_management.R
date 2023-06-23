@@ -34,7 +34,7 @@ remind = function (args) {
 
 
 #' @title CARD_management
-#' @description 
+#' @description A
 #' @export
 CARD_management = function (CARD=".", tmp="",
                             layout=c("EX", "[", "QA", "]"), white=TRUE,
