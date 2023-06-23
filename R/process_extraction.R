@@ -123,6 +123,28 @@ process_extraction = function(data,
         }
     }
 
+    data = dplyr::relocate(data,
+                           names_save[idDate_save],
+                           .before=dplyr::everything())
+    data = dplyr::relocate(data,
+                           names_save[idCode_save],
+                           .before=dplyr::everything())
+
+    names_save = names(data)
+    idValue_save = c()
+    for (id in 1:ncol(data)) {
+        x = data[[id]]
+
+        if (is.character(x)) {
+            idCode_save = id
+        } else if (lubridate::is.Date(x)) {
+            idDate_save = id
+        } else if (is.numeric(x) | is.logical(x)) {
+            idValue_save = c(idValue_save, id)
+        }
+    }
+
+    
     if (!exists("idDate_save")) {
         idDate_save = NULL
     }
@@ -296,7 +318,6 @@ process_extraction = function(data,
     # print("nameEX")
     # print(nameEX)
     
-
     if (nValue > nfunct) {
         names_save = names_save[-c(idValue_save[(nfunct+1):nValue])]
         idValue_save = idValue_save[1:nfunct]
@@ -311,7 +332,9 @@ process_extraction = function(data,
     
     names_save[idValue_save[1:nfunct]] = nameEX
 
-    if (!is.null(samplePeriod) & dplyr::is.tbl(samplePeriod)) {
+    if (!is.null(samplePeriod) &
+        dplyr::is.tbl(samplePeriod)) {
+        
         if ("args" %in% names(samplePeriod)) {
             apply_name = function (X, table, name) {
                 Xres = name[match(X, table)]
@@ -1612,6 +1635,7 @@ process_extraction = function(data,
 
     tree("Last cleaning", 1, end=TRUE, verbose=verbose)
 
+
     if (onlyDate4Season) {
         data = dplyr::select(data, -YearSeason)
     }
@@ -1646,10 +1670,12 @@ process_extraction = function(data,
         }
     }
 
+    ### ?????
     if (!is.null(keep) & !(timeStep %in% c("month", "season"))) {
         data = dplyr::select(data, Code, dplyr::everything())
         data = dplyr::relocate(data, Date, .after=Code)
     }
+    ###
 
     idCode = which(names(data) == "Code")
     if (!(timeStep == "none" & is.null(keep))) {
@@ -1661,7 +1687,8 @@ process_extraction = function(data,
     if (timeStep == "yearday") {
         names_save[idDate_save] = "Yearday"
         # data = dplyr::filter(data, Date < 366)
-    } 
+    }
+
 
     if (isDateColArgs) {
         names_save = names_save[-length(names_save)]
@@ -1669,6 +1696,9 @@ process_extraction = function(data,
     }
 
     if (timeStep == "none" & is.null(keep)) {
+
+        data = dplyr::relocate(data, )
+        
         names(data)[c(idCode, idValue)] =
             names_save[c(idCode_save, idValue_save)]
     } else {
