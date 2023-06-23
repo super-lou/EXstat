@@ -342,11 +342,21 @@ process_extraction = function(data,
                 names(Xres) = names(X)
                 return (Xres)
             }
+
+            if (!is.null(suffix)) {
+                arg_match = unlist(lapply(lapply(samplePeriod$args,
+                                                 paste0, suffix[1]),
+                                          match,
+                                          table=names_keepSave))
+                okNA = sapply(lapply(arg_match, is.na), any)
+                colarg = unlist(lapply(arg_match[!okNA], get_colarg, names_keepSave))
+                samplePeriod$args[[1]][!okNA][[1]] = colarg
+            }
+            
             samplePeriod$args = lapply(samplePeriod$args,
                                        apply_name,
                                        table=names_keepSave,
                                        name=names(data))
-            
         } else {
             samplePeriop$args = NA
         }
@@ -1964,12 +1974,22 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
                              verbose=FALSE) {
 
     if (is.function(samplePeriod[[1]]) & sampleFormat == "%m-%d") {
+
+        # print(data_code)
+        # print(samplePeriod)
+        # print(samplePeriod$args)
+        # print("")
+        
         data_code = process_extraction(data=data_code,
                                        funct=list("XM"=mean),
                                        funct_args=args,
                                        timeStep="month",
                                        rmNApct=TRUE,
                                        verbose=FALSE)
+
+
+        # print(data_code)
+        
         data_code_month = data_code
         names(data_code)[names(data_code) == "XM"] = args[[1]][1]
         data_code$Date = as.Date(paste0(refDate, "-",
