@@ -419,12 +419,15 @@ process_extraction = function(data,
                        sp=list(
                            fix_samplePeriod(
                                sp,
+                               # data_code=
+                               #     dplyr::rename_with(
+                               #                data,
+                               #                ~names_keepSave)[
+                               #                data$Code ==
+                               #                dplyr::cur_group()$Code,],
                                data_code=
-                                   dplyr::rename_with(
-                                              data,
-                                              ~names_keepSave)[
-                                              data$Code ==
-                                              dplyr::cur_group()$Code,],
+                                   data[data$Code ==
+                                        dplyr::cur_group()$Code,],
                                args=args,
                                suffix=suffix[1],
                                refDate=refDate,
@@ -1418,7 +1421,7 @@ process_extraction = function(data,
             colGroup = c("Code", "id")
         }
     }
-    
+
     data = purrr::reduce(.x=lapply(1:nfunct,
                                    apply_extraction,
                                    data=data,
@@ -1430,8 +1433,6 @@ process_extraction = function(data,
                                    keep=keep,
                                    colGroup=colGroup),
                          .f=dplyr::full_join, by=colGroup)
-
-
     
     data = dplyr::select(data, -dplyr::starts_with("id"))
 
@@ -1716,16 +1717,15 @@ process_extraction = function(data,
                       names(data))
 
             if (length(idIn) > 0) {
-
                 idRm = idValue_keep[idIn]
-                
                 data = data[-idRm] 
-                
                 idValue_keep = idValue_keep[-idIn]
                 idValue_keepSave = idValue_keepSave[-idIn]
             }
             names(data)[idValue_keep] =
                 names_keepSave[idValue_keepSave]
+
+            
         }
     }
 
@@ -1891,7 +1891,6 @@ apply_extraction = function (i, data, colArgs, otherArgs,
     # print(colArg)
     # print(otherArg)
     
-    
     if (!is.null(keep) & !(timeStep %in% c("month",
                                            "season",
                                            "yearday"))) {
@@ -1965,22 +1964,26 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
                              verbose=FALSE) {
 
     if (is.function(samplePeriod[[1]]) & sampleFormat == "%m-%d") {
-        dataM = process_extraction(data=data_code,
-                                   funct=list(XM=mean),
-                                   funct_args=args,
-                                   suffix=suffix,
-                                   timeStep="month",
-                                   rmNApct=TRUE,
-                                   verbose=FALSE)
+        data_code = process_extraction(data=data_code,
+                                       funct=list("XM"=mean),
+                                       funct_args=args,
+                                       timeStep="month",
+                                       rmNApct=TRUE,
+                                       verbose=FALSE)
+        data_code_month = data_code
+        names(data_code)[names(data_code) == "XM"] = args[[1]][1]
+        data_code$Date = as.Date(paste0(refDate, "-",
+                                        data_code$Date, "-01"))
+        data_code = process_extraction(data=data_code,
+                                       funct=list("fXM"=
+                                                      samplePeriod[[1]]),
+                                      funct_args=args,
+                                      timeStep="none",
+                                      rmNApct=TRUE,
+                                      verbose=FALSE)
 
-
-        if (!is.null(suffix)) {
-            XM = paste0("XM", suffix)
-        } else {
-            XM = "XM"
-        }
-        samplePeriod = dataM$Date[dataM[[XM]] ==
-                                  samplePeriod[[1]](dataM[[XM]])]
+        samplePeriod =
+            data_code_month$Date[data_code_month$XM == data_code$fXM]
         samplePeriod = paste0(samplePeriod, "-01")
     }
 
@@ -2023,6 +2026,8 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
             }
         }
     }
+
+
     return (samplePeriod)
 }
 
