@@ -149,16 +149,16 @@ get_period = function (data, trendEX, verbose=TRUE) {
     tree("Computing of the optimal periods of trend analysis",
          2, end=TRUE, inEnd=1, verbose=verbose)
 
-    Start = dplyr::summarise(dplyr::group_by(data, Code),
-                             start=min(Date, na.rm=TRUE))
+    Period = dplyr::summarise(dplyr::group_by(data, Code),
+                              start=min(Date, na.rm=TRUE),
+                              end=max(Date, na.rm=TRUE),
+                              period=list(c(start, end)))
     
-    End = dplyr::summarise(dplyr::group_by(data, Code),
-                           end=max(Date, na.rm=TRUE))
-
-    Period = dplyr::full_join(Start, End, by="Code")
-    trendEX = dplyr::full_join(trendEX, Period, by="Code")
-    # trendEX$start = Start$Start
-    # trendEX$end = End$End
+    trendEX = dplyr::full_join(trendEX,
+                               dplyr::select(Period,
+                                             c("Code",
+                                               "period")),
+                               by="Code")
     return (trendEX)
 }
 
