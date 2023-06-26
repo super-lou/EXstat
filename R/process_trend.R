@@ -259,15 +259,15 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
 
     trendEX$trend = NA
 
+    if (!is.null(period_change)) {
+        trendEX$change = NA
+        trendEX$period_change = NA 
+        # dataMean_tmp = array(rep(NA, nVar*nCode),
+        #                     dim=c(nVar, nCode))
+    }
+
     for (j in 1:nPeriod) {
         period = Period[[j]]
-
-        if (!is.null(period_change)) {
-            trendEX$change = NA
-            trendEX$period_change = NA 
-            # dataMean_tmp = array(rep(NA, nVar*nCode),
-            #                     dim=c(nVar, nCode))
-        }
 
         for (k in 1:nCode) {
             code = Code[k]
@@ -317,7 +317,7 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
                     if (nPeriod_change != 2) {
                         break
                     }
-                    
+
                     for (jj in 1:nPeriod_change) {
                         Start = period_change[[jj]][1]
                         End = period_change[[jj]][2]
@@ -353,6 +353,8 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
             }
         }
     }
+
+    # print(dplyr::select(trendEX, c("Code", "var", "trend", "change")), n=Inf)
 
     if (!is.null(period_change)) {
         trendEX = dplyr::mutate(dplyr::group_by(trendEX,
