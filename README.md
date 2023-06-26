@@ -58,7 +58,7 @@ dataEX = process_extraction(data=data,
                             samplePeriod=c("05-01",
                                            "11-30"),
                             funct=max,
-                            na.rm=TRUE,
+                            funct_args=list("X", na.rm=TRUE),
                             period=c(as.Date("1990-01-01"),
                                      as.Date("2020-12-31")),
                             timeStep="year")
