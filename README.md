@@ -42,7 +42,7 @@ X[as.Date("2000-03-01") <= Date & Date <= as.Date("2000-09-30")] = NA
 data = tibble(Date=Date, ID="serie A", X=X)
 ```
 
-The process of **variable extraction** (for example the yearly mean of time series) is realised with the `extraction_process()` function.
+The process of **variable extraction** (for example the yearly mean of time series) is realised with the `process_extraction()` function.
 Minimum arguments are :
 * Input `data` described above
 * The function `funct` (for example `mean`) you want to use. Arguments of the chosen function can be passed to this extraction process and the function can be previously defined.
@@ -54,7 +54,7 @@ Optional arguments are :
 
 In this way ...
 ``` r
-dataEx = extraction_process(data=data,
+dataEX = process_extraction(data=data,
                             samplePeriod=c("05-01",
                                            "11-30"),
                             funct=max,
@@ -69,7 +69,7 @@ will perform a yearly extraction of the maximum value between may and november, 
 The output is also a `tibble` with a column of **date**, of **character** for the name of time series and a **numerical** column with the extracted variable from the time series.
 
 ```
-> dataEx
+> dataEX
 # A tibble: 31 × 4
    ID      Date           X NA_pct
    <chr>   <date>     <dbl>  <dbl>
@@ -87,13 +87,32 @@ The output is also a `tibble` with a column of **date**, of **character** for th
 # ℹ Use `print(n = ...)` to see more rows
 ```
 
+
+### Extraction process with [CARD](https://github.com/super-lou/CARD/)
+For a more user-friendly interaction, this package has been developed in symbiosis with predefined parameter sheets called [CARD](https://github.com/super-lou/CARD/).
+
+So you don't have to define complex parameters yourself to extract hydrological variables. What's more, if the [CARD](https://github.com/super-lou/CARD/) you want doesn't exist, it's easy to create one based on the others.
+
+To do this, you need to download the [CARD archive](https://github.com/super-lou/CARD/archive/refs/heads/main.zip), extract it and place it wherever you like (as if it were data). Then you can create a new sub-directory within this main CARD directory, which you can call for example "analyse_1", and copy and paste the CARD "__all__/Hautes_Eaux/QJXA.R" into it.
+
+In this way, you can carry out "analyse_1" by doing,
+
+```
+CARD_extraction(data %>% rename(Q = X),
+                CARD_path = 'path_to_CARD_directory',
+                CARD_dir = 'sub-directory_for_analyse_in_CARD')
+```
+
+In this way, you can place several [CARDs](https://github.com/super-lou/CARD/) in your "analyse_1" sub-directory for multiple analyses.
+
+
 ### Trend analyse
-The stationarity analyse is computed with the `trend_analyse()` function on the extracted data `dataEx`. The **statistical test** used here is the **Mann-Kendall test**[^mann][^kendall].
+The stationarity analyse is computed with the `process_trend()` function on the extracted data `dataEx`. The **statistical test** used here is the **Mann-Kendall test**[^mann][^kendall].
 
 Hence, the following expression ...
 
 ``` r
-trendEx = trend_analyse(data=dataEx)
+trendEX = process_trend(data=dataEX)
 ```
 
 produces the result below ...
