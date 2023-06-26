@@ -5,17 +5,19 @@
 \title{process_trend}
 \usage{
 process_trend(
-  data,
+  dataEX,
+  metaEX = NULL,
   MK_level = 0.1,
   timeDep_option = "INDE",
+  take_not_signif_into_account = TRUE,
+  period_trend = NULL,
+  period_change = NULL,
+  exProb = 0.01,
   verbose = FALSE,
   ...
 )
 }
 \arguments{
-\item{data}{A tibble with at least three columns : date, numeric values, and a character column for names of time series.
-The trend analysis will be performed on the numeric column.}
-
 \item{MK_level}{Numeric value between 0 and 1, the level used in the Mann-Kendall statistical test.}
 
 \item{timeDep_option}{Character indicating the time dependency option of the MK test.}
@@ -23,6 +25,9 @@ The trend analysis will be performed on the numeric column.}
 \item{verbose}{Logical, if true will print detailed information.}
 
 \item{...}{other arguments passed to function \code{GeneralMannKendall_WRAP}}
+
+\item{data}{A tibble with at least three columns : date, numeric values, and a character column for names of time series.
+The trend analysis will be performed on the numeric column.}
 }
 \value{
 A table which specifies per line the name of the time series the value 'p', the value 'stat' and 'a' the slope of Theil-Sen. If the 'p' value is less than 0.1 and the slope 'a' is positive, the associated time serie shows an increasing linear trend which can be represented by the equation 'Y = a*X + b ' with 'a' the Type I error of 10\% or 90\% confidence.
