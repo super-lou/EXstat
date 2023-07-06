@@ -104,7 +104,10 @@ process_extraction = function(data,
     }
     
     names_save = names(data)
+    idCode_save = NULL
+    idDate_save = NULL
     idValue_save = c()
+    
     for (id in 1:ncol(data)) {
         x = data[[id]]
 
@@ -116,10 +119,12 @@ process_extraction = function(data,
             idValue_save = c(idValue_save, id)
         }
     }
-
-    data = dplyr::relocate(data,
-                           names_save[idDate_save],
-                           .before=dplyr::everything())
+    
+    if (!is.null(idDate_save)) {
+        data = dplyr::relocate(data,
+                               names_save[idDate_save],
+                               .before=dplyr::everything())
+    }
     data = dplyr::relocate(data,
                            names_save[idCode_save],
                            .before=dplyr::everything())
@@ -161,7 +166,6 @@ process_extraction = function(data,
     if (length(isDate) != nfunct) {
         isDate = rep(isDate[1], nfunct)
     }
-    
     
     if (!is.null(suffix)) {
         where_no_suffix = c()
@@ -287,7 +291,6 @@ process_extraction = function(data,
     
     # data = data
 
-    
     if (!is.null(idDate_save)) {
         names(data)[c(idCode_save, idDate_save, idValue_save)] =
             c("Code", "Date", unlist(colName))
@@ -400,7 +403,7 @@ process_extraction = function(data,
             samplePeriod = "01"
         }
     }
-
+    
     if (dplyr::is.tbl(samplePeriod)) {
 
         if (nrow(samplePeriod) == 1) {
@@ -812,15 +815,9 @@ process_extraction = function(data,
             data = dplyr::select(data, -c(dStart,
                                           dEnd))
         }
-
+        
         data = dplyr::select(data, -c(refStart,
                                       refEnd))
-
-        # if (!is.null(keep)) {
-        #     data_save = dplyr::select(data, -c(spStart,
-        #                                        spEnd,
-        #                                        dt2add))
-        # }
 
         tree("Preparing date data for the extraction",
              end=TRUE, 2, verbose=verbose)
@@ -1383,11 +1380,6 @@ process_extraction = function(data,
         }
     }
 
-
-
-    
-
-
     
     if (timeStep != "none") {
         nOK = data$minDateRef <= data$Date
@@ -1446,12 +1438,12 @@ process_extraction = function(data,
         data = dplyr::select(data, -"isNA") 
     }
     
-    if (!is.null(keep) & timeStep %in% c("yearday")) {
-        data$Date_g = as.Date(data$Date_g-1,
-                              origin=as.Date("1970-01-01"))
-    }
+    # if (timeStep == "yearday") {
+    #     data$Date_g = as.Date(data$Date_g-1,
+    #                           origin=as.Date("1970-01-01"))
+    # }
 
-    
+
     nValue = nfunct
 
     tree("Cleaning extracted tibble", 1, verbose=verbose)
@@ -1480,7 +1472,7 @@ process_extraction = function(data,
                                        .fns=infinite2NA),
                          .keep="all")
     data = dplyr::ungroup(data)
-    
+
     if (timeStep == "year") {
         sampleInfoCompress$Date = format(sampleInfoCompress$Date,
                                          groupFormat)
@@ -1513,7 +1505,28 @@ process_extraction = function(data,
         data$nDay = nchar(data$Date_g) * 30.4375 *
             data$nYear
         data = dplyr::select(data, -nYear)
+        
+    } else if (timeStep == "yearday") {
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfo,
+                                              c("Code", "minDate")),
+                                by=c("Code"))
+        
+        data$minDate = lubridate::year(data$minDate)
+        data = dplyr::mutate(dplyr::group_by(data,
+                                             Code),
+                             Date_g=as.Date(Date_g-1,
+                                            origin=
+                                                as.Date(paste0(
+                                                    minDate,
+                                                    "-01-01"))))
+
+        
+        data = dplyr::ungroup(data)
+        data = dplyr::filter(data, 1:length(Date_g) <= 365, .by=Code)
+        data = dplyr::select(data, -minDate)
     }
+
 
     if (timeStep %in% c("none", "yearday")) {
         compute_NApct = function (nNA, n) {
@@ -1569,7 +1582,8 @@ process_extraction = function(data,
                                 by="Code")
 
 
-        if (!(timeStep %in% c("month", "year-season", "season", "yearday"))) {
+        if (!(timeStep %in% c("month", "year-season",
+                              "season", "yearday"))) {
             data =
                 dplyr::mutate(dplyr::group_by(data, Code),
                               Date_g=as.Date(paste0(Date_g,
@@ -1640,7 +1654,6 @@ process_extraction = function(data,
 
     tree("Last cleaning", 1, end=TRUE, verbose=verbose)
 
-
     if (onlyDate4Season) {
         data = dplyr::select(data, -YearSeason)
     }
@@ -1665,16 +1678,6 @@ process_extraction = function(data,
                                              1:nValue)))
     }
 
-
-    
-    if (timeStep == "yearday") {
-        if (!is.null(keep)) {
-            data = dplyr::filter(data, lubridate::year(Date) == 1970)
-        } else {
-            data = dplyr::filter(data, Date < 366)
-        }
-    }
-
     ### ?????
     if (!is.null(keep) & !(timeStep %in% c("month", "season"))) {
         data = dplyr::select(data, Code, dplyr::everything())
@@ -1688,12 +1691,6 @@ process_extraction = function(data,
     }
     
     idValue = which(grepl("ValueEX[[:digit:]]", names(data)))
-
-    if (timeStep == "yearday") {
-        names_save[idDate_save] = "Yearday"
-        # data = dplyr::filter(data, Date < 366)
-    }
-
 
     if (isDateColArgs) {
         names_save = names_save[-length(names_save)]
