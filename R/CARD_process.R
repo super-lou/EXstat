@@ -33,7 +33,7 @@ reduce_process = function (data, id, Process,
                            verbose=FALSE) {
 
     if (verbose) {
-        print(paste0("Process ", id, "/", length(Process)))
+        print(paste0("Process ", id, "/", length(Process)-1))
     }
     
     process = Process[[paste0("P", id)]]

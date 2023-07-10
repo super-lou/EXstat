@@ -310,8 +310,20 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
         #                     dim=c(nVar, nCode))
     }
 
+    
+
     for (j in 1:nPeriod) {
         period = Period[[j]]
+
+        if (is.character(period)) {
+            period = as.Date(period)
+            if (is.na(period[1])) {
+                period[1] = min(data$Date, na.rm=TRUE)
+            }
+            if (is.na(period[2])) {
+                period[2] = max(data$Date, na.rm=TRUE)
+            }
+        }
 
         for (k in 1:nCode) {
             code = Code[k]
@@ -319,13 +331,16 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
             for (i in 1:nVar) {
                 var = Var[i]
                 normalize = metaEX$normalize[metaEX$var == var]
-                # is_date = metaEX$is_date[metaEX$var == var]
 
                 trendEX_period_code_var =
                     trendEX[sapply(lapply(trendEX$period,
                                           '==', period), all) &
                             trendEX$Code == code &
                             trendEX$var == var,]
+
+                if (nrow(trendEX_period_code_var) == 0) {
+                    next
+                }
                 
                 Start = period[1]
                 End = period[2]
@@ -349,7 +364,7 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
                 } else {
                     trend = trendEX_period_code_var$a
                 }
-                
+
                 if (!(trendEX_period_code_var$H | take_not_signif_into_account)) {
                     trend = NA
                 }

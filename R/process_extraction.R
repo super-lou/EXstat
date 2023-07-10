@@ -93,10 +93,6 @@ process_extraction = function(data,
 
     tree("EXTRACTION PROCESS", 0, verbose=verbose)
 
-    if (is.character(period)) {
-        period = as.Date(period)
-    }
-
     ID_colnames = names(dplyr::select(data, dplyr::where(is.character)))
     if (length(ID_colnames) > 1) {
         data = tidyr::unite(data, "ID", dplyr:: where(is.character),
@@ -117,6 +113,16 @@ process_extraction = function(data,
             idDate_save = id
         } else if (is.numeric(x) | is.logical(x)) {
             idValue_save = c(idValue_save, id)
+        }
+    }
+
+    if (is.character(period)) {
+        period = as.Date(period)
+        if (is.na(period[1])) {
+            period[1] = min(data[[idDate_save]], na.rm=TRUE)
+        }
+        if (is.na(period[2])) {
+            period[2] = max(data[[idDate_save]], na.rm=TRUE)
         }
     }
     
