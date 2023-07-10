@@ -478,7 +478,7 @@ process_extraction = function(data,
                              sp,
                              sampleFormat=sampleFormat)),
                          .groups="drop")
-
+    
     samplePeriod$spStart = sapply(samplePeriod$sp, "[[", 1)
     samplePeriod$spEnd = sapply(samplePeriod$sp, "[[", 2)
     
@@ -488,7 +488,7 @@ process_extraction = function(data,
     samplePeriod$refEnd = as.Date(paste0(refDate,
                                          '-',
                                          samplePeriod$spEnd))
-
+    
     if (length(samplePeriod$spStart[!duplicated(samplePeriod$spStart)]) == 1 & length(samplePeriod$spEnd[!duplicated(samplePeriod$spEnd)]) == 1) {
         
         tree("Every time series have the same sample period", 3, inEnd=2, verbose=verbose)
@@ -1977,9 +1977,6 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
                                        timeStep="month",
                                        rmNApct=TRUE,
                                        verbose=FALSE)
-
-
-        # print(data_code)
         
         data_code_month = data_code
         names(data_code)[names(data_code) == "XM"] = args[[1]][1]
@@ -1988,13 +1985,16 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
         data_code = process_extraction(data=data_code,
                                        funct=list("fXM"=
                                                       samplePeriod[[1]]),
-                                      funct_args=args,
-                                      timeStep="none",
-                                      rmNApct=TRUE,
-                                      verbose=FALSE)
+                                       funct_args=args,
+                                       timeStep="none",
+                                       rmNApct=TRUE,
+                                       verbose=FALSE)
 
         samplePeriod =
             data_code_month$Date[data_code_month$XM == data_code$fXM]
+        if (any(is.na(samplePeriod))) {
+            samplePeriod = "09"
+        }
         samplePeriod = paste0(samplePeriod, "-01")
     }
 
@@ -2037,7 +2037,6 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
             }
         }
     }
-
 
     return (samplePeriod)
 }
