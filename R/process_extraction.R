@@ -1805,6 +1805,9 @@ process_extraction = function(data,
                 names(data)[ok] = valueName_suffix
             }
             valueName = valueName[!duplicated(valueName)]
+
+        } else {
+            valueName = nameEX
         }
 
         if (timeStep %in% c("year-month", "year-season")) {
