@@ -179,10 +179,10 @@ CARD_management = function (CARD=".", tmp="",
     DIR = file.path(args$tmp, DIR)
 
     print(DIR)
-    print(any(dir.exists(DIR)))
+    print(any(dir.exists(DIR)) & args$overwrite)
     print(!any(dir.exists(DIR)))
     print("")
-    print(any(dir.exists(DIR)))
+    print(any(dir.exists(DIR)) & args$overwrite)
     print("")
     
     if (any(dir.exists(DIR)) &
