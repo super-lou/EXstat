@@ -178,6 +178,13 @@ CARD_management = function (CARD=".", tmp="",
     DIR = DIR[!duplicated(DIR)]
     DIR = file.path(args$tmp, DIR)
 
+    print(any(file.exists(DIR)))
+    print(args$overwrite)
+    print(!any(file.exists(DIR)))
+    print("")
+    print(any(file.exists(DIR)))
+    print("")
+    
     if (any(file.exists(DIR)) & args$overwrite |
         !any(file.exists(DIR))) {
         if (any(file.exists(DIR)) & args$overwrite) {
