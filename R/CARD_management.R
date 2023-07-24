@@ -190,6 +190,10 @@ CARD_management = function (CARD=".", tmp="",
         for (i in 1:n) {
             files = list.files(source_dir, recursive=TRUE)
             names(files) = basename(files)
+
+            print(file.path(source_dir, files[IN[i]]))
+            print(file.path(args$tmp, OUT[i]))
+            
             file.copy(file.path(source_dir, files[IN[i]]),
                       file.path(args$tmp, OUT[i]))
         }
