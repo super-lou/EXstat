@@ -178,13 +178,6 @@ CARD_management = function (CARD=".", tmp="",
     DIR = DIR[!duplicated(DIR)]
     DIR = file.path(args$tmp, DIR)
 
-    print(DIR)
-    print(any(dir.exists(DIR)) & args$overwrite)
-    print(!any(dir.exists(DIR)))
-    print("")
-    print(any(dir.exists(DIR)) & args$overwrite)
-    print("")
-    
     if (any(dir.exists(DIR)) &
         args$overwrite |
         !any(dir.exists(DIR))) {
@@ -196,8 +189,6 @@ CARD_management = function (CARD=".", tmp="",
             dir.create(DIR[i], recursive=TRUE)
         }
 
-        print("aaa")
-        print(n)
         for (i in 1:n) {
             files = list.files(source_dir, recursive=TRUE)
             names(files) = basename(files)
