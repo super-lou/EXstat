@@ -179,16 +179,16 @@ CARD_management = function (CARD=".", tmp="",
     DIR = file.path(args$tmp, DIR)
 
     print(DIR)
-    print(any(dir.exists(DIR, recursive=TRUE)))
-    print(!any(dir.exists(DIR, recursive=TRUE)))
+    print(any(dir.exists(DIR)))
+    print(!any(dir.exists(DIR)))
     print("")
-    print(any(dir.exists(DIR, recursive=TRUE)))
+    print(any(dir.exists(DIR)))
     print("")
     
-    if (any(dir.exists(DIR, recursive=TRUE)) &
+    if (any(dir.exists(DIR)) &
         args$overwrite |
-        !any(dir.exists(DIR, recursive=TRUE))) {
-        if (any(dir.exists(DIR, recursive=TRUE)) &
+        !any(dir.exists(DIR))) {
+        if (any(dir.exists(DIR)) &
             args$overwrite) {
             unlink(DIR, recursive=TRUE, force=TRUE)
         }
