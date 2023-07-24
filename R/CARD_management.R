@@ -178,16 +178,19 @@ CARD_management = function (CARD=".", tmp="",
     DIR = DIR[!duplicated(DIR)]
     DIR = file.path(args$tmp, DIR)
 
-    print(any(file.exists(DIR)))
+    print(DIR)
+    print(any(file.exists(DIR, recursive=TRUE)))
     print(args$overwrite)
-    print(!any(file.exists(DIR)))
+    print(!any(file.exists(DIR, recursive=TRUE)))
     print("")
-    print(any(file.exists(DIR)))
+    print(any(file.exists(DIR, recursive=TRUE)))
     print("")
     
-    if (any(file.exists(DIR)) & args$overwrite |
-        !any(file.exists(DIR))) {
-        if (any(file.exists(DIR)) & args$overwrite) {
+    if (any(file.exists(DIR, recursive=TRUE)) &
+        args$overwrite |
+        !any(file.exists(DIR, recursive=TRUE))) {
+        if (any(file.exists(DIR, recursive=TRUE)) &
+            args$overwrite) {
             unlink(DIR, recursive=TRUE, force=TRUE)
         }
         for (i in 1:n) {
