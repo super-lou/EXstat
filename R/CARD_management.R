@@ -179,17 +179,16 @@ CARD_management = function (CARD=".", tmp="",
     DIR = file.path(args$tmp, DIR)
 
     print(DIR)
-    print(any(file.exists(DIR, recursive=TRUE)))
-    print(args$overwrite)
-    print(!any(file.exists(DIR, recursive=TRUE)))
+    print(any(dir.exists(DIR, recursive=TRUE)))
+    print(!any(dir.exists(DIR, recursive=TRUE)))
     print("")
-    print(any(file.exists(DIR, recursive=TRUE)))
+    print(any(dir.exists(DIR, recursive=TRUE)))
     print("")
     
-    if (any(file.exists(DIR, recursive=TRUE)) &
+    if (any(dir.exists(DIR, recursive=TRUE)) &
         args$overwrite |
-        !any(file.exists(DIR, recursive=TRUE))) {
-        if (any(file.exists(DIR, recursive=TRUE)) &
+        !any(dir.exists(DIR, recursive=TRUE))) {
+        if (any(dir.exists(DIR, recursive=TRUE)) &
             args$overwrite) {
             unlink(DIR, recursive=TRUE, force=TRUE)
         }
@@ -197,6 +196,8 @@ CARD_management = function (CARD=".", tmp="",
             dir.create(DIR[i], recursive=TRUE)
         }
 
+        print("aaa")
+        print(n)
         for (i in 1:n) {
             files = list.files(source_dir, recursive=TRUE)
             names(files) = basename(files)
@@ -210,6 +211,6 @@ CARD_management = function (CARD=".", tmp="",
     }
 
     if (args$verbose) {
-        write("done", stdout())
+        print("done")
     }
 }
