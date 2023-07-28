@@ -112,6 +112,9 @@ process_trend = function (dataEX,
     if (is.null(period_trend)) {
         nPeriod_trend = 1
     } else {
+        if (!is.list(period_trend)) {
+            period_trend = list(period_trend)
+        }
         nPeriod_trend = length(period_trend)
     }
 
@@ -122,7 +125,13 @@ process_trend = function (dataEX,
         if (is.null(period_trend)) {
             dataEX_period = dataEX
         } else {
-            period = period_trend[[j]]
+            period = as.Date(period_trend[[j]])
+            if (is.na(period[1])) {
+                period[1] = min(dataEX$Date, na.rm=TRUE)
+            }
+            if (is.na(period[2])) {
+                period[2] = max(dataEX$Date, na.rm=TRUE)
+            }            
             dataEX_period = dplyr::filter(dataEX,
                                           min(period) <= Date &
                                           Date <= max(period))
@@ -172,7 +181,7 @@ process_trend = function (dataEX,
                                     period_change=period_change,
                                     exProb=exProb)
     }
-    
+
     # if (isFDR) { ### /!\ pas ok
     #     dataEX.final$p.FDR =
     #         fieldSignificance_FDR(dataEX.final$p,

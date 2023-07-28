@@ -153,8 +153,9 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                    full.names=FALSE)
 
     if (!is.null(CARD_name)) {
-        script_to_analyse = script_to_analyse[script_to_analyse %in%
-                                              CARD_name]
+        script_to_analyse =
+            script_to_analyse[basename(script_to_analyse) %in%
+                              paste0(CARD_name, ".R")]
     }
     
     script_to_analyse = script_to_analyse[!grepl("__default__.R",
