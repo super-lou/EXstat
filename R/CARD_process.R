@@ -154,7 +154,8 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
 
     if (!is.null(CARD_name)) {
         script_to_analyse =
-            script_to_analyse[basename(script_to_analyse) %in%
+            script_to_analyse[gsub("^[[:digit:]]+[_]", "",
+                                   basename(script_to_analyse)) %in%
                               paste0(CARD_name, ".R")]
     }
     
