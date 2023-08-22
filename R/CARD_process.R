@@ -272,7 +272,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                           glose=glose,
                                           topic=
                                               paste0(topic,
-                                                     collapse="/"),
+                                                     collapse="|"),
                                           samplePeriod=
                                               paste0(samplePeriod,
                                                      collapse="/")))
