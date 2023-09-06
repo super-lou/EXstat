@@ -10,7 +10,8 @@ get_valueExtremes(
   trendEX,
   take_not_signif_into_account = TRUE,
   period_change = NULL,
-  exProb = 0.01
+  exProb = 0.01,
+  verbose = FALSE
 )
 }
 \arguments{

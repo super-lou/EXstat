@@ -1544,10 +1544,12 @@ process_extraction = function(data,
                                                dplyr::starts_with(
                                                           paste0("nNA",
                                                                  1:nValue)),
-                                           .fns=compute_NApct ,
+                                           # .fns=compute_NApct,
+                                           .fns=\(x) compute_NApct(x, n=n),
                                            .names=paste0("NApct{1:",
-                                                         nValue, "}"),
-                                           n=n),
+                                                         nValue, "}")
+                                           # n=n
+                                           ),
                              .keep="all")
         data = dplyr::ungroup(data)
 
@@ -1574,11 +1576,15 @@ process_extraction = function(data,
                                                dplyr::starts_with(
                                                           paste0("nNA",
                                                                  1:nValue)),
-                                           .fns=compute_NApct ,
+                                           # .fns=compute_NApct,
+                                           .fns=\(x) compute_NApct(x,
+                                                                   dNA=dNA,
+                                                                   nDay=nDay),
                                            .names=paste0("NApct{1:",
-                                                         nValue, "}"),
-                                           dNA=dNA,
-                                           nDay=nDay),
+                                                         nValue, "}")
+                                           # dNA=dNA,
+                                           # nDay=nDay
+                                           ),
                              .keep="all")
         data = dplyr::ungroup(data)
         
@@ -2069,8 +2075,10 @@ reduce_convert_data_hide = function (data, i, isDate) {
         data = dplyr::mutate(dplyr::group_by(data, Code),
                              dplyr::across(.cols=dplyr::starts_with(
                                                             Value),
-                                           .fns=add,
-                                           y=Shift),
+                                           # .fns=add,
+                                           .fns=\(x) add(x, y=Shift)
+                                           # y=Shift
+                                           ),
                              dplyr::across(.cols=dplyr::starts_with(
                                                             Value),
                                            .fns=convert_data_hide),
@@ -2162,8 +2170,10 @@ NA_filter = function (data, timeStep, nValue, NApct_lim=1,
                                            dplyr::starts_with(
                                                       paste0("NApct",
                                                              1:nValue)),
-                                       .fns=NApct2filter,
-                                       NApct_lim=NApct_lim,
+                                       # .fns=NApct2filter,
+                                       # NApct_lim=NApct_lim,
+                                       .fns=\(x) NApct2filter(x, NApct_lim=
+                                                                     NApct_lim),
                                        .names=paste0("filter{1:",
                                                      nValue, "}")),
                          .keep="all")
@@ -2287,11 +2297,16 @@ missing_year = function (data, nValue, NAyear_lim=10,
 
     dataMOD = dplyr::mutate(
                          dplyr::group_by(data, Code),
-                         dplyr::across(paste0("Value",
+                         dplyr::across(.cols=paste0("Value",
                                               1:nValue),
-                                       missing_year_hide,
-                                       Date=Date,
-                                       NAyear_lim=NAyear_lim),
+                                       # .fns=missing_year_hide,
+                                       .fns=\(x) missing_year_hide(
+                                                     x,
+                                                     Date=Date,
+                                                     NAyear_lim=NAyear_lim)
+                                       # Date=Date,
+                                       # NAyear_lim=NAyear_lim
+                                       ),
                          .keep="all")
     dataMOD = dplyr::ungroup(dataMOD)
 

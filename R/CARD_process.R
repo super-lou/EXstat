@@ -138,8 +138,6 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             expand_overwrite=NULL,
                             samplePeriod_overwrite=NULL,
                             verbose=FALSE) {
-
-
     
     if (is.null(CARD_tmp)) {
         CARD_tmp = CARD_path
@@ -243,9 +241,6 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         
         
         if (tibble::is_tibble(dataEX[[ss]])) {
-            # if (length(suffix) == 1) {
-                # var = paste0(var, suffix)
-            # }
             dataEX[[ss]] = list(dataEX[[ss]])
             if (!simplify) {
                 var = paste0(var, collapse=" ")
@@ -277,18 +272,10 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                               paste0(samplePeriod,
                                                      collapse="/")))
     }
-
-    # print(dataEX)
-    
     rm ("data")
     gc()
 
     dataEX = unlist(dataEX, recursive=FALSE)
-    # if (!simplify) {
-    #     dataEX = dataEX[match(names(dataEX), table=metaEX$var)]
-    # }
-
-    # print(dataEX)
     
     if (simplify) {
         by = names(dplyr::select(dataEX[[1]],
