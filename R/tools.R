@@ -603,7 +603,8 @@ tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {
             X = paste0(d, h, line)
             space = lim - nchar(X)            
             X = paste0(X, strrep(" ", space))
-            print(X)
+            # print(X)
+            message(X)
         }
     }
 }

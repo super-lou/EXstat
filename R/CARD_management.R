@@ -23,12 +23,12 @@
 
 
 remind = function (args) {
-    write("PARAMETERS:", stdout())
+    message("PARAMETERS:")
     n = length(args)
     args_name = names(args)
     for (i in 1:n) {
-        write(paste0("    --", args_name[i], " ",
-                     paste0(args[[i]], collapse=" ")), stdout())
+        message(paste0("    --", args_name[i], " ",
+                     paste0(args[[i]], collapse=" ")))
     }
 }
 
@@ -76,7 +76,7 @@ CARD_management = function (CARD=".", tmp="",
         remind(args)
     }
     if (all(args$layout == "")) {
-        write("Error : --layout is void\n", stderr())
+        message("Error : --layout is void\n", stderr())
         stop ()
     }
 
@@ -123,7 +123,7 @@ CARD_management = function (CARD=".", tmp="",
         nsd = len - 2
 
         if (nsd < 0) {
-            write("Error : No tmp detect\n", stderr())
+            message("Error : No tmp detect\n", stderr())
             stop ()
             
         } else if (nsd == 0) {
@@ -205,6 +205,6 @@ CARD_management = function (CARD=".", tmp="",
     }
 
     if (args$verbose) {
-        print("done")
+        message("done")
     }
 }
