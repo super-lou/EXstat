@@ -380,22 +380,32 @@ process_extraction = function(data,
                     " and ",
                     format(period[2], "%d %b %Y")),
              2, TRUE, verbose=verbose)
+
+        message("a")
         data = dplyr::filter(data, period[1] <= Date & Date <= period[2])
     }
 
+    message("b")
+    
     if (timeStep %in% c("year", "none")) {
+        message("aa")
         refDate = "1972"
         sampleFormat = "%m-%d"
-
+        
     } else if (timeStep %in% c("yearday",
                                "month", "year-month",
                                "season", "year-season")) {
+        message("bb")
         refDate = "1972-01"
         sampleFormat = "%d"
     }
 
+    message("c")
+
     Code = names(table(data$Code))
 
+    message("d")
+    
     tree("Sample period", 1, verbose=verbose)
 
     if (is.null(samplePeriod) | all(is.na(samplePeriod))) {
