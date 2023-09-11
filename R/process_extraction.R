@@ -387,6 +387,9 @@ process_extraction = function(data,
         message(period[1])
         message(period[2])
 
+        Sys.sleep(5)
+
+        
         message(nrow(data))
         message("ok")
         ok = period[1] <= Date & Date <= period[2]
@@ -396,6 +399,8 @@ process_extraction = function(data,
         ok[is.na(ok)] = FALSE
         
         message("remove NA")
+
+        Sys.sleep(5)
         
         data = dplyr::filter(data, ok)
     }
