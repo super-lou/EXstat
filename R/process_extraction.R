@@ -386,6 +386,14 @@ process_extraction = function(data,
         message(sapply(data, class))
         message(period[1])
         message(period[2])
+
+        Sys.sleep(5)
+        message(period[1] <= data$Date)
+        Sys.sleep(5)
+        message(data$Date <= period[2])
+        Sys.sleep(5)
+        message(period[1] <= data$Date & data$Date <= period[2])
+        Sys.sleep(5)
         
         data = dplyr::filter(data, period[1] <= Date & Date <= period[2])
     }
