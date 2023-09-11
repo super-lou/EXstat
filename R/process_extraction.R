@@ -382,8 +382,6 @@ process_extraction = function(data,
              2, TRUE, verbose=verbose)
 
         message("a")
-
-        message(data[1:10,])
         message(names(data))
         message(sapply(data, class))
         message(period[1])
