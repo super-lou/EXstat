@@ -388,22 +388,16 @@ process_extraction = function(data,
         message(period[2])
 
         message(nrow(data))
-        
-        message("ok1/ok2")
-        ok1 = period[1] <= data$Date
-        ok2 = data$Date <= period[2]
-        message(length(ok1))
-        message(length(ok2))
-        message(sum(is.na(ok1)))
-        message(sum(is.na(ok2)))
-
         message("ok")
-        ok = ok1 & ok2
+        ok = period[1] <= Date & Date <= period[2]
         message(length(ok))
         message(sum(is.na(ok)))
-
         
-        data = dplyr::filter(data, period[1] <= Date & Date <= period[2])
+        ok[is.na(ok)] = FALSE
+        
+        message("remove NA")
+        
+        data = dplyr::filter(data, ok)
     }
 
     message("b")
