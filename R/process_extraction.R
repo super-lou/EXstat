@@ -387,13 +387,21 @@ process_extraction = function(data,
         message(period[1])
         message(period[2])
 
-        Sys.sleep(5)
-        message(period[1] <= data$Date)
-        Sys.sleep(5)
-        message(data$Date <= period[2])
-        Sys.sleep(5)
-        message(period[1] <= data$Date & data$Date <= period[2])
-        Sys.sleep(5)
+        message(nrow(data))
+        
+        message("ok1/ok2")
+        ok1 = period[1] <= data$Date
+        ok2 = data$Date <= period[2]
+        message(length(ok1))
+        message(length(ok2))
+        message(sum(is.na(ok1)))
+        message(sum(is.na(ok2)))
+
+        message("ok")
+        ok = ok1 & ok2
+        message(length(ok))
+        message(sum(is.na(ok)))
+
         
         data = dplyr::filter(data, period[1] <= Date & Date <= period[2])
     }
