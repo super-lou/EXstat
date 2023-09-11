@@ -33,7 +33,7 @@ reduce_process = function (data, id, Process,
                            verbose=FALSE) {
 
     if (verbose) {
-        message(paste0("Process ", id, "/", length(Process)-1))
+        print(paste0("Process ", id, "/", length(Process)-1))
     }
     
     process = Process[[paste0("P", id)]]
@@ -220,7 +220,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         var_analyse = c(var_analyse, var)
 
         if (verbose) {
-            message(paste0('Computes ', Process$P$var))
+            print(paste0('Computes ', Process$P$var))
         }
 
         var_meta = var

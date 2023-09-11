@@ -604,7 +604,7 @@ tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {
             space = lim - nchar(X)            
             X = paste0(X, strrep(" ", space))
             # print(X)
-            message(X)
+            print(X)
         }
     }
 }
