@@ -380,51 +380,20 @@ process_extraction = function(data,
                     " and ",
                     format(period[2], "%d %b %Y")),
              2, TRUE, verbose=verbose)
-
-        print("a")
-        print(names(data))
-        print(sapply(data, class))
-        print(period[1])
-        print(period[2])
-
-        Sys.sleep(5)
-
-        
-        print(nrow(data))
-        print("ok")
-        ok = period[1] <= Date & Date <= period[2]
-        print(length(ok))
-        print(sum(is.na(ok)))
-        
-        ok[is.na(ok)] = FALSE
-        
-        print("remove NA")
-
-        Sys.sleep(5)
-        
-        data = dplyr::filter(data, ok)
+        data = dplyr::filter(data, period[1] <= Date & Date <= period[2])
     }
-
-    print("b")
     
     if (timeStep %in% c("year", "none")) {
-        print("aa")
         refDate = "1972"
         sampleFormat = "%m-%d"
         
     } else if (timeStep %in% c("yearday",
                                "month", "year-month",
                                "season", "year-season")) {
-        print("bb")
         refDate = "1972-01"
         sampleFormat = "%d"
     }
-
-    print("c")
-
     Code = names(table(data$Code))
-
-    print("d")
     
     tree("Sample period", 1, verbose=verbose)
 
