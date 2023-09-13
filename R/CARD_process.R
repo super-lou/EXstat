@@ -263,7 +263,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                           unit=unit,
                                           is_date=is_date,
                                           normalize=normalize,
-                                          reverse_palette=reverse_palette,
+                                          palette=palette,
                                           glose=glose,
                                           topic=
                                               paste0(topic,
