@@ -81,7 +81,7 @@ process_extraction = function(data,
                               NApct_lim=NULL,
                               NAyear_lim=NULL,
                               Seasons=c("DJF", "MAM", "JJA", "SON"),
-                              onlyDate4Season=FALSE,
+                              # onlyDate4Season=FALSE,
                               nameEX="X",
                               suffix=NULL,
                               keep=NULL,
@@ -316,10 +316,6 @@ process_extraction = function(data,
     if (!is.null(suffix)) {
         nameEX = paste0(nameEX, suffix)
     }
-
-    # print(nfunct)
-    # print("nameEX")
-    # print(nameEX)
     
     if (nValue > nfunct) {
         names_save = names_save[-c(idValue_save[(nfunct+1):nValue])]
@@ -1183,18 +1179,10 @@ process_extraction = function(data,
         data = dplyr::select(data, -c(refStart,
                                       refEnd))
 
-        # if (!is.null(keep)) {
-        #     data_save = dplyr::select(data, -c(spStart,
-        #                                        spEnd,
-        #                                        dt2add))
-        # }
-
         tree("Preparing date data for the extraction",
              end=TRUE, 2, verbose=verbose)
-
         tree("Computing of time indicators for each time serie",
              3, inEnd=2, verbose=verbose)
-
         
         sampleInfo =
             dplyr::summarise(dplyr::group_by(data, Code),
@@ -1243,8 +1231,7 @@ process_extraction = function(data,
                                 by=c("Code"))
         
         data$Date = data$Date - data$Shift
-
-
+        
         if (timeStep == "season") {
             data$Season = get_Season[lubridate::month(data$Date)]
 
@@ -1281,22 +1268,24 @@ process_extraction = function(data,
                 paste0(lubridate::year(data$SeasonDate),
                        "-",
                        get_Season[lubridate::month(data$SeasonDate)])
-            
-            data_tmp =
-                dplyr::summarise(dplyr::group_by(data,
-                                                 Code,
-                                                 YearSeason),
-                                 Date_g=as.Date(paste0(
-                                     lubridate::year(SeasonDate),
-                                     "-",
-                                     lubridate::month(SeasonDate),
-                                     "-",
-                                     spStart)),
-                                 .groups="drop")
 
-            data_tmp = dplyr::distinct(data_tmp)
-            data = dplyr::full_join(data, data_tmp,
-                                    by=c("Code", "YearSeason"))
+            data$SeasonDate = format(data$SeasonDate, "%Y-%m")
+
+            # data_tmp =
+            #     dplyr::summarise(dplyr::group_by(data,
+            #                                      Code,
+            #                                      YearSeason),
+            #                      Date_g=as.Date(paste0(
+            #                          lubridate::year(SeasonDate),
+            #                          "-",
+            #                          lubridate::month(SeasonDate),
+            #                          "-",
+            #                          spStart)),
+            #                      .groups="drop")
+            
+            # data_tmp = dplyr::distinct(data_tmp)
+            # data = dplyr::full_join(data, data_tmp,
+            #                         by=c("Code", "YearSeason"))
         }
 
         sampleInfo$dNAstart =
@@ -1326,6 +1315,11 @@ process_extraction = function(data,
                                  dNA=sum(dNA),
                                  addYear=dplyr::n() - 1,
                                  .groups="drop")
+        } else if (timeStep == "year-season") {
+            sampleInfoCompress$Date =
+                paste0(lubridate::year(sampleInfoCompress$Date),
+                       "-",
+                       get_Season[lubridate::month(sampleInfoCompress$Date)])
         }
 
         data = dplyr::full_join(data,
@@ -1333,7 +1327,7 @@ process_extraction = function(data,
                                              "minDateRef",
                                              "minDate")],
                                 by=c("Code"))
-        
+
         tree("Removing useless data", 3, end=TRUE, inEnd=2,
              verbose=verbose)
         data = dplyr::select(data, -c(Shift,
@@ -1373,9 +1367,9 @@ process_extraction = function(data,
         if (timeStep == "year-season") {
             data = dplyr::group_by(data,
                                    Code,
-                                   Date_g,
-                                   YearSeason)
-            colGroup = c("Code", "Date_g", "YearSeason")
+                                   Date_g=SeasonDate,
+                                   YearSeason=YearSeason)
+            colGroup = c("Code", "Date_g")
             
         } else if (timeStep == "season") {
             data = dplyr::group_by(data,
@@ -1586,15 +1580,14 @@ process_extraction = function(data,
                                            ),
                              .keep="all")
         data = dplyr::ungroup(data)
-        
+
         data = dplyr::full_join(data,
                                 samplePeriod[c("Code",
                                                "spStart")],
                                 by="Code")
 
 
-        if (!(timeStep %in% c("month", "year-season",
-                              "season", "yearday"))) {
+        if (!(timeStep %in% c("month", "season", "yearday"))) {
             data =
                 dplyr::mutate(dplyr::group_by(data, Code),
                               Date_g=as.Date(paste0(Date_g,
@@ -1637,9 +1630,8 @@ process_extraction = function(data,
                                       n,
                                       dNA,
                                       nDay,
-                                      spStart))   
+                                      spStart))
     }
-
 
     if (any(isDate)) {
         data = convert_dateEX(data, isDate, nValue=nValue,
@@ -1665,9 +1657,9 @@ process_extraction = function(data,
 
     tree("Last cleaning", 1, end=TRUE, verbose=verbose)
 
-    if (onlyDate4Season) {
-        data = dplyr::select(data, -YearSeason)
-    }
+    # if (onlyDate4Season) {
+        # data = dplyr::select(data, -YearSeason)
+    # }
 
     if (!rmNApct & is.null(keep) & !compress) {
         if (nfunct == 1) {
@@ -1749,7 +1741,7 @@ process_extraction = function(data,
             shiftRef = startSeasonsMonth
             
         } else if (timeStep == "year-season") {
-            data = dplyr::select(data, -"YearSeason")
+            # data = dplyr::select(data, -"YearSeason")
             Ref = get_Season
             expandRef = Seasons
             shiftRef = startSeasonsMonth
@@ -1842,7 +1834,7 @@ process_extraction = function(data,
         data = tidyr::separate(data, col="ID",
                                into=ID_colnames, sep="_")
     }
-    
+
     if (compress & expand) {
         
         is.character_or_date = function (x) {

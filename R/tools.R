@@ -667,3 +667,13 @@ is.character_or_date = function (x) {
 }
 
 
+
+
+get_time = function (timer=NULL) {
+    if (is.null(timer)) {
+         print("start timer")
+    } else {
+        print(round(Sys.time() - timer, 3))   
+    }
+    return (Sys.time())
+}
