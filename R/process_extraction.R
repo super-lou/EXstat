@@ -34,7 +34,6 @@
 #' @param NApct_lim Numeric. The maximum percentage of missing values in the time series allowed.
 #' @param NAyear_lim Numeric. The maximum number of missing years allowed.
 #' @param Seasons A vector of 4 characters representing the default season set. The default is c("DJF", "MAM", "JJA", "SON").
-#' @param onlyDate4Season Logical. If TRUE, seasons computation will be based only on date.
 #' @param nameEX A character specifying the name of the extracted variable.
 #' @param suffix A character vector representing suffixes to be appended to the column names of the extracted variables. This parameter allows handling multiple extraction scenarios.
 #' @param keep A character vector of column names to keep in the output dataframe.
@@ -81,7 +80,6 @@ process_extraction = function(data,
                               NApct_lim=NULL,
                               NAyear_lim=NULL,
                               Seasons=c("DJF", "MAM", "JJA", "SON"),
-                              # onlyDate4Season=FALSE,
                               nameEX="X",
                               suffix=NULL,
                               keep=NULL,
@@ -91,13 +89,178 @@ process_extraction = function(data,
                               verbose=FALSE, 
                               ...) {
 
-    tree("EXTRACTION PROCESS", 0, verbose=verbose)
+    # check data
+    if (!tibble::is_tibble(data)) {
+        stop ("'data' is not a tibble from the tibble package. This tibble needs a unique column of objects of class 'Date'")
+    }
+    
+    # check Date column
+    if (sum(sapply(data, lubridate::is.Date)) == 0) {
+        stop ("There needs to be at least one column of objects of class 'Date'.")
+    } else if (sum(sapply(data, lubridate::is.Date)) > 1) {
+        stop ("There is more than one column of objects of class 'Date'. There needs to be only one column of objects of class 'Date'.")
+    }
 
-    ID_colnames = names(dplyr::select(data, dplyr::where(is.character)))
-    if (length(ID_colnames) > 1) {
-        data = tidyr::unite(data, "ID", dplyr:: where(is.character),
+    # check numerical columns
+    if (sum(sapply(data, is.numeric) |
+            sapply(data, is.logical)) < 1) {
+        stop ("There needs to be at least one column of class 'numeric' or 'logical'.")
+    }
+    
+    # check character columns
+    ID_colnames = names(dplyr::select(data,
+                                      dplyr::where(is.character)))
+    if (sum(sapply(data, is.character)) == 0) {
+        if (any(duplicated(
+            data[[which(sapply(data,
+                               lubridate::is.Date))]]))) {
+            stop ("There is at least one date value that repeat. It seems that either there is more than one time serie (so they need to be identify by a repeted character column for each serie) or there is an error in the format of the date column.")
+        } else {
+            warning ("There is no character column in order to identify uniquely each time serie. But hence it seems that there is only one time serie, a generic identifier will be add.")
+            data$id = "time serie"
+        }
+    } else if (sum(sapply(data, is.character)) > 1) {
+        message ("There is more than one character column. Thus, all the columns will be use to identify uniquely each time serie.")
+        data = tidyr::unite(data, "ID",
+                            dplyr::where(is.character),
                             sep="_")
     }
+
+
+
+    # DATE NA
+    
+    # check unicity of Date column for each character identifier
+    Date_unicity =
+        dplyr::summarise(dplyr::group_by(data,
+                                         get(names(data)[sapply(data, is.character)])),
+                         n=sum(duplicated(get(names(data)[sapply(data, lubridate::is.Date)]))))
+    if (any(Date_unicity$n > 0)) {
+        stop (paste0("There is at least one duplicated date in time serie(s) named '",
+                     paste0(Date_unicity[[1]][Date_unicity$n > 0],
+                            collapse=", "), "'."))
+    }
+    
+    # check continuity of Date column for each character identifier
+    Date_continuity =
+        dplyr::summarise(dplyr::group_by(dplyr::arrange(data, get(names(data)[sapply(data, lubridate::is.Date)])),
+                                         get(names(data)[sapply(data, is.character)])),
+                         n=length(unique(diff(get(names(data)[sapply(data, lubridate::is.Date)])))))
+    if (any(Date_continuity$n > 1)) {
+        stop (paste0("There is at least one date discontinuity in time serie(s) named '",
+                     paste0(Date_continuity[[1]][Date_continuity$n > 1],
+                            collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
+    }
+
+
+
+    # check funct
+    if (is.function(funct) | all(sapply(funct, is.function))) {
+        if (is.function(funct)){
+            funct = list(funct)
+        }
+        if (!is.list(funct_args[[1]])) {
+            funct_args = list(funct_args)
+        }
+    } else {
+        stop (paste0("'funct' is set to ", funct,
+                     ". Please, use an existing function or define it before."))
+    }
+    
+    # # check funct_args
+    # if ((funct_args)) {
+
+    # }
+    
+    # check timeStep
+    if (!(timeStep %in% c('none', 'year', 'yearday',
+                          'month', 'year-month',
+                          'season', 'year-season'))) {
+        stop (paste0("'timeStep' is set to '", timeStep,
+                     "'. Please select one of : 'none', 'year', 'yearday', 'month', 'year-month', 'season' and 'year-season'"))
+    }
+
+    # check samplePeriod
+    # if ((samplePeriod)) {
+        
+    # }    
+
+    # check period
+    if (!is.null(period)) {
+        test = try(as.Date(period), silent=TRUE)
+        if (any("try-error" %in% class(test)) || any(is.na(test))) {
+            stop ("'period' is not ")
+        }
+        if (length(period) == 1) {
+            stop ("There is only one date in 'period'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period' to NULL in order to use the entire available time serie(s).")
+        }
+        if (length(period) > 2) {
+            stop ("There is more than two date in 'period'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period' to NULL in order to use the entire available time serie(s).")
+        }
+        if (all(order(period) == c(2, 1))) {
+            message ("'period' seems to have two date not in the increasing order. Thus, 'period' will be re-ordered.")
+            period = sort(period)
+        }
+    }
+
+    # check isDate
+    if (!is.logical(isDate)) {
+        stop ("'isDate' needs to be an object of class 'logical'.")
+    }
+
+    # check NApct_lim
+    if (!is.null(NApct_lim)) {
+        if (!is.numeric(NApct_lim) |
+            !all(0 <= NApct_lim & NApct_lim <= 100) |
+            length(NApct_lim) > 1) {
+            stop ("'NApct_lim' needs to be an object of class 'numeric' between 0 and 100 of length 1.")
+        }
+    }
+
+    # check NAyear_lim
+    if (!is.null(NAyear_lim)) {
+        if (!is.numeric(NAyear_lim) |
+            all(NAyear_lim <= 0) |
+            length(NAyear_lim) > 1) {
+            stop ("'NAyear_lim' needs to be an object of class 'numeric', strictly positif, of length 1.")
+        }
+    }
+    
+
+    # Seasons
+    
+    # Seasons=c("DJF", "MAM", "JJA", "SON"),
+    # nameEX="X",
+    # suffix=NULL,
+    # keep=NULL,
+
+
+    
+
+    # check compress
+    if (!is.logical(compress)) {
+        stop ("'compress' needs to be an object of class 'logical'.")
+    }
+
+    # check expand
+    if (!is.logical(expand)) {
+        stop ("'expand' needs to be an object of class 'logical'.")
+    }
+
+    # check rmNApct
+    if (!is.logical(rmNApct)) {
+        stop ("'rmNApct' needs to be an object of class 'logical'.")
+    }
+
+    # check verbose
+    if (!is.logical(verbose)) {
+        stop ("'verbose' needs to be an object of class 'logical'.")
+    }
+
+
+    
+    
+    tree("EXTRACTION PROCESS", 0, verbose=verbose)
     
     names_save = names(data)
     idCode_save = NULL
@@ -159,13 +322,6 @@ process_extraction = function(data,
     
     nValue = length(idValue_save)
     colName = paste0("Value", 1:nValue)
-
-    if (is.function(funct)){
-        funct = list(funct)
-    }
-    if (!is.list(funct_args[[1]])) {
-        funct_args = list(funct_args)
-    }
 
     nfunct = length(funct)
 
