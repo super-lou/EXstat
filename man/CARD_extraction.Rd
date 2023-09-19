@@ -16,6 +16,7 @@ CARD_extraction(
   simplify = FALSE,
   expand_overwrite = NULL,
   samplePeriod_overwrite = NULL,
+  dev = FALSE,
   verbose = FALSE
 )
 }

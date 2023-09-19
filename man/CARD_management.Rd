@@ -28,7 +28,7 @@ CARD_management(
 
 \item{overwrite}{Logical. If TRUE, existing files in the temporary directory will be overwritten. Default is TRUE.}
 
-\item{verbose}{Logical. If TRUE, intermediate messages will be printed during the execution of the function. Default is FALSE.}
+\item{verbose}{Logical. If TRUE, intermediate prints will be printed during the execution of the function. Default is FALSE.}
 
 \item{args}{A list of arguments needed for the function. If not provided, it will be automatically created using the other function arguments. It is an intermediate form of arguments useful if argparse package is used.}
 }

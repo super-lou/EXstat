@@ -17,7 +17,7 @@ NA_filter(data, timeStep, nValue, NApct_lim = 1, mod = NULL, verbose = TRUE)
 
 \item{mod}{A list of modification to store comments of filtering applied.}
 
-\item{verbose}{Logical, when true prints message indicating the removal of data due to high NA percentage}
+\item{verbose}{Logical, when true prints print indicating the removal of data due to high NA percentage}
 }
 \value{
 data filtered by the percentage of NA allowed in input.

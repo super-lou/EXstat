@@ -30,6 +30,7 @@ reduce_process = function (data, id, Process,
                            cancel_lim=FALSE,
                            expand_overwrite=NULL,
                            samplePeriod_overwrite=NULL,
+                           dev=FALSE,
                            verbose=FALSE) {
 
     if (verbose) {
@@ -80,6 +81,7 @@ reduce_process = function (data, id, Process,
                               compress=compress,
                               expand=expand,
                               rmNApct=rmNApct,
+                              dev=dev,
                               verbose=verbose)
     return (data)
 }
@@ -136,6 +138,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             simplify=FALSE,
                             expand_overwrite=NULL,
                             samplePeriod_overwrite=NULL,
+                            dev=FALSE,
                             verbose=FALSE) {
     
     if (is.null(CARD_tmp)) {
@@ -235,6 +238,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                           cancel_lim=cancel_lim,
                           expand_overwrite=expand_overwrite,
                           samplePeriod_overwrite=samplePeriod_overwrite,
+                          dev=dev,
                           verbose=verbose,
                           .init=data)
         

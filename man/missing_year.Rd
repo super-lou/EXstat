@@ -15,7 +15,7 @@ missing_year(data, nValue, NAyear_lim = 10, mod = NULL, verbose = TRUE)
 
 \item{mod}{An object of class modification, it will store all modification made to the data}
 
-\item{verbose}{logical for print messages}
+\item{verbose}{logical for print prints}
 }
 \value{
 return the dataframe with identified missing period as NA
