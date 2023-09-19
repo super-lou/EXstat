@@ -124,60 +124,54 @@
 #' data = dplyr::bind_rows(data_1, data_2)
 #'
 #' # Extraction
-#' dataEX_year_state1 =
-#'     process_extraction(data=data,
-#'                        funct=list(XA_state1=mean),
-#'                        funct_args=list("X_state1", na.rm=TRUE),
-#'                        timeStep="year")
+#' process_extraction(data=data,
+#'                    funct=list(XA_state1=mean),
+#'                    funct_args=list("X_state1", na.rm=TRUE),
+#'                    timeStep="year")
 #'
-#' dataEX_year_month_state2 =
+#' dataEX_tmp =
 #'     process_extraction(data=data,
 #'                        funct=list(X_month_state2=mean),
 #'                        funct_args=list("X_state2", na.rm=TRUE),
 #'                        timeStep="year-month",
 #'                        NApct_lim=20)
 #' 
-#' dataEX_year_state2 =
-#'     process_extraction(data=dataEX_year_month_state2,
-#'                        funct=list(XX_state2=max),
-#'                        funct_args=list("X_month_state2", na.rm=TRUE),
-#'                        samplePeriod=c("05-01", "11-30"),
-#'                        timeStep="year",
-#'                        rmNApct=TRUE)
+#' process_extraction(data=dataEX_tmp,
+#'                    funct=list(XX_state2=max),
+#'                    funct_args=list("X_month_state2", na.rm=TRUE),
+#'                    samplePeriod=c("05-01", "11-30"),
+#'                    timeStep="year",
+#'                    rmNApct=TRUE)
 #' 
-#' dataEX_month =
-#'     process_extraction(data=data,
-#'                        funct=list(XA_state1=mean,
-#'                                   XX_state2=max),
-#'                        funct_args=list(list("X_state1", na.rm=TRUE),
-#'                                        list("X_state2", na.rm=TRUE)),
-#'                        timeStep="month")
+#' process_extraction(data=data,
+#'                    funct=list(XA_state1=mean,
+#'                               XX_state2=max),
+#'                    funct_args=list(list("X_state1", na.rm=TRUE),
+#'                                    list("X_state2", na.rm=TRUE)),
+#'                    timeStep="month")
 #' 
-#' dataEX_month_compress =
-#'     process_extraction(data=data,
-#'                        funct=list(XA_state1=mean,
-#'                                   XX_state2=max),
-#'                        funct_args=list(list("X_state1", na.rm=TRUE),
-#'                                        list("X_state2", na.rm=TRUE)),
-#'                        timeStep="month",
-#'                        compress=TRUE)
+#' process_extraction(data=data,
+#'                    funct=list(XA_state1=mean,
+#'                               XX_state2=max),
+#'                    funct_args=list(list("X_state1", na.rm=TRUE),
+#'                                    list("X_state2", na.rm=TRUE)),
+#'                    timeStep="month",
+#'                    compress=TRUE)
 #' 
-#' dataEX_season_expand =
-#'     process_extraction(data=data,
-#'                        funct=list(XA=mean),
-#'                        funct_args=list(list("X", na.rm=TRUE)),
-#'                        suffix=c("_state1", "_state2"),
-#'                        timeStep="season",
-#'                        expand=TRUE)
+#' process_extraction(data=data,
+#'                    funct=list(XA=mean),
+#'                    funct_args=list(list("X", na.rm=TRUE)),
+#'                    suffix=c("_state1", "_state2"),
+#'                    timeStep="season",
+#'                    expand=TRUE)
 #' 
-#' dataEX_season_compress_expand =
-#'     process_extraction(data=data,
-#'                        funct=list(XA=mean),
-#'                        funct_args=list(list("X", na.rm=TRUE)),
-#'                        suffix=c("_state1", "_state2"),
-#'                        timeStep="season",
-#'                        compress=TRUE,
-#'                        expand=TRUE)
+#' process_extraction(data=data,
+#'                    funct=list(XA=mean),
+#'                    funct_args=list(list("X", na.rm=TRUE)),
+#'                    suffix=c("_state1", "_state2"),
+#'                    timeStep="season",
+#'                    compress=TRUE,
+#'                    expand=TRUE)
 #' 
 #' @importFrom rlang .data
 #' @export
