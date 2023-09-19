@@ -2166,9 +2166,6 @@ process_extraction = function(data,
     }
 
     if (expand) {
-
-        print(data)
-        
         is.character_or_date = function (x) {
             is.character(x) | lubridate::is.Date(x)
         }
