@@ -7,3 +7,6 @@ check:
 
 install:
 	R -e 'remotes::install_github("super-lou/EXstat")'
+
+help:
+	R -e 'help(process_extraction, EXstat, help_type="pdf")'
