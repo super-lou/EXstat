@@ -58,7 +58,7 @@
 #' - "yearday" for one value per day of the year (so 365 values at the end if at least a full year is given... but more than one year seems obviously more interesting)
 #' "none" if you want to extract a unique value for the whole time serie
 #' @param samplePeriod A [character][base::character] or a [vector][base::c()] of two [characters][base::character] that will indicate how to sample the data for each time step defined by [timeStep]. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if [timeStep] is set to `"year"`, [samplePeriod] needs to be formated as `%m-%d` (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if `timeStep="year"` and `samplePeriod="03-19"`, [funct] will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a [vector][base::c()] of two [characters][base::character] as `samplePeriod=c("02-01", "07-31")` in order to process data only if the date is between the 1st february and the 31th jully of each year.
-#' For a monthly (or seasonal) extraction, [samplePeriod] needs to give only day in each month, so for example `samplePeriod="10"` to extract data from the 10th of each month to the 9th of each following month. 
+#' **in developpement** For a monthly (or seasonal) extraction, [samplePeriod] needs to give only day in each month, so for example `samplePeriod="10"` to extract data from the 10th of each month to the 9th of each following month. 
 #' @param period A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `samplePeriod=NULL`, which considers all available data for each time serie.
 #' @param isDate [logical][base::logical]. If TRUE, [process_extration()] will convert the result of the application of [funct] to a day of the year. The aim is for example to give `funct=which.min` and if `isDate=TRUE`, the result will not be the indice of the minimum of the sample but the associated day of the year given by an [integer][base::integer] (1 is the 1st of january).
 #' @param NApct_lim [numeric][base::numeric]. The maximum percentage of missing values in each sample allowed. If this threshold is exceeded, the value associated to the current sample will be convert to NA.
@@ -188,6 +188,7 @@ process_extraction = function(data,
                               Seasons=c("DJF", "MAM", "JJA", "SON"),
                               nameEX="X",
                               suffix=NULL,
+                              suffix_delimiter="_",
                               keep=NULL,
                               compress=FALSE,
                               expand=FALSE,
@@ -195,6 +196,8 @@ process_extraction = function(data,
                               dev=FALSE,
                               verbose=FALSE) {
 
+    # print(data)
+    
     # check data
     if (!tibble::is_tibble(data)) {
         stop ("'data' is not a tibble from the tibble package. This tibble needs a unique column of objects of class 'Date'")
@@ -242,6 +245,17 @@ process_extraction = function(data,
                                              get(names(data)[sapply(data, is.character)])),
                              n=sum(duplicated(get(names(data)[sapply(data, lubridate::is.Date)]))))
         if (any(Date_unicity$n > 0)) {
+
+
+            # print(dplyr::filter(dplyr::group_by(data,
+                                                # get(names(data)[sapply(data, is.character)])),
+                                # duplicated(get(names(data)[sapply(data, lubridate::is.Date)]))), n=Inf)
+            
+            # print(data, n=100)
+            # print(Date_unicity, n=Inf)
+
+            # print(data[data$ID == "O0174027_observee",], n=Inf)
+            
             stop (paste0("There is at least one duplicated date in time serie(s) named '",
                          paste0(Date_unicity[[1]][Date_unicity$n > 0],
                                 collapse=", "), "'."))
@@ -297,7 +311,7 @@ process_extraction = function(data,
             check_samplePeriod = function (samplePeriod,
                                            timeStep) {
                 if (is.character(samplePeriod)) {
-                    if (timeStep %in% c("year", "none")) {
+                    if (timeStep %in% c("year", "yearday", "none")) {
                         test = try(as.Date(paste0("1972-",
                                                   samplePeriod)),
                                    silent=TRUE)
@@ -306,8 +320,7 @@ process_extraction = function(data,
                             stop (paste0("'samplePeriod' is not a 'character' element of the right format with a 'timeStep' : ",
                                          timeStep, "."))
                         }
-                    } else if (timeStep %in% c("yearday",
-                                               "month", "year-month",
+                    } else if (timeStep %in% c("month", "year-month",
                                                "season", "year-season")) {
                         test = try(as.Date(paste0("1972-01-",
                                                   samplePeriod)),
@@ -320,7 +333,7 @@ process_extraction = function(data,
                     }
                 } else if (is.list(samplePeriod)) {
                     if (!is.function(samplePeriod[[1]]) |
-                        !(timeStep %in% c("year", "none"))) {
+                        !(timeStep %in% c("year", "yearday", "none"))) {
                         stop ("'samplePeriod' can be an object of class 'list' when 'timeStep' is set to 'year'. Moreover, the first argument needs to be an object of class 'function' to apply to the montly aggregated column of 'data' specify by the second character element of the list in order to select the starting month of each time serie.")
                     }
                 }
@@ -350,7 +363,7 @@ process_extraction = function(data,
     if (!is.null(period)) {
         test = try(as.Date(period), silent=TRUE)
         if (any("try-error" %in% class(test)) || any(is.na(test))) {
-            stop ("'period' is not ")
+            stop ("'period' is not in a format able to be coerced to a 'Date' object")
         }
         if (length(period) == 1) {
             stop ("There is only one date in 'period'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period' to NULL in order to use the entire available time serie(s).")
@@ -367,6 +380,10 @@ process_extraction = function(data,
     # check isDate
     if (!is.logical(isDate)) {
         stop ("'isDate' needs to be an object of class 'logical'.")
+    }
+    if (isDate & !(timeStep %in% c("year", "year-month", "year-season"))) {
+        warning ("'isDate' is coherced to FALSE. 'isDate' can be TRUE only if 'timeStep' is 'year', 'year-month' or 'year-season'.")
+        isDate = FALSE
     }
 
     # check NApct_lim
@@ -412,12 +429,25 @@ process_extraction = function(data,
         if (!is.character(suffix)) {
             stop ("'suffix' needs to be an object of class 'character'.")
         }
+        if (!is.null(suffix_delimiter)) {
+            if (is.character(suffix) & length(suffix_delimiter) == 1) {
+                suffix = paste0(suffix_delimiter, suffix)
+            } else {
+                stop ("'suffix_delimiter' needs to be an object of class 'character' of length 1.")
+            }
+        } else {
+            stop ("'suffix_delimiter' needs to be an object of class 'character' of length 1.")
+        }
     }
 
     # check keep
     if (!is.null(keep)) {
         if (!is.character(keep)) {
             stop ("'keep' needs to be an object of class 'character'.")
+        }
+        if (timeStep %in% c("month", "season", "yearday")) {
+            warning ("'keep' is coherced to NULL. 'keep' can be non NULL only if 'timeStep' is not 'month', 'season' or 'yearday'.")
+            keep = NULL  
         }
     }
 
@@ -449,9 +479,6 @@ process_extraction = function(data,
 
 
 
-    
-    
-    
     tree("EXTRACTION PROCESS", 0, verbose=verbose)
     
     names_save = names(data)
@@ -630,7 +657,7 @@ process_extraction = function(data,
                      funct_args, " is given but only names in ",
                      paste0(names_keepSave[idValue_save], collapse=", "),
                      " are possible."))
-    }
+    }    
 
     if (!is.null(idDate_save)) {
         names(data)[c(idCode_save, idDate_save, idValue_save)] =
@@ -701,6 +728,7 @@ process_extraction = function(data,
                             verbose=verbose)
     }
 
+
     tree("Period", 1, verbose=verbose)
     if (is.null(period) | is.null(idDate_save)) {
         tree("Selecting all the data",
@@ -714,14 +742,13 @@ process_extraction = function(data,
         data = dplyr::filter(data, period[1] <= Date & Date <= period[2])
     }
     
-    if (timeStep %in% c("year", "none")) {
+    if (timeStep %in% c("year", "yearday", "none")) {
         refDate = "1972"
         sampleFormat = "%m-%d"
         
-    } else if (timeStep %in% c("yearday",
-                               "month", "year-month",
+    } else if (timeStep %in% c("month", "year-month",
                                "season", "year-season")) {
-        refDate = "1972-01"
+        refDate = "1972-07"
         sampleFormat = "%d"
     }
     Code = names(table(data$Code))
@@ -731,10 +758,9 @@ process_extraction = function(data,
     if (is.null(samplePeriod) | all(is.na(samplePeriod))) {
         tree("Default sample period used", 2,
              verbose=verbose)
-        if (timeStep %in% c("year", "none")) {
+        if (timeStep %in% c("year", "yearday", "none")) {
             samplePeriod = "01-01"
-        } else if (timeStep %in% c("yearday",
-                                   "month", "year-month",
+        } else if (timeStep %in% c("month", "year-month",
                                    "season", "year-season")) {
             samplePeriod = "01"
         }
@@ -762,12 +788,6 @@ process_extraction = function(data,
                        sp=list(
                            fix_samplePeriod(
                                sp,
-                               # data_code=
-                               #     dplyr::rename_with(
-                               #                data,
-                               #                ~names_keepSave)[
-                               #                data$Code ==
-                               #                dplyr::cur_group()$Code,],
                                data_code=
                                    data[data$Code ==
                                         dplyr::cur_group()$Code,],
@@ -783,7 +803,7 @@ process_extraction = function(data,
         d = try(as.Date(paste0(refDate, "-", samplePeriod),
                         format="%Y-%m-%d"))        
         if ("try-error" %in% class(d) || any(is.na(d))) {
-            if (timeStep %in% c("year", "none")) {
+            if (timeStep %in% c("year", "yearday", "none")) {
                 stop ("'samplePeriod' given is not in the right format. You should use two valid number to select a month and a day of the year separated by a '-' for the starting (and/or ending) of the sample period (i.e. '02-10' for the 10th of february). See documentation.")
             } else {
                 stop ("'samplePeriod' given is not in the right format. You should use one valid number to select a day of a month for the starting (and/or ending) of the sample period (i.e. '10' for the 10th day of the month). See documentation.")
@@ -807,14 +827,6 @@ process_extraction = function(data,
                                             length(Code)))
     }
 
-    samplePeriod =
-        dplyr::summarise(dplyr::group_by(samplePeriod,
-                                         Code),
-                         sp=list(fix_samplePeriod_FUCKING29FEB(
-                             sp,
-                             sampleFormat=sampleFormat)),
-                         .groups="drop")
-    
     samplePeriod$spStart = sapply(samplePeriod$sp, "[[", 1)
     samplePeriod$spEnd = sapply(samplePeriod$sp, "[[", 2)
     
@@ -849,29 +861,53 @@ process_extraction = function(data,
         }
     }
 
-    samplePeriod$dt2add = 0
-    samplePeriod$dt2add[samplePeriod$refStart >= samplePeriod$refEnd] = 1
-
-    data = dplyr::full_join(data,
-                            samplePeriod[c("Code",
-                                           "spStart",
-                                           "spEnd",
-                                           "refStart",
-                                           "refEnd",
-                                           "dt2add")],
-                            by="Code")
+    
     
     if (timeStep == "none") {
-
         tree("None extraction", 1, verbose=verbose)
-        tree("Sampling of the data", 2, verbose=verbose)
-        
-        samplePeriod$dRef =
-            as.numeric(samplePeriod$refStart +
-                       lubridate::years(abs(samplePeriod$dt2add-1)) -
-                       samplePeriod$refEnd)
 
-        if (any(samplePeriod$dRef != 1)) {
+        tree("Preparing date data for the extraction",
+             end=TRUE, 2, verbose=verbose)
+        tree("Get general sample info", 3, inEnd=2, verbose=verbose)
+        
+        samplePeriod$dt2add = 0
+        samplePeriod$dt2add[samplePeriod$refStart >
+                            samplePeriod$refEnd] = 1
+
+        samplePeriod$isStartAfter29Feb =
+            samplePeriod$refStart > as.Date(paste0(refDate, "-02-29"))
+
+        samplePeriod =
+            dplyr::mutate(samplePeriod,
+                          refStart=
+                              dplyr::if_else(
+                                         isStartAfter29Feb,
+                                         lubridate::add_with_rollback(
+                                                        refStart,
+                                                        -lubridate::years(dt2add)),
+                                         refStart),
+                          refEnd=
+                              dplyr::if_else(
+                                         isStartAfter29Feb,
+                                         refEnd,
+                                         lubridate::add_with_rollback(
+                                                        refEnd,
+                                                        lubridate::years(dt2add))),
+                          is29FebIn=
+                              refStart <= as.Date("1972-02-29") &
+                              as.Date("1972-02-29") <= refEnd,
+                          interval=as.numeric(refEnd - refStart + 1))
+
+        data = dplyr::full_join(data,
+                                samplePeriod[c("Code",
+                                               "spStart",
+                                               "spEnd",
+                                               "dt2add")],
+                                by="Code")
+        
+        
+        if (any(samplePeriod$interval != 366)) {
+            tree("Sampling of the data", 3, inEnd=2, verbose=verbose)
             
             samplePeriod$mStart =
                 as.numeric(substr(samplePeriod$spStart, 1, 2))
@@ -892,7 +928,7 @@ process_extraction = function(data,
             
             data = dplyr::filter(data,
                                  
-            (refStart < refEnd)
+            dt2add == 0
             & (mStart < lubridate::month(Date)
                 | (mStart == lubridate::month(Date)
                     & dStart <= lubridate::day(Date)))
@@ -902,14 +938,13 @@ process_extraction = function(data,
             
             |
             
-            (refStart >= refEnd)
+            dt2add == 1
             & ((lubridate::month(Date) < mEnd
                 | (lubridate::month(Date) == mEnd
                     & lubridate::day(Date) <= dEnd))
                 | (mStart < lubridate::month(Date)
                     | (mStart == lubridate::month(Date)
                         & dStart <= lubridate::day(Date))))
-            
             )
             
             data = dplyr::select(data, -c(mStart,
@@ -920,26 +955,54 @@ process_extraction = function(data,
         
         data = dplyr::select(data, -c(spStart,
                                       spEnd,
-                                      refStart,
-                                      refEnd,
                                       dt2add))
-
-        # if (!is.null(keep)) {
-        #     data_save = dplyr::select(data, -c(spStart,
-        #                                        spEnd,
-        #                                        dt2add))
-        # }
 
     } else if (timeStep == "year") {
         tree("Yearly extraction", 1, verbose=verbose)
-        tree("Sampling of the data", 2, verbose=verbose)
 
-        samplePeriod$dRef =
-            as.numeric(samplePeriod$refStart +
-                       lubridate::years(abs(samplePeriod$dt2add-1)) -
-                       samplePeriod$refEnd)
+        tree("Preparing date data for the extraction",
+             end=TRUE, 2, verbose=verbose)
+        tree("Get general sample info", 3, inEnd=2, verbose=verbose)
+        
+        samplePeriod$dt2add = 0
+        samplePeriod$dt2add[samplePeriod$refStart >
+                            samplePeriod$refEnd] = 1
 
-        if (any(samplePeriod$dRef != 1)) {
+        samplePeriod$isStartAfter29Feb =
+            samplePeriod$refStart > as.Date(paste0(refDate, "-02-29"))
+
+        samplePeriod =
+            dplyr::mutate(samplePeriod,
+                          refStart=
+                              dplyr::if_else(
+                                         isStartAfter29Feb,
+                                         lubridate::add_with_rollback(
+                                                        refStart,
+                                                        -lubridate::years(dt2add)),
+                                         refStart),
+                          refEnd=
+                              dplyr::if_else(
+                                         isStartAfter29Feb,
+                                         refEnd,
+                                         lubridate::add_with_rollback(
+                                                        refEnd,
+                                                        lubridate::years(dt2add))),
+                          is29FebIn=
+                              refStart <= as.Date("1972-02-29") &
+                              as.Date("1972-02-29") <= refEnd,
+                          interval=as.numeric(refEnd - refStart + 1))
+
+
+        data = dplyr::full_join(data,
+                                samplePeriod[c("Code",
+                                               "spStart",
+                                               "spEnd",
+                                               "dt2add")],
+                                by="Code")
+        
+        
+        if (any(samplePeriod$interval != 366)) {
+            tree("Sampling of the data", 3, inEnd=2, verbose=verbose)
             
             samplePeriod$mStart =
                 as.numeric(substr(samplePeriod$spStart, 1, 2))
@@ -957,10 +1020,10 @@ process_extraction = function(data,
                                                    "mEnd",
                                                    "dEnd")],
                                     by="Code")
-            
+
             data = dplyr::filter(data,
                                  
-            (refStart < refEnd)
+            dt2add == 0
             & (mStart < lubridate::month(Date)
                 | (mStart == lubridate::month(Date)
                     & dStart <= lubridate::day(Date)))
@@ -970,14 +1033,13 @@ process_extraction = function(data,
             
             |
             
-            (refStart >= refEnd)
+            dt2add == 1
             & ((lubridate::month(Date) < mEnd
                 | (lubridate::month(Date) == mEnd
                     & lubridate::day(Date) <= dEnd))
                 | (mStart < lubridate::month(Date)
                     | (mStart == lubridate::month(Date)
                         & dStart <= lubridate::day(Date))))
-            
             )
             
             data = dplyr::select(data, -c(mStart,
@@ -986,418 +1048,108 @@ process_extraction = function(data,
                                           dEnd))
         }
         
-        data = dplyr::select(data, -c(refStart,
-                                      refEnd))
-
-        # if (!is.null(keep)) {
-        #     data_save = dplyr::select(data, -c(spStart,
-        #                                        spEnd,
-        #                                        dt2add))
-        # }
-
-        tree("Preparing date data for the extraction",
-             end=TRUE, 2, verbose=verbose)
         tree("Computing of time indicators for each time serie",
              3, inEnd=2, verbose=verbose)
-
-        sampleInfo =
-            dplyr::summarise(dplyr::group_by(data, Code),
-                             minDate=min(Date),
-                             .groups="drop")
         
         sampleInfo =
             dplyr::summarise(dplyr::group_by(data, Code),
+                             
                              minDate=min(Date),
-                             minDateRef=
-                                 as.Date(paste0(
-                                     lubridate::year(minDate),
-                                     "-01-01")),
-                             spStart=spStart[1],
-                             minSampleStart=
-                                 as.Date(paste0(
-                                     lubridate::year(minDate),
-                                     "-",
-                                     spStart[1])),
+                             minYear=lubridate::year(minDate),
+                             minSpStart=dplyr::if_else(spStart[1] == "02-29",
+                                                       "02-28",
+                                                       spStart[1]),
                              maxDate=max(Date),
-                             spEnd=spEnd[1],
+                             maxYear=lubridate::year(maxDate),
+                             maxSpEnd=dplyr::if_else(spEnd[1] == "02-29",
+                                                     "02-28",
+                                                     spEnd[1]),
+
+                             rm2start=
+                                 dplyr::if_else(
+                                            dt2add[1] == 1 &
+                                            minDate < 
+                                            as.Date(paste0(minYear,
+                                                           "-",
+                                                           minSpStart)),
+                                            1, 0),
+                             add2end=
+                                 dplyr::if_else(
+                                            dt2add[1] == 1 &
+                                            maxDate < 
+                                            as.Date(paste0(maxYear,
+                                                           "-",
+                                                           maxSpEnd)),
+                                            1, 0),
+
+                             rm2end=
+                                 dplyr::if_else(
+                                            dt2add[1] == 1 &
+                                            maxDate < 
+                                            as.Date(paste0(maxYear,
+                                                           "-",
+                                                           minSpStart)),
+                                            1, 0),
+                             
+
+                             minSampleStart=
+                                            lubridate::add_with_rollback(
+                                                           as.Date(paste0(minYear,
+                                                                          "-",
+                                                                          minSpStart)),
+                                                           -lubridate::years(rm2start)),
+                             minSampleStart=
+                                 dplyr::if_else(
+                                            check_leapYear(
+                                                lubridate::year(minSampleStart)) &
+                                            spStart[1] == "02-29",
+                                            minSampleStart+1,
+                                            minSampleStart),
+
+                             maxSampleStart=
+                                 lubridate::add_with_rollback(
+                                                as.Date(paste0(maxYear,
+                                                               "-",
+                                                               minSpStart)),
+                                                -lubridate::years(rm2end)),
+                             maxSampleStart=
+                                 dplyr::if_else(
+                                            check_leapYear(
+                                                lubridate::year(maxSampleStart)) &
+                                            spStart[1] == "02-29",
+                                            maxSampleStart+1,
+                                            maxSampleStart),
+
                              maxSampleEnd=
                                  lubridate::add_with_rollback(
                                                 as.Date(paste0(
-                                                    lubridate::year(maxDate),
+                                                    lubridate::year(maxSampleStart),
                                                     "-",
-                                                    spEnd[1])),
-                                                lubridate::years(dt2add[1])),
+                                                    maxSpEnd)),
+                                                lubridate::years(add2end)),
+                             maxSampleEnd=
+                                 dplyr::if_else(
+                                            check_leapYear(
+                                                lubridate::year(maxSampleEnd)) &
+                                            spEnd[1] == "02-29",
+                                            maxSampleEnd+1,
+                                            maxSampleEnd),
+                             
                              .groups="drop")
-        
-        tree("Shifting the start of each year in order to speed extraction process", 3, inEnd=2, verbose=verbose)
 
-        sampleInfo$isAfterFeb =
-            as.Date(paste0(refDate, "-", sampleInfo$spStart)) >
-            as.Date(paste0(refDate, "-02-28"))
-        
-        sampleInfo$Shift =
-            lubridate::yday(as.Date(paste0(refDate,
-                                           "-",
-                                           sampleInfo$spStart))) - 1
-
-        sampleInfo$Shift[sampleInfo$isAfterFeb] =
-            sampleInfo$Shift[sampleInfo$isAfterFeb] - 1
-
-        data = dplyr::full_join(data, sampleInfo[c("Code",
-                                                   "Shift")],
-                                by=c("Code"))
-
-        data$Year = lubridate::year(data$Date)
-        Add4LeapYear =
-            dplyr::summarise(
-                       dplyr::group_by(data,
-                                       Code,
-                                       spStart,
-                                       Year),
-                       isLeapYear=check_leapYear(Year[1]),
-                       .groups="drop")
-
-
-        Add4LeapYear = dplyr::full_join(Add4LeapYear,
-                                        sampleInfo[c("Code",
-                                                     "isAfterFeb")],
-                                        by=c("Code"))
-
-        Add4LeapYear$Add2Shift =
-            as.numeric(Add4LeapYear$isAfterFeb &
-                       Add4LeapYear$isLeapYear)
-
-        data = dplyr::full_join(data,
-                                Add4LeapYear[c("Code",
-                                               "Year",
-                                               "Add2Shift")],
-                                by=c("Code", "Year"))
-
-        data$Shift = data$Shift + data$Add2Shift
-        data$Date = data$Date - data$Shift
-
-        sampleInfo$dNAstart =
-            pmax(0, as.numeric(sampleInfo$minDate -
-                               sampleInfo$minSampleStart))
-        sampleInfo$dNAend =
-            pmax(0, as.numeric(sampleInfo$maxSampleEnd -
-                               sampleInfo$maxDate))
-
-        sampleStartInfo =
-            sampleInfo[c("Code", "minDate", "dNAstart")]
-        names(sampleStartInfo) = c("Code", "Date", "dNA")
-        sampleEndInfo =
-            sampleInfo[c("Code", "maxDate", "dNAend")]
-        names(sampleEndInfo) = c("Code", "Date", "dNA")
-
-        sampleInfoCompress = dplyr::bind_rows(sampleStartInfo,
-                                              sampleEndInfo)
-
-        sampleInfoCompress$Date =
-            as.Date(paste0(lubridate::year(sampleInfoCompress$Date),
-                           "-01-01"))
-
-        data = dplyr::full_join(data,
-                                sampleInfo[c("Code",
-                                             "minDateRef",
-                                             "minDate")],
-                                by=c("Code"))
-
-        tree("Removing useless data", 3, end=TRUE, inEnd=2,
-             verbose=verbose)
-
-        data = dplyr::select(data, -c(Year,
-                                      Shift,
-                                      Add2Shift,
-                                      spStart,
+        data = dplyr::select(data, -c(spStart,
                                       spEnd,
                                       dt2add))
         
-    } else if (timeStep == "yearday") {
-        
-        tree("Yearday extraction", 1, verbose=verbose)
-        tree("Sampling of the data", 2, verbose=verbose)
+        sampleInfo = dplyr::full_join(sampleInfo,
+                                      samplePeriod,
+                                      by="Code")
+        samplePeriod = dplyr::select(samplePeriod, Code, sp)
 
-        samplePeriod$dRef =
-            as.numeric(samplePeriod$refStart +
-                       months(abs(samplePeriod$dt2add-1)) -
-                       samplePeriod$refEnd)
-
-        if (any(samplePeriod$dRef != 1)) {
-            
-            samplePeriod$dStart = as.numeric(substr(samplePeriod$spStart, 1, 2))
-            samplePeriod$dEnd = as.numeric(substr(samplePeriod$spEnd, 1, 2))
-            
-            data = dplyr::full_join(data,
-                                    samplePeriod[c("Code",
-                                                   "dStart",
-                                                   "dEnd")],
-                                    by="Code")
-            
-            data = dplyr::filter(data,
-                                 
-            (refStart < refEnd)
-            & dStart <= lubridate::day(Date)
-            & lubridate::day(Date) <= dEnd
-            
-            |
-            
-            (refStart >= refEnd)
-            & (lubridate::day(Date) <= dEnd
-                | dStart <= lubridate::day(Date))
-            
-            )
-            
-            data = dplyr::select(data, -c(dStart,
-                                          dEnd))
-        }
-        
-        data = dplyr::select(data, -c(refStart,
-                                      refEnd))
-
-        tree("Preparing date data for the extraction",
-             end=TRUE, 2, verbose=verbose)
-        tree("Computing of time indicators for each time serie",
+        tree("Get number of missing data for start and end",
              3, inEnd=2, verbose=verbose)
 
-        sampleInfo =
-            dplyr::summarise(dplyr::group_by(data, Code),
-                             minDate=min(Date),
-                             minDateRef=
-                                 as.Date(paste0(
-                                     lubridate::year(minDate),
-                                     "-",
-                                     lubridate::month(minDate),
-                                     "-01")),
-                             spStart=spStart[1],
-                             maxDate=max(Date),
-                             spEnd=spEnd[1],
-                             .groups="drop")
         
-        tree("Shifting the start of each year in order to speed extraction process", 3, inEnd=2, verbose=verbose)
-
-        sampleInfo$isAfterFeb =
-            as.Date(paste0(refDate, "-", sampleInfo$spStart)) >
-            as.Date(paste0(refDate, "-02-28"))
-        
-        sampleInfo$Shift =
-            lubridate::yday(as.Date(paste0(refDate,
-                                           "-",
-                                           sampleInfo$spStart))) - 1
-
-        sampleInfo$Shift[sampleInfo$isAfterFeb] =
-            sampleInfo$Shift[sampleInfo$isAfterFeb] - 1
-
-        data = dplyr::full_join(data, sampleInfo[c("Code",
-                                                   "Shift")],
-                                by=c("Code"))
-
-        data$Year = lubridate::year(data$Date)
-        Add4LeapYear =
-            dplyr::summarise(
-                       dplyr::group_by(data,
-                                       Code,
-                                       spStart,
-                                       Year),
-                       isLeapYear=check_leapYear(Year[1]),
-                       .groups="drop")
-
-
-        Add4LeapYear = dplyr::full_join(Add4LeapYear,
-                                        sampleInfo[c("Code",
-                                                     "isAfterFeb")],
-                                        by=c("Code"))
-
-        Add4LeapYear$Add2Shift =
-            as.numeric(Add4LeapYear$isAfterFeb &
-                       Add4LeapYear$isLeapYear)
-
-        data = dplyr::full_join(data,
-                                Add4LeapYear[c("Code",
-                                               "Year",
-                                               "Add2Shift")],
-                                by=c("Code", "Year"))
-
-        data$Shift = data$Shift + data$Add2Shift
-        data$Date = data$Date - data$Shift
-
-        data = dplyr::full_join(data,
-                                sampleInfo[c("Code",
-                                             "minDateRef",
-                                             "minDate")],
-                                by=c("Code"))
-        
-        tree("Removing useless data", 3, end=TRUE, inEnd=2,
-             verbose=verbose)
-
-        data = dplyr::select(data, -c(Year,
-                                      Shift,
-                                      Add2Shift,
-                                      spStart,
-                                      spEnd,
-                                      dt2add))
-        
-
-    } else if (timeStep %in% c("month", "year-month")) {
-
-        if (timeStep == "month") {
-            tree("Monthly extraction", 1, verbose=verbose)
-        } else if (timeStep == "year-month") {
-            tree("Monthly extraction along years", 1, verbose=verbose)
-        }
-        tree("Sampling of the data", 2, verbose=verbose)
-
-        samplePeriod$dRef =
-            as.numeric(samplePeriod$refStart +
-                       months(abs(samplePeriod$dt2add-1)) -
-                       samplePeriod$refEnd)
-
-
-        if (any(samplePeriod$dRef != 1)) {
-            
-            samplePeriod$dStart = as.numeric(substr(samplePeriod$spStart, 1, 2))
-            samplePeriod$dEnd = as.numeric(substr(samplePeriod$spEnd, 1, 2))
-            
-            data = dplyr::full_join(data,
-                                    samplePeriod[c("Code",
-                                                   "dStart",
-                                                   "dEnd")],
-                                    by="Code")
-            
-            data = dplyr::filter(data,
-                                 
-            (refStart < refEnd)
-            & dStart <= lubridate::day(Date)
-            & lubridate::day(Date) <= dEnd
-            
-            |
-            
-            (refStart >= refEnd)
-            & (lubridate::day(Date) <= dEnd
-                | dStart <= lubridate::day(Date))
-            
-            )
-            
-            data = dplyr::select(data, -c(dStart,
-                                          dEnd))
-        }
-
-        data = dplyr::select(data, -c(refStart,
-                                      refEnd))
-
-        # if (!is.null(keep)) {
-        #     data_save = dplyr::select(data, -c(spStart,
-        #                                        spEnd,
-        #                                        dt2add))
-        # }
-
-        tree("Preparing date data for the extraction",
-             end=TRUE, 2, verbose=verbose)
-        tree("Computing of time indicators for each time serie",
-             3, inEnd=2, verbose=verbose)
-
-        if (timeStep == "year-month") {
-            sampleInfo =
-                dplyr::summarise(dplyr::group_by(data, Code),
-                                 minDate=min(Date),
-                                 minDateRef=
-                                     as.Date(paste0(
-                                         lubridate::year(minDate),
-                                         "-",
-                                         lubridate::month(minDate),
-                                         "-01")),
-                                 spStart=spStart[1],
-                                 minSampleStart=
-                                     lubridate::add_with_rollback(
-                                                    as.Date(paste0(
-                                                        lubridate::year(minDate),
-                                                        "-01-",
-                                                        spStart[1])),
-                                                    months(lubridate::month(minDate)
-                                                           -1)),
-                                 maxDate=max(Date),
-                                 spEnd=spEnd[1],
-                                 maxSampleEnd=
-                                     lubridate::add_with_rollback(
-                                                    as.Date(paste0(
-                                                        lubridate::year(maxDate),
-                                                        "-01-",
-                                                        spEnd[1])),
-                                                    months(lubridate::month(maxDate) + dt2add[1] - 1)),
-                                 maxSampleStart=
-                                     lubridate::add_with_rollback(
-                                                    as.Date(paste0(
-                                                        lubridate::year(maxDate),
-                                                        "-01-",
-                                                        spStart[1])),
-                                                    months(lubridate::month(maxDate) - 1)),
-                                 .groups="drop")
-            
-        } else if (timeStep == "month") {
-            sampleInfo =
-                dplyr::summarise(dplyr::group_by(data, Code),
-                                 minDate=min(Date),
-                                 minDateRef=
-                                     as.Date(paste0(
-                                         lubridate::year(minDate),
-                                         "-",
-                                         lubridate::month(minDate),
-                                         "-01")),
-                                 spStart=spStart[1],
-                                 minSampleStart=
-                                     lubridate::add_with_rollback(
-                                                    as.Date(paste0(
-                                                        lubridate::year(minDate),
-                                                        "-01-",
-                                                        spStart[1])),
-                                                    months(lubridate::month(minDate)
-                                                           -1)),
-
-                                 maxDate=max(Date),
-                                 spEnd=spEnd[1],
-                                 maxSampleEnd=
-                                     lubridate::add_with_rollback(
-                                                    as.Date(paste0(
-                                                        lubridate::year(maxDate),
-                                                        "-01-",
-                                                        spEnd[1])),
-                                                    months(lubridate::month(maxDate) + dt2add[1] - 1)),
-                                 maxSampleStart=
-                                     lubridate::add_with_rollback(
-                                                    as.Date(paste0(
-                                                        lubridate::year(maxDate),
-                                                        "-01-",
-                                                        spStart[1])),
-                                                    months(lubridate::month(maxDate) - 1)),
-                                 .groups="drop")
-
-            monthInfo =
-                dplyr::summarise(dplyr::group_by(data,
-                                                 Code,
-                                                 YM=format(Date,
-                                                           "%Y-%m")),
-                                 Date=Date[!duplicated(YM)],
-                                 .groups="drop")
-            monthInfo =
-                dplyr::summarise(
-                           dplyr::group_by(monthInfo,
-                                           Code,
-                                           Date=format(Date, "%m")),
-                           nYear=dplyr::n(),
-                           .groups="drop")
-        }
-
-        tree("Shifting the start of each year in order to speed extraction process", 3, inEnd=2, verbose=verbose)
-        
-        sampleInfo$Shift =
-            lubridate::mday(sampleInfo$minSampleStart) - 1
-        data = dplyr::full_join(data,
-                                sampleInfo[c("Code",
-                                             "Shift")],
-                                by=c("Code"))
-        
-        data$Date = data$Date - data$Shift
-
         sampleInfo$dNAstart =
             pmax(0, as.numeric(sampleInfo$minDate -
                                sampleInfo$minSampleStart))
@@ -1411,25 +1163,652 @@ process_extraction = function(data,
         sampleEndInfo =
             sampleInfo[c("Code", "maxSampleStart", "dNAend")]
         names(sampleEndInfo) = c("Code", "Date", "dNA")
-
+        
         sampleInfoCompress = dplyr::bind_rows(sampleStartInfo,
                                               sampleEndInfo)
 
-        data = dplyr::full_join(data,
-                                sampleInfo[c("Code",
-                                             "minDateRef",
-                                             "minDate")],
-                                by=c("Code"))
+        sampleInfoCompress$Year =
+            lubridate::year(sampleInfoCompress$Date)
+
+
+        tree("Create each group",
+             3, end=TRUE, inEnd=2, verbose=verbose)
         
-        tree("Removing useless data", 3, end=TRUE, inEnd=2,
-             verbose=verbose)
-        data = dplyr::select(data, -c(Shift,
-                                      spStart,
+        Group = dplyr::reframe(dplyr::group_by(sampleInfo,
+                                               Code),
+                               Year =
+                                   lubridate::year(minSampleStart):
+                                   lubridate::year(maxSampleStart))
+
+        Group = dplyr::full_join(Group,
+                                 dplyr::select(sampleInfoCompress,
+                                               Code,
+                                               Year,
+                                               dNA),
+                                 by=c("Code", "Year"))
+        Group = tidyr::replace_na(Group, list(dNA=0)) 
+        Group = dplyr::full_join(Group,
+                                 dplyr::select(sampleInfo,
+                                               Code,
+                                               interval,
+                                               isStartAfter29Feb,
+                                               is29FebIn),
+                                 by=c("Code"))
+
+        Group = dplyr::mutate(
+                           Group, 
+                           isLeapYear=
+                               dplyr::if_else(
+                                          isStartAfter29Feb,
+                                          check_leapYear(Year+1),
+                                          check_leapYear(Year)))
+        
+        Group = dplyr::mutate(Group,
+                              leapYear=
+                                  dplyr::if_else(isLeapYear,
+                                                 0, 1),
+                              leapYear=
+                                  dplyr::if_else(is29FebIn,
+                                                 leapYear, 0),
+                              size=interval-leapYear-dNA)
+
+        # print(Group, n=Inf)
+        # print(Group)
+        
+        Group = dplyr::filter(Group,
+                              size > 0)
+        Group = dplyr::reframe(Group,
+                               group=rep(Year, size))
+
+        # print(sampleInfo, width=Inf)
+        # print(data, n=Inf)
+        # print(data)
+        
+        data = dplyr::bind_cols(data, Group)
+
+
+        
+        
+
+### Yearday __________________________________________________________
+    } else if (timeStep == "yearday") {
+        
+        tree("Yearday extraction", 1, verbose=verbose)
+
+        tree("Preparing date data for the extraction",
+             end=TRUE, 2, verbose=verbose)
+        tree("Get general sample info", 3, inEnd=2, verbose=verbose)
+        
+        samplePeriod$dt2add = 0
+        samplePeriod$dt2add[samplePeriod$refStart >
+                            samplePeriod$refEnd] = 1
+
+        samplePeriod$isStartAfter29Feb =
+            samplePeriod$refStart > as.Date(paste0(refDate, "-02-29"))
+
+        samplePeriod =
+            dplyr::mutate(samplePeriod,
+                          refStart=
+                              dplyr::if_else(
+                                         isStartAfter29Feb,
+                                         lubridate::add_with_rollback(
+                                                        refStart,
+                                                        -lubridate::years(dt2add)),
+                                         refStart),
+                          refEnd=
+                              dplyr::if_else(
+                                         isStartAfter29Feb,
+                                         refEnd,
+                                         lubridate::add_with_rollback(
+                                                        refEnd,
+                                                        lubridate::years(dt2add))),
+                          is29FebIn=
+                              refStart <= as.Date("1972-02-29") &
+                              as.Date("1972-02-29") <= refEnd,
+                          interval=as.numeric(refEnd - refStart + 1))
+
+
+        data = dplyr::full_join(data,
+                                samplePeriod[c("Code",
+                                               "spStart",
+                                               "spEnd",
+                                               "dt2add")],
+                                by="Code")
+        
+        
+        if (any(samplePeriod$interval != 366)) {
+            
+            samplePeriod$mStart =
+                as.numeric(substr(samplePeriod$spStart, 1, 2))
+            samplePeriod$dStart =
+                as.numeric(substr(samplePeriod$spStart, 4, 5))
+            samplePeriod$mEnd =
+                as.numeric(substr(samplePeriod$spEnd, 1, 2))
+            samplePeriod$dEnd =
+                as.numeric(substr(samplePeriod$spEnd, 4, 5))
+            
+            data = dplyr::full_join(data,
+                                    samplePeriod[c("Code",
+                                                   "mStart",
+                                                   "dStart",
+                                                   "mEnd",
+                                                   "dEnd")],
+                                    by="Code")
+
+            data = dplyr::filter(data,
+                                 
+            dt2add == 0
+            & (mStart < lubridate::month(Date)
+                | (mStart == lubridate::month(Date)
+                    & dStart <= lubridate::day(Date)))
+            & (lubridate::month(Date) < mEnd
+                | (lubridate::month(Date) == mEnd
+                    & lubridate::day(Date) <= dEnd))
+            
+            |
+            
+            dt2add == 1
+            & ((lubridate::month(Date) < mEnd
+                | (lubridate::month(Date) == mEnd
+                    & lubridate::day(Date) <= dEnd))
+                | (mStart < lubridate::month(Date)
+                    | (mStart == lubridate::month(Date)
+                        & dStart <= lubridate::day(Date))))
+            )
+            
+            data = dplyr::select(data, -c(mStart,
+                                          dStart,
+                                          mEnd,
+                                          dEnd))
+        }
+
+        tree("Computing of time indicators for each time serie",
+             3, inEnd=2, verbose=verbose)
+
+        sampleInfo =
+            dplyr::summarise(dplyr::group_by(data, Code),
+                             
+                             minDate=min(Date),
+                             minYear=lubridate::year(minDate),
+                             minSpStart=dplyr::if_else(spStart[1] == "02-29",
+                                                       "02-28",
+                                                       spStart[1]),
+                             maxDate=max(Date),
+                             maxYear=lubridate::year(maxDate),
+                             maxSpEnd=dplyr::if_else(spEnd[1] == "02-29",
+                                                     "02-28",
+                                                     spEnd[1]),
+
+                             rm2start=
+                                 dplyr::if_else(
+                                            dt2add[1] == 1 &
+                                            minDate < 
+                                            as.Date(paste0(minYear,
+                                                           "-",
+                                                           minSpStart)),
+                                            1, 0),
+                             add2end=
+                                 dplyr::if_else(
+                                            dt2add[1] == 1 &
+                                            maxDate < 
+                                            as.Date(paste0(maxYear,
+                                                           "-",
+                                                           maxSpEnd)),
+                                            1, 0),
+
+                             rm2end=
+                                 dplyr::if_else(
+                                            dt2add[1] == 1 &
+                                            maxDate < 
+                                            as.Date(paste0(maxYear,
+                                                           "-",
+                                                           minSpStart)),
+                                            1, 0),
+                             
+
+                             minSampleStart=
+                                            lubridate::add_with_rollback(
+                                                           as.Date(paste0(minYear,
+                                                                          "-",
+                                                                          minSpStart)),
+                                                           -lubridate::years(rm2start)),
+                             minSampleStart=
+                                 dplyr::if_else(
+                                            check_leapYear(
+                                                lubridate::year(minSampleStart)) &
+                                            spStart[1] == "02-29",
+                                            minSampleStart+1,
+                                            minSampleStart),
+
+                             maxSampleStart=
+                                 lubridate::add_with_rollback(
+                                                as.Date(paste0(maxYear,
+                                                               "-",
+                                                               minSpStart)),
+                                                -lubridate::years(rm2end)),
+                             maxSampleStart=
+                                 dplyr::if_else(
+                                            check_leapYear(
+                                                lubridate::year(maxSampleStart)) &
+                                            spStart[1] == "02-29",
+                                            maxSampleStart+1,
+                                            maxSampleStart),
+
+                             maxSampleEnd=
+                                 lubridate::add_with_rollback(
+                                                as.Date(paste0(
+                                                    lubridate::year(maxSampleStart),
+                                                    "-",
+                                                    maxSpEnd)),
+                                                lubridate::years(add2end)),
+                             maxSampleEnd=
+                                 dplyr::if_else(
+                                            check_leapYear(
+                                                lubridate::year(maxSampleEnd)) &
+                                            spEnd[1] == "02-29",
+                                            maxSampleEnd+1,
+                                            maxSampleEnd),
+
+                             nYear=
+                                 lubridate::year(maxSampleStart) -
+                                 lubridate::year(minSampleStart),
+                             
+                             .groups="drop")
+
+        data = dplyr::select(data, -c(spStart,
                                       spEnd,
                                       dt2add))
+        
+        sampleInfo = dplyr::full_join(sampleInfo,
+                                      samplePeriod,
+                                      by="Code")
+        samplePeriod = dplyr::select(samplePeriod, Code, sp)
 
+        tree("Get number of missing data for start and end",
+             3, inEnd=2, verbose=verbose)
+        
+        sampleInfo$dNAstart =
+            pmax(0, as.numeric(sampleInfo$minDate -
+                               sampleInfo$minSampleStart))
+        sampleInfo$dNAend =
+            pmax(0, as.numeric(sampleInfo$maxSampleEnd -
+                               sampleInfo$maxDate))
+
+        sampleStartInfo =
+            sampleInfo[c("Code", "minSampleStart",
+                         "minSampleStart", "dNAstart")]
+        names(sampleStartInfo) = c("Code", "Date", "Date_end", "dNA")
+        sampleEndInfo =
+            sampleInfo[c("Code", "maxSampleStart",
+                         "maxSampleEnd", "dNAend")]
+        names(sampleEndInfo) = c("Code", "Date", "Date_end", "dNA")
+        
+        sampleInfoCompress = dplyr::bind_rows(sampleStartInfo,
+                                              sampleEndInfo)
+
+        sampleInfoCompress$Year =
+            lubridate::year(sampleInfoCompress$Date)
 
         
+        tree("Create each group",
+             3, end=TRUE, inEnd=2, verbose=verbose)
+        
+        Group = dplyr::reframe(dplyr::group_by(sampleInfo,
+                                               Code),
+                               Year =
+                                   lubridate::year(minSampleStart):
+                                   lubridate::year(maxSampleStart))
+
+        Group = dplyr::full_join(Group,
+                                 dplyr::select(sampleInfoCompress,
+                                               Code,
+                                               Year,
+                                               dNA),
+                                 by=c("Code", "Year"))
+        Group = tidyr::replace_na(Group, list(dNA=0)) 
+        Group = dplyr::full_join(Group,
+                                 dplyr::select(sampleInfo,
+                                               Code,
+                                               interval,
+                                               isStartAfter29Feb,
+                                               is29FebIn,
+                                               spStart),
+                                 by=c("Code"))
+
+        Group = dplyr::mutate(
+                           Group, 
+                           isLeapYear=
+                               dplyr::if_else(
+                                          isStartAfter29Feb,
+                                          check_leapYear(Year+1),
+                                          check_leapYear(Year)))
+        
+        Group = dplyr::mutate(Group,
+                              leapYear=
+                                  dplyr::if_else(isLeapYear,
+                                                 0, 1),
+                              leapYear=
+                                  dplyr::if_else(is29FebIn,
+                                                 leapYear, 0),
+                              size=interval-leapYear-dNA)
+
+        Group = dplyr::filter(Group,
+                              size > 0)
+
+        Group = dplyr::reframe(
+                           dplyr::group_by(Group, Code, Year),
+                           Date=as.Date(paste0(Year,
+                                               "-",
+                                               spStart)),
+                           Date=seq.Date(
+                               Date+dNA,
+                               Date+dNA+size-1,
+                               "days"),
+                           group=
+                               lubridate::yday(Date))
+        Group = dplyr::select(Group, group)
+        
+        data = dplyr::bind_cols(data, Group)
+
+        
+        sampleInfoCompress =
+            dplyr::reframe(
+                       dplyr::group_by(sampleInfoCompress,
+                                       Code, Date, Date_end),
+                       Yearday=lubridate::yday(Date + 0:(dNA-1)),
+                       Yearday_end=lubridate::yday(Date_end - 0:(dNA-1)),
+                       dNA=1)
+        sampleInfoCompress =
+            dplyr::mutate(sampleInfoCompress,
+                          Yearday=dplyr::if_else(
+                                             Date == Date_end,
+                                             Yearday,
+                                             Yearday_end))
+        sampleInfoCompress =
+            dplyr::summarise(
+                       dplyr::group_by(sampleInfoCompress,
+                                       Code, Yearday),
+                       dNA=sum(dNA),
+                       .groups="drop")
+        
+        
+### Month ____________________________________________________________
+    } else if (timeStep %in% c("month", "year-month")) {
+
+        if (timeStep == "month") {
+            tree("Monthly extraction", 1, verbose=verbose)
+        } else if (timeStep == "year-month") {
+            tree("Monthly extraction along years", 1, verbose=verbose)
+        }
+        
+        tree("Preparing date data for the extraction",
+             end=TRUE, 2, verbose=verbose)
+        tree("Get general sample info", 3, inEnd=2, verbose=verbose)
+        
+        samplePeriod$dt2add = 0
+        samplePeriod$dt2add[samplePeriod$refStart >
+                            samplePeriod$refEnd] = 1
+
+        # samplePeriod$isStartAfter29Feb =
+        #     samplePeriod$refStart > as.Date(paste0(refDate, "-02-29"))
+
+        samplePeriod =
+            dplyr::mutate(samplePeriod,
+                          refEnd=
+                              dplyr::if_else(
+                                         dt2add == 0,
+                                         refEnd,
+                                         lubridate::add_with_rollback(
+                                                        refEnd,
+                                                        months(1))),
+                          is29In=
+                              dplyr::if_else(
+                                         dt2add == 0,
+                                         as.numeric(spStart) <= 29 &
+                                         29 <= as.numeric(spEnd),
+                                         as.numeric(spStart) <= 29 &
+                                         as.numeric(spEnd) <= 29),
+
+                          is31In=
+                              dplyr::if_else(
+                                         dt2add == 0,
+                                         as.numeric(spEnd) == 31,
+                                         TRUE),
+                          
+                          interval=as.numeric(refEnd - refStart + 1))
+
+        data = dplyr::full_join(data,
+                                samplePeriod[c("Code",
+                                               "spStart",
+                                               "spEnd",
+                                               "dt2add"
+                                               # "interval"
+                                               )],
+                                by="Code")
+
+        # if (any(samplePeriod$interval != 31)) {
+
+        # tree("Sampling of the data", 3, inEnd=2, verbose=verbose)
+        
+        #     samplePeriod$dStart = as.numeric(substr(samplePeriod$spStart, 1, 2))
+        #     samplePeriod$dEnd = as.numeric(substr(samplePeriod$spEnd, 1, 2))
+            
+        #     data = dplyr::full_join(data,
+        #                             samplePeriod[c("Code",
+        #                                            "dStart",
+        #                                            "dEnd")],
+        #                             by="Code")
+            
+        #     data = dplyr::filter(data,
+                                 
+        #     dt2add == 0
+        #     & dStart <= lubridate::day(Date)
+        #     & lubridate::day(Date) <= dEnd
+            
+        #     |
+            
+        #     dt2add == 1
+        #     & (lubridate::day(Date) <= dEnd
+        #         | dStart <= lubridate::day(Date))
+            
+        #     )
+            
+        #     data = dplyr::select(data, -c(dStart,
+        #                                   dEnd))
+        # }
+
+        tree("Computing of time indicators for each time serie",
+             3, inEnd=2, verbose=verbose)
+
+        sampleInfo =
+            dplyr::summarise(dplyr::group_by(data, Code),
+                             
+                             minDate=min(Date),
+                             minYear=lubridate::year(minDate),
+                             minMonth=lubridate::month(minDate),
+                             
+                             maxDate=max(Date),
+                             maxYear=lubridate::year(maxDate),
+                             maxMonth=lubridate::month(maxDate),
+                             
+                             minSampleStart=
+                                 lubridate::add_with_rollback(
+                                                as.Date(paste0(minYear,
+                                                               "-01-",
+                                                               spStart[1])),
+                                                months(minMonth-1)),
+
+                             maxSampleStart=
+                                 lubridate::add_with_rollback(
+                                                as.Date(paste0(maxYear,
+                                                               "-01-",
+                                                               spStart[1])),
+                                                months(maxMonth - 1)),
+                             
+                             maxSampleEnd=
+                                 lubridate::add_with_rollback(
+                                                as.Date(paste0(maxYear,
+                                                               "-01-",
+                                                               spEnd[1])),
+                                                months(maxMonth + dt2add[1] - 1)),
+
+                             nYear=
+                                 lubridate::year(maxSampleStart) -
+                                 lubridate::year(minSampleStart),
+                             .groups="drop")
+
+        data = dplyr::select(data, -c(spStart,
+                                      spEnd,
+                                      dt2add))
+        
+        sampleInfo = dplyr::full_join(sampleInfo,
+                                      samplePeriod,
+                                      by="Code")
+        samplePeriod = dplyr::select(samplePeriod, Code, sp)
+
+        
+        tree("Get number of missing data for start and end",
+             3, inEnd=2, verbose=verbose)
+        
+        sampleInfo$dNAstart =
+            pmax(0, as.numeric(sampleInfo$minDate -
+                               sampleInfo$minSampleStart))
+        sampleInfo$dNAend =
+            pmax(0, as.numeric(sampleInfo$maxSampleEnd -
+                               sampleInfo$maxDate))
+
+        sampleStartInfo =
+            sampleInfo[c("Code", "minSampleStart", "dNAstart")]
+        names(sampleStartInfo) = c("Code", "Date", "dNA")
+        sampleEndInfo =
+            sampleInfo[c("Code", "maxSampleStart", "dNAend")]
+        names(sampleEndInfo) = c("Code", "Date", "dNA")
+        
+        sampleInfoCompress = dplyr::bind_rows(sampleStartInfo,
+                                              sampleEndInfo)
+        sampleInfoCompress$Year =
+            lubridate::year(sampleInfoCompress$Date)
+        sampleInfoCompress$Month =
+            lubridate::month(sampleInfoCompress$Date)
+
+        tree("Create each group",
+             3, end=TRUE, inEnd=2, verbose=verbose)
+        
+        # Group = dplyr::reframe(dplyr::group_by(sampleInfo,
+        #                                        Code),
+        #                        Year =
+        #                            lubridate::year(minSampleStart):
+        #                            lubridate::year(maxSampleStart))
+        # Group =
+        #     dplyr::reframe(
+        #                dplyr::group_by(Group,
+        #                                Code, Year),
+        #                Month = 1:12)
+
+        # Group = dplyr::full_join(Group,
+        #                          dplyr::select(sampleInfo,
+        #                                        Code,
+        #                                        minDate,
+        #                                        maxDate),
+        #                          by="Code")
+
+        # firstYear = dplyr::filter(Group, Year == min(Year))
+        # Group = dplyr::filter(Group, Year != min(Year))
+        
+        # firstYear = dplyr::mutate(dplyr::group_by(firstYear, Code),
+        #                           lim = which(Month ==
+        #                                       lubridate::month(minDate)))
+        # firstYear = dplyr::filter(dplyr::group_by(firstYear, Code),
+        #                           Month >= lim)
+        # firstYear = dplyr::select(firstYear, -lim)
+        
+        # Group = dplyr::bind_rows(Group, firstYear)
+        # Group = dplyr::select(Group, -minDate)
+
+        # lastYear = dplyr::filter(Group, Year == max(Year))
+        # Group = dplyr::filter(Group, Year != max(Year))
+        
+        # lastYear = dplyr::mutate(dplyr::group_by(lastYear, Code),
+        #                          lim = which(Month ==
+        #                                      lubridate::month(maxDate)))
+        # lastYear = dplyr::filter(dplyr::group_by(lastYear, Code),
+        #                          Month <= lim)
+        # lastYear = dplyr::select(lastYear, -lim)
+        
+        # Group = dplyr::bind_rows(Group, lastYear)
+        # Group = dplyr::arrange(Group, Code, Year)
+        # Group = dplyr::select(Group, -maxDate)
+
+        # Group = dplyr::full_join(Group,
+        #                          dplyr::select(sampleInfoCompress,
+        #                                        Code,
+        #                                        Year,
+        #                                        Month,
+        #                                        dNA),
+        #                          by=c("Code", "Year", "Month"))
+        # Group = tidyr::replace_na(Group, list(dNA=0)) 
+        # Group = dplyr::full_join(Group,
+        #                          dplyr::select(sampleInfo,
+        #                                        Code,
+        #                                        interval,
+        #                                        is29In,
+        #                                        is31In),
+        #                          by=c("Code"))
+
+        
+        # Group = dplyr::mutate(Group, 
+        #                       isLeapYear=
+        #                           check_leapYear(Year))
+
+
+        # # c(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+        # d29Day = c( 0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0)
+        # d31Day = c( 0,  1,  0,  1,  0,  1,  0,  0,  1,  0,  1,  0)
+
+        
+        # Group = dplyr::mutate(Group,
+        #                       leapYear=
+        #                           dplyr::if_else(isLeapYear,
+        #                                          0, 1),
+        #                       leapYear=
+        #                           dplyr::if_else(is29In & Month == 2,
+        #                                          leapYear, 0),
+        #                       dDay=
+        #                           dplyr::if_else(is29In,
+        #                                          d29Day[Month],
+        #                                          0),
+        #                       dDay=
+        #                           dplyr::if_else(is31In,
+        #                                          dDay+d31Day[Month],
+        #                                          dDay),
+        #                       size=interval-leapYear-dNA-dDay)
+        # Group = dplyr::filter(Group,
+        #                       size > 0)
+
+        if (timeStep == "year-month") {
+            data$group = format(data$Date, "%Y-%m")
+            # Group$YearMonth = paste0(Group$Year, "-",
+            #                          formatC(Group$Month, width=2, flag="0"))
+            # Group = dplyr::reframe(Group,
+            #                        group=rep(YearMonth, size))
+            
+        } else if (timeStep == "month") {
+            # Group = dplyr::reframe(Group,
+            #                        group=rep(Month, size))
+            data$group = format(data$Date, "%m")
+            sampleInfoCompress$Month = lubridate::month(sampleInfoCompress$Date)
+            sampleInfoCompress =
+                dplyr::summarise(
+                           dplyr::group_by(sampleInfoCompress,
+                                           Code, Month),
+                           dNA=sum(dNA),
+                           .groups="drop")
+        }
+
+        # data = dplyr::bind_cols(data, Group)
+
+        
+### Season ___________________________________________________________
     } else if (timeStep %in% c("season", "year-season")) {
 
         if (timeStep == "season") {
@@ -1475,154 +1854,140 @@ process_extraction = function(data,
         SeasonsMonth = c(SeasonsMonth[idJan:12],
                          SeasonsMonth[1:(idJan-1)])
 
-        tree("Sampling of the data", 2, verbose=verbose)
-
-        samplePeriod$dRef =
-            as.numeric(samplePeriod$refStart +
-                       months(abs(samplePeriod$dt2add-1)) -
-                       samplePeriod$refEnd)
-
-        if (any(samplePeriod$dRef != 1)) {
-            
-            samplePeriod$dStart = as.numeric(substr(samplePeriod$spStart, 1, 2))
-            samplePeriod$dEnd = as.numeric(substr(samplePeriod$spEnd, 1, 2))
-            
-            data = dplyr::full_join(data,
-                                    samplePeriod[c("Code",
-                                                   "dStart",
-                                                   "dEnd")],
-                                    by="Code")
-            
-            data = dplyr::filter(data,
-                                 
-            (refStart < refEnd)
-            & dStart <= lubridate::day(Date)
-            & lubridate::day(Date) <= dEnd
-            
-            |
-            
-            (refStart >= refEnd)
-            & (lubridate::day(Date) <= dEnd
-                | dStart <= lubridate::day(Date))
-            
-            )
-            
-            data = dplyr::select(data, -c(dStart,
-                                          dEnd))
-        }
-
-        data = dplyr::select(data, -c(refStart,
-                                      refEnd))
 
         tree("Preparing date data for the extraction",
              end=TRUE, 2, verbose=verbose)
+        tree("Get general sample info", 3, inEnd=2, verbose=verbose)
+        
+        samplePeriod$dt2add = 0
+        samplePeriod$dt2add[samplePeriod$refStart >
+                            samplePeriod$refEnd] = 1
+
+        # samplePeriod$isStartAfter29Feb =
+        #     samplePeriod$refStart > as.Date(paste0(refDate, "-02-29"))
+
+        samplePeriod =
+            dplyr::mutate(samplePeriod,
+                          refEnd=
+                              dplyr::if_else(
+                                         dt2add == 0,
+                                         refEnd,
+                                         lubridate::add_with_rollback(
+                                                        refEnd,
+                                                        months(1))),
+                          is29In=
+                              dplyr::if_else(
+                                         dt2add == 0,
+                                         as.numeric(spStart) <= 29 &
+                                         29 <= as.numeric(spEnd),
+                                         as.numeric(spStart) <= 29 &
+                                         as.numeric(spEnd) <= 29),
+
+                          is31In=
+                              dplyr::if_else(
+                                         dt2add == 0,
+                                         as.numeric(spEnd) == 31,
+                                         TRUE),
+                          
+                          interval=as.numeric(refEnd - refStart + 1))
+
+        data = dplyr::full_join(data,
+                                samplePeriod[c("Code",
+                                               "spStart",
+                                               "spEnd",
+                                               "dt2add"
+                                               # "interval"
+                                               )],
+                                by="Code")
+
+        # if (any(samplePeriod$interval != 31)) {
+
+        #     tree("Sampling of the data", 3, inEnd=2, verbose=verbose)
+            
+        #     samplePeriod$dStart = as.numeric(substr(samplePeriod$spStart, 1, 2))
+        #     samplePeriod$dEnd = as.numeric(substr(samplePeriod$spEnd, 1, 2))
+            
+        #     data = dplyr::full_join(data,
+        #                             samplePeriod[c("Code",
+        #                                            "dStart",
+        #                                            "dEnd")],
+        #                             by="Code")
+            
+        #     data = dplyr::filter(data,
+                                 
+        #     dt2add == 0
+        #     & dStart <= lubridate::day(Date)
+        #     & lubridate::day(Date) <= dEnd
+            
+        #     |
+            
+        #     dt2add == 1
+        #     & (lubridate::day(Date) <= dEnd
+        #         | dStart <= lubridate::day(Date))
+            
+        #     )
+            
+        #     data = dplyr::select(data, -c(dStart,
+        #                                   dEnd))
+        # }
+
         tree("Computing of time indicators for each time serie",
              3, inEnd=2, verbose=verbose)
-        
+
         sampleInfo =
             dplyr::summarise(dplyr::group_by(data, Code),
+                             
                              minDate=min(Date),
-                             minDateRef=
-                                 as.Date(paste0(
-                                     lubridate::year(minDate),
-                                     "-",
-                                     lubridate::month(minDate),
-                                     "-01")),
-                             spStart=spStart[1],
+                             minYear=lubridate::year(minDate),
+                             minMonth=lubridate::month(minDate),
+                             
+                             maxDate=max(Date),
+                             maxYear=lubridate::year(maxDate),
+                             maxMonth=lubridate::month(maxDate),
+
                              minSampleStart=
                                  lubridate::add_with_rollback(
                                                 as.Date(paste0(
-                                                    lubridate::year(minDate),
+                                                    minYear,
                                                     "-01-",
                                                     spStart[1])),
-                                                months(lubridate::month(minDate)
-                                                       - 1 - subSeasons[lubridate::month(minDate)])),
-                             maxDate=max(Date),
-                             spEnd=spEnd[1],
-                             maxSampleEnd=
-                                 lubridate::add_with_rollback(
-                                                as.Date(paste0(
-                                                    lubridate::year(maxDate),
-                                                    "-01-",
-                                                    spEnd[1])),
-                                                months(lubridate::month(maxDate) + dt2add[1] + addSeasons[lubridate::month(maxDate)] - 1)),
+                                                months(minMonth - 1 -
+                                                       subSeasons[minMonth])),
                              maxSampleStart=
                                  lubridate::add_with_rollback(
                                                 as.Date(paste0(
-                                                    lubridate::year(maxDate),
+                                                    maxYear,
                                                     "-01-",
                                                     spStart[1])),
-                                                months(lubridate::month(maxDate)
-                                                       - 1 - subSeasons[lubridate::month(maxDate)])),
-                             .groups="drop")        
+                                                months(maxMonth - 1 -
+                                                       subSeasons[maxMonth])),
+                             maxSampleEnd=
+                                 lubridate::add_with_rollback(
+                                                as.Date(paste0(
+                                                    maxYear,
+                                                    "-01-",
+                                                    spEnd[1])),
+                                                months(maxMonth +
+                                                       dt2add[1] +
+                                                       addSeasons[maxMonth] - 1)),
 
-        tree("Shifting the start of each year in order to speed extraction process", 3, inEnd=2, verbose=verbose)
+                             nYear=
+                                 lubridate::year(maxSampleStart) -
+                                 lubridate::year(minSampleStart),
+                             .groups="drop")
+
+        data = dplyr::select(data, -c(spStart,
+                                      spEnd,
+                                      dt2add))
         
-        sampleInfo$Shift =
-            lubridate::mday(sampleInfo$minSampleStart) - 1
-        data = dplyr::full_join(data,
-                                sampleInfo[c("Code",
-                                             "Shift")],
-                                by=c("Code"))
+        sampleInfo = dplyr::full_join(sampleInfo,
+                                      samplePeriod,
+                                      by="Code")
+        samplePeriod = dplyr::select(samplePeriod, Code, sp)
+
+        tree("Get number of missing data for start and end",
+             3, inEnd=2, verbose=verbose)
         
-        data$Date = data$Date - data$Shift
-        
-        if (timeStep == "season") {
-            data$Season = get_Season[lubridate::month(data$Date)]
-
-            data$SeasonDate =
-                lubridate::add_with_rollback(
-                               data$Date,
-                               - months(subSeasons[lubridate::month(data$Date)]))
-            data$YearSeason =
-                paste0(lubridate::year(data$SeasonDate),
-                       "-",
-                       get_Season[lubridate::month(data$SeasonDate)])
-
-            seasonInfo =
-                dplyr::summarise(dplyr::group_by(data,
-                                                 Code,
-                                                 YearSeason),
-                                 Date=Date[!duplicated(YearSeason)],
-                                 .groups="drop")
-            seasonInfo =
-                dplyr::summarise(
-                           dplyr::group_by(seasonInfo,
-                                           Code,
-                                           Date=get_Season[lubridate::month(Date)]),
-                           nYear=dplyr::n(),
-                           .groups="drop")
-
-            
-        } else if (timeStep == "year-season") {
-            data$SeasonDate =
-                lubridate::add_with_rollback(
-                               data$Date,
-                               - months(subSeasons[lubridate::month(data$Date)]))
-            data$YearSeason =
-                paste0(lubridate::year(data$SeasonDate),
-                       "-",
-                       get_Season[lubridate::month(data$SeasonDate)])
-
-            data$SeasonDate = format(data$SeasonDate, "%Y-%m")
-
-            # data_tmp =
-            #     dplyr::summarise(dplyr::group_by(data,
-            #                                      Code,
-            #                                      YearSeason),
-            #                      Date_g=as.Date(paste0(
-            #                          lubridate::year(SeasonDate),
-            #                          "-",
-            #                          lubridate::month(SeasonDate),
-            #                          "-",
-            #                          spStart)),
-            #                      .groups="drop")
-            
-            # data_tmp = dplyr::distinct(data_tmp)
-            # data = dplyr::full_join(data, data_tmp,
-            #                         by=c("Code", "YearSeason"))
-        }
-
         sampleInfo$dNAstart =
             pmax(0, as.numeric(sampleInfo$minDate -
                                sampleInfo$minSampleStart))
@@ -1637,108 +2002,98 @@ process_extraction = function(data,
             sampleInfo[c("Code", "maxSampleStart", "dNAend")]
         names(sampleEndInfo) = c("Code", "Date", "dNA")
         
-
         sampleInfoCompress = dplyr::bind_rows(sampleStartInfo,
                                               sampleEndInfo)
 
+        sampleInfoCompress$Year =
+            lubridate::year(sampleInfoCompress$Date)
+        sampleInfoCompress$Month =
+            lubridate::month(sampleInfoCompress$Date)
+
+        tree("Create each group",
+             3, end=TRUE, inEnd=2, verbose=verbose)
+
         if (timeStep == "season") {
-            sampleInfoCompress$Date =
+            data$Month = lubridate::month(data$Date)
+            # data$group = get_Season[data$Month]
+
+            data$SeasonDate =
+                lubridate::add_with_rollback(data$Date,
+                                             - months(subSeasons[data$Month]))
+
+            data$group = format(data$SeasonDate, "%m")
+            
+            # data$YearSeason =
+                # paste0(lubridate::year(data$SeasonDate), "-",
+                       # get_Season[lubridate::month(data$SeasonDate)])
+
+
+            ###
+            # seasonInfo =
+                # dplyr::summarise(dplyr::group_by(data,
+                                                 # Code,
+                                                 # YearSeason),
+                                 # Date=Date[!duplicated(YearSeason)],
+                                 # .groups="drop")
+            # seasonInfo =
+            #     dplyr::summarise(
+            #                dplyr::group_by(seasonInfo,
+            #                                Code,
+            #                                Date=get_Season[Month]),
+            #                nYear=dplyr::n(),
+            #                .groups="drop")
+            ###
+            
+
+            sampleInfoCompress$Season =
                 get_Season[lubridate::month(sampleInfoCompress$Date)]
             sampleInfoCompress =
                 dplyr::summarise(dplyr::group_by(sampleInfoCompress,
-                                                 Code, Date),
+                                                 Code, Season),
                                  dNA=sum(dNA),
-                                 addYear=dplyr::n() - 1,
+                                 # addYear=dplyr::n() - 1,
                                  .groups="drop")
+
+            
         } else if (timeStep == "year-season") {
-            sampleInfoCompress$Date =
+            data$SeasonDate =
+                lubridate::add_with_rollback(
+                               data$Date,
+                               - months(subSeasons[lubridate::month(data$Date)]))
+            # data$YearSeason =
+            #     paste0(lubridate::year(data$SeasonDate),
+            #            "-",
+            #            get_Season[lubridate::month(data$SeasonDate)])
+
+            data$group = format(data$SeasonDate, "%Y-%m")
+
+            sampleInfoCompress$YearSeason =
                 paste0(lubridate::year(sampleInfoCompress$Date),
                        "-",
-                       lubridate::month(sampleInfoCompress$Date))
+                       get_Season[lubridate::month(sampleInfoCompress$Date)])
         }
 
-        data = dplyr::full_join(data,
-                                sampleInfo[c("Code",
-                                             "minDateRef",
-                                             "minDate")],
-                                by=c("Code"))
 
-        tree("Removing useless data", 3, end=TRUE, inEnd=2,
-             verbose=verbose)
-        data = dplyr::select(data, -c(Shift,
-                                      spStart,
-                                      spEnd,
-                                      dt2add))
+        # stop()
+        
     }
 
+
+### Pre Extraction ___________________________________________________
     tree("Grouping data", 1, verbose=verbose)
 
     if (timeStep == "none") {
-        data = dplyr::group_by(data,
-                               Code)
         colGroup = "Code"
-        
-    } else if (timeStep %in% c("year", "year-month", "month")) {
-        if (timeStep == "year") {
-            groupFormat = "%Y"
-        } else if (timeStep == "year-month") {
-            groupFormat = "%Y-%m"
-        } else if (timeStep == "month") {
-            groupFormat = "%m"
-        }
-        data = dplyr::group_by(data,
-                               Code,
-                               Date_g=format(Date,
-                                             groupFormat))
-        colGroup = c("Code", "Date_g")
-
-    } else if (timeStep == "yearday") {
-        data = dplyr::group_by(data,
-                               Code,
-                               Date_g=lubridate::yday(Date))
-        colGroup = c("Code", "Date_g")
+        data = dplyr::group_by(data, Code)
         
     } else {
-        if (timeStep == "year-season") {
-            data = dplyr::group_by(data,
-                                   Code,
-                                   Date_g=SeasonDate,
-                                   YearSeason=YearSeason)
-            colGroup = c("Code", "Date_g", "YearSeason")
-            
-        } else if (timeStep == "season") {
-            data = dplyr::group_by(data,
-                                   Code,
-                                   Date_g=Season)
-            colGroup = c("Code", "Date_g")
-        }
+        colGroup = c("Code", "group")
+        data = dplyr::group_by(data, Code, group)
     }
 
-    
-    if (timeStep != "none") {
-        nOK = data$minDateRef <= data$Date
-        data = data[nOK,]
-        if (any(isDate)) {
-            minDateRef_save = dplyr::select(dplyr::ungroup(data),
-                                            c(Code,
-                                              minDateRef,
-                                              minDate))
-            minDateRef_save = dplyr::distinct(minDateRef_save,
-                                              .keep_all=TRUE)
-        }
-        data = dplyr::select(data, -c("minDateRef", "minDate"))
-    }
-
-    tree("Application of the function",
-         1, verbose=verbose)
-
-
-    if (!is.null(keep) & !(timeStep %in% c("month",
-                                           "season",
-                                           "yearday"))) {
+    if (!is.null(keep)) {
         if (timeStep == "none") {
             keepDate = list(Date="Date")
-            # colGroup = c("Code", "Date")
         } else {
             keepDate = NULL
         }
@@ -1752,6 +2107,9 @@ process_extraction = function(data,
         }
     }
 
+    tree("Application of the function",
+         1, verbose=verbose)
+
     data = purrr::reduce(.x=lapply(1:nfunct,
                                    apply_extraction,
                                    data=data,
@@ -1763,31 +2121,19 @@ process_extraction = function(data,
                                    keep=keep,
                                    colGroup=colGroup),
                          .f=dplyr::full_join, by=colGroup)
+
+    tree("Cleaning extracted tibble", 1, verbose=verbose)
+    tree("Manage possible infinite values", 2, verbose=verbose)
     
     data = dplyr::select(data, -dplyr::starts_with("id"))
-
     if (!is.null(keep) & !(timeStep %in% c("month",
                                            "season",
                                            "yearday"))) {
-        data = dplyr::select(data, -"isNA") 
+        data = dplyr::select(data, -"isNA")
     }
-    
-    # if (timeStep == "yearday") {
-    #     data$Date_g = as.Date(data$Date_g-1,
-    #                           origin=as.Date("1970-01-01"))
-    # }
 
     nValue = nfunct
-
-    tree("Cleaning extracted tibble", 1, verbose=verbose)
-
-    if (timeStep != "none" & any(isDate)) {
-        data = dplyr::full_join(data,
-                                minDateRef_save,
-                                by="Code")
-        rm (minDateRef_save)
-    }
-
+    
     infinite2NA = function (X) {
         if (tibble::is_tibble(X)) {
             X = dplyr::mutate(X, dplyr::across(.fns=infinite2NA))
@@ -1806,67 +2152,241 @@ process_extraction = function(data,
                          .keep="all")
     data = dplyr::ungroup(data)
 
+
+### Reformat data ____________________________________________________
+    tree("Recreate a date vector and add value for NApct computing",
+         2, end=TRUE, verbose=verbose)
+    
     if (timeStep == "year") {
-        sampleInfoCompress$Date = format(sampleInfoCompress$Date,
-                                         groupFormat)
+        if (is.null(keep) | !is.null(keep) & any(isDate)) {
+            data = dplyr::full_join(data,
+                                    dplyr::select(sampleInfo,
+                                                  Code,
+                                                  spStart),
+                                    by="Code")
+            
+            if (is.null(keep)) {
+                data = dplyr::mutate(data,
+                                     Date=as.Date(
+                                         paste0(
+                                             group,
+                                             "-",
+                                             spStart)))
+            } else {
+                data = dplyr::mutate(data,
+                                     Date_group=as.Date(
+                                         paste0(group,
+                                                "-",
+                                                spStart)))
+            }
+            data = dplyr::select(data, -spStart)
+        }
+        
+        data = dplyr::select(data, -group)
+        data = dplyr::relocate(data, Date, .after=Code)
+
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfoCompress,
+                                              Code,
+                                              Date,
+                                              dNA),
+                                by=c("Code", "Date"))
+        data = tidyr::replace_na(data, list(dNA=0))
         data$nDay = 365.25
-        
-    } else if (timeStep == "year-month") {
-        sampleInfoCompress$Date = format(sampleInfoCompress$Date,
-                                         groupFormat)
-        data$nDay = 30.4375
 
-    } else if (timeStep == "month") {
-        sampleInfoCompress$Date = format(sampleInfoCompress$Date,
-                                         groupFormat)
-        sampleInfoCompress =
-            dplyr::summarise(dplyr::group_by(sampleInfoCompress,
-                                             Code, Date),
-                             dNA=sum(dNA),
-                             .groups="drop")
-        
-        data = dplyr::full_join(data,
-                                dplyr::rename(monthInfo,
-                                              Date_g=Date),
-                                by=c("Code", "Date_g"))
-        data$nDay = 30.4375*data$nYear
-        data = dplyr::select(data, -nYear)
-
-    } else if (timeStep == "year-season") {
-        data$nDay = nchar(gsub("^.*-", "", data$YearSeason)) * 30.4375
-        
-    } else if (timeStep == "season") {
-        data = dplyr::full_join(data,
-                                dplyr::rename(seasonInfo,
-                                              Date_g=Date),
-                                by=c("Code", "Date_g"))
-
-        data$nDay = nchar(data$Date_g) * 30.4375 *
-            data$nYear
-        data = dplyr::select(data, -nYear)
         
     } else if (timeStep == "yearday") {
+        data = dplyr::rename(data, Yearday=group)
+        data = dplyr::mutate(data,
+                             Date=
+                                 as.Date("1972-01-01") +
+                                 Yearday - 1)
+        data = dplyr::relocate(data, Date, .after=Code)
+        
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfoCompress,
+                                              Code,
+                                              Yearday,
+                                              dNA),
+                                by=c("Code", "Yearday"))
+        data = tidyr::replace_na(data, list(dNA=0))
+
         data = dplyr::full_join(data,
                                 dplyr::select(sampleInfo,
-                                              c("Code", "minDate")),
-                                by=c("Code"))
-        
-        data$minDate = lubridate::year(data$minDate)
-        data = dplyr::mutate(dplyr::group_by(data,
-                                             Code),
-                             Date_g=as.Date(Date_g-1,
-                                            origin=
-                                                as.Date(paste0(
-                                                    minDate,
-                                                    "-01-01"))))
+                                              Code,
+                                              nYear),
+                                by="Code")
+        data = dplyr::rename(data, nDay=nYear)
 
         
-        data = dplyr::ungroup(data)
-        data = dplyr::filter(data, 1:length(Date_g) <= 365, .by=Code)
-        data = dplyr::select(data, -minDate)
+    } else if (timeStep == "year-month") {
+        if (is.null(keep) | !is.null(keep) & any(isDate)) {
+            data = dplyr::full_join(data,
+                                    dplyr::select(sampleInfo,
+                                                  Code,
+                                                  spStart),
+                                    by="Code")
+            
+            if (is.null(keep)) {
+                data = dplyr::mutate(data,
+                                     Date=as.Date(
+                                         paste0(
+                                             group,
+                                             "-",
+                                             spStart)))
+            } else {
+                data = dplyr::mutate(data,
+                                     Date_group=as.Date(
+                                         paste0(group,
+                                                "-",
+                                                spStart)))
+            }
+            data = dplyr::select(data, -spStart)
+        }
+        
+        data = dplyr::select(data, -group)
+        data = dplyr::relocate(data, Date, .after=Code)
+
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfoCompress,
+                                              Code,
+                                              Date,
+                                              dNA),
+                                by=c("Code", "Date"))
+        data = tidyr::replace_na(data, list(dNA=0))
+        data$nDay = 30.4375
+
+        
+    } else if (timeStep == "month") {        
+        data = dplyr::rename(data, Month=group)
+        data$Month = as.numeric(data$Month)
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfo,
+                                              Code,
+                                              spStart),
+                                by="Code")
+        data = dplyr::mutate(data,
+                             Date=
+                                 as.Date(paste0("1972-",
+                                                Month,
+                                                "-",
+                                                spStart)))
+        data = dplyr::select(data, -spStart)
+        data = dplyr::relocate(data, Date, .after=Code)
+        
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfoCompress,
+                                              Code,
+                                              Month,
+                                              dNA),
+                                by=c("Code", "Month"))
+        data = tidyr::replace_na(data, list(dNA=0))
+
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfo,
+                                              Code,
+                                              nYear),
+                                by="Code")
+        data$nDay = 30.4375 * data$nYear
+        data = dplyr::select(data, -nYear)
+
+        
+    } else if (timeStep == "year-season") {
+        if (is.null(keep) | !is.null(keep) & any(isDate)) {
+            data = dplyr::full_join(data,
+                                    dplyr::select(sampleInfo,
+                                                  Code,
+                                                  spStart),
+                                    by="Code")
+            
+            if (is.null(keep)) {
+                data = dplyr::mutate(data,
+                                     Date=as.Date(
+                                         paste0(
+                                             group,
+                                             "-",
+                                             spStart)))
+            } else {
+                data = dplyr::mutate(data,
+                                     Date_group=as.Date(
+                                         paste0(group,
+                                                "-",
+                                                spStart)))
+            }
+            data = dplyr::select(data, -spStart)
+        }
+        
+        data = dplyr::select(data, -group)
+        data = dplyr::relocate(data, Date, .after=Code)
+
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfoCompress,
+                                              Code,
+                                              Date,
+                                              dNA),
+                                by=c("Code", "Date"))
+        data = tidyr::replace_na(data, list(dNA=0))
+
+        data$YearSeason =
+            paste0(lubridate::year(data$Date),
+                   "-",
+                   get_Season[lubridate::month(data$Date)])
+        data$nDay = nchar(gsub("^.*-", "", data$YearSeason)) * 30.4375
+
+        
+    } else if (timeStep == "season") {
+        data$group = as.numeric(data$group)
+        data$Season = get_Season[data$group]
+        
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfo,
+                                              Code,
+                                              spStart),
+                                by="Code")
+        data = dplyr::mutate(data,
+                             Date=
+                                 as.Date(paste0("1972-",
+                                                group,
+                                                "-",
+                                                spStart)))
+        data = dplyr::select(data, -spStart)
+        data = dplyr::select(data, -group)
+        data = dplyr::relocate(data, Date, .after=Code)
+        data = dplyr::relocate(data, Season, .after=Date)
+        
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfoCompress,
+                                              Code,
+                                              Season,
+                                              dNA),
+                                by=c("Code", "Season"))
+        data = tidyr::replace_na(data, list(dNA=0))
+
+        data = dplyr::full_join(data,
+                                dplyr::select(sampleInfo,
+                                              Code,
+                                              nYear),
+                                by="Code")
+
+        data$nDay = nchar(data$Season) * 30.4375 * data$nYear
+        data = dplyr::select(data, -nYear)
+    } 
+
+### isDate ___________________________________________________________
+    if (any(isDate)) {
+        tree('Converting index to date', 1, verbose=verbose)
+        data = convert_dateEX(data, sampleInfo,
+                              isDate, nValue=nValue,
+                              keep=keep,
+                              verbose=verbose)
     }
-
-    if (timeStep %in% c("none", "yearday")) {
+    
+    
+### Compute NApct ____________________________________________________
+    tree("NA management", 1, verbose=verbose)
+    tree("Compute NA percentage", 2, verbose=verbose)
+    
+    if (timeStep == "none") {
         compute_NApct = function (nNA, n) {
             NApct = round(nNA/n * 100, 1)
             return (NApct)
@@ -1876,28 +2396,18 @@ process_extraction = function(data,
                                                dplyr::starts_with(
                                                           paste0("nNA",
                                                                  1:nValue)),
-                                           # .fns=compute_NApct,
                                            .fns=\(x) compute_NApct(x, n=n),
                                            .names=paste0("NApct{1:",
-                                                         nValue, "}")
-                                           # n=n
-                                           ),
+                                                         nValue, "}")),
                              .keep="all")
         data = dplyr::ungroup(data)
 
         data = dplyr::select(data, -c(paste0("nNA",
-                                             1:nValue), n))
-        
+                                             1:nValue),
+                                      n,
+                                      dNA))
+
     } else {
-        data = dplyr::full_join(data,
-                                dplyr::rename(sampleInfoCompress[
-                                           c("Code",
-                                             "Date",
-                                             "dNA")], Date_g=Date),
-                                by=c("Code", "Date_g"))
-
-        data$dNA[is.na(data$dNA)] = 0
-
         compute_NApct = function (nNA, dNA, nDay) {
             NApct = round((nNA + dNA)/nDay * 100, 1)
             return (NApct)
@@ -1907,93 +2417,30 @@ process_extraction = function(data,
                                                dplyr::starts_with(
                                                           paste0("nNA",
                                                                  1:nValue)),
-                                           # .fns=compute_NApct,
                                            .fns=\(x) compute_NApct(x,
                                                                    dNA=dNA,
                                                                    nDay=nDay),
                                            .names=paste0("NApct{1:",
-                                                         nValue, "}")
-                                           # dNA=dNA,
-                                           # nDay=nDay
-                                           ),
+                                                         nValue, "}")),
                              .keep="all")
-
-        data = dplyr::ungroup(data)
-        data = dplyr::full_join(data,
-                                samplePeriod[c("Code",
-                                               "spStart")],
-                                by="Code")
-
-        if (!(timeStep %in% c("month", "season", "yearday"))) {
-            data =
-                dplyr::mutate(dplyr::group_by(data, Code),
-                              Date_g=as.Date(paste0(Date_g,
-                                                    "-",
-                                                    spStart[1])),
-                              .keep="all")
-            data = dplyr::ungroup(data)
-        }
-
-        if (any(isDate) & timeStep == "month") {
-            data =
-                dplyr::mutate(dplyr::group_by(data, Code),
-                              Date_g=as.Date(paste0(
-                                  lubridate::year(minDate[1]),
-                                  "-",
-                                  Date_g,
-                                  "-",
-                                  spStart[1])),
-                              .keep="all")
-            data = dplyr::ungroup(data)
-        }
-
-        if (any(isDate) & timeStep == "season") {
-            data =
-                dplyr::mutate(dplyr::group_by(data, Code),
-                              Date_g=as.Date(paste0(
-                                  lubridate::year(minDate[1]),
-                                  "-",
-                                  startSeasonsMonth[
-                                      match(Date_g,
-                                            names(startSeasonsMonth))],
-                                  "-",
-                                  spStart[1])),
-                              .keep="all")
-            data = dplyr::ungroup(data)
-        }
 
         data = dplyr::select(data, -c(paste0("nNA",
                                              1:nValue),
                                       n,
                                       dNA,
-                                      nDay,
-                                      spStart))
+                                      nDay))
     }
-
-    if (any(isDate)) {
-        data = convert_dateEX(data, isDate, nValue=nValue,
-                              verbose=verbose)
-    }
-
-    if (timeStep != "none") {
-        if (!is.null(keep) &
-            !(timeStep %in% c("month", "season", "yearday"))) {
-            data = dplyr::select(data, -"Date_g") 
-        } else {
-            data = dplyr::rename(data, Date=Date_g)
-        }
-    }
-
     
     if (!is.null(NApct_lim)) {
+        tree(paste0('Removing data if NA percentage is strictly above ',
+                    NApct_lim, " %"), 2, verbose=verbose)
         data = NA_filter(data, timeStep=timeStep,
                          nValue=nValue,
                          NApct_lim=NApct_lim,
                          mod=NULL, verbose=verbose)
     }
 
-    tree("Last cleaning", 1, end=TRUE, verbose=verbose)
-    
+    tree("Cleaning NA percentage info", 2, end=TRUE, verbose=verbose)
     if (!rmNApct & is.null(keep) & !compress) {
         if (nfunct == 1) {
             data = dplyr::rename(data, NApct=NApct1)
@@ -2014,12 +2461,11 @@ process_extraction = function(data,
                                              1:nValue)))
     }
 
-    ### ?????
-    if (!is.null(keep) & !(timeStep %in% c("month", "season"))) {
-        data = dplyr::select(data, Code, dplyr::everything())
-        data = dplyr::relocate(data, Date, .after=Code)
-    }
-    ###
+
+### Reshape __________________________________________________________
+    tree("Last cleaning and formating for output", 1, end=TRUE,
+         verbose=verbose)
+    tree("Rename column", 2, inEnd=1, verbose=verbose)
 
     idCode = which(names(data) == "Code")
     if (!(timeStep == "none" & is.null(keep))) {
@@ -2044,7 +2490,7 @@ process_extraction = function(data,
             names_save[c(idCode_save, idDate_save, idValue_save)] 
     }
 
-    if (!is.null(keep) & !compress) {
+    if (!is.null(keep)) {
         test = grepl("Value[[:digit:]]", names(data))
         if (any(test)) {
             
@@ -2070,13 +2516,10 @@ process_extraction = function(data,
     valueName = names_save[idValue_save]
     if (timeStep == "season") {
         Ref = Seasons
-        expandRef = Seasons
         shiftRef = startSeasonsMonth
         
     } else if (timeStep == "year-season") {
-        # data = dplyr::select(data, -"YearSeason")
         Ref = get_Season
-        expandRef = Seasons
         shiftRef = startSeasonsMonth
         
     } else if (timeStep %in% c("year-month", "month")) {
@@ -2086,11 +2529,11 @@ process_extraction = function(data,
         Ref = gsub("û", "u", Ref)
         Ref = gsub("é", "e", Ref)
         Ref = gsub("[.]", "", Ref)
-        expandRef = Ref
         shiftRef = 1:12
     }
 
     if (compress) {
+        tree("Compress line to column", 2, inEnd=1, verbose=verbose)
         if (timeStep %in% c("year-month", "year-season")) {
             data = dplyr::mutate(
                               data,
@@ -2098,25 +2541,25 @@ process_extraction = function(data,
                                   Ref[lubridate::month(get(dateName))],
                               !!dateName:=
                                   lubridate::year(get(dateName)))
+            
         } else if (timeStep == "season") {
-            names(data)[names(data) == dateName] = "Ref"
+            data = dplyr::rename(data, Ref=Season)
+            data = dplyr::select(data,
+                                 -dplyr::all_of(dateName))
+            
         } else if (timeStep == "month") {
-            data$Ref = Ref[as.numeric(data[[dateName]])]
-            data = dplyr::select(data, -dateName)
+            data$Ref = Ref[data$Month]
+            data = dplyr::select(data,
+                                 -dplyr::all_of(c(dateName,
+                                                  "Month")))
         }
-        
         data =
             tidyr::pivot_wider(
                        data,
                        names_from=Ref,
                        values_from=valueName,
                        names_glue="{.value}_{Ref}")
-
     }
-
-    # if ((compress & timeStep %in%
-    #      c("year-season", "year-month", "month", "season")) |
-    #     expand & timeStep %in% c("none", "year")) {
 
     if (compress) {
         if (!is.null(suffix)) {
@@ -2143,17 +2586,16 @@ process_extraction = function(data,
         }
     }
 
+
+    
+### Keep _____________________________________________________________
     if (!is.null(keep)) {
-        if (any(keep == "all")) {
-            names_to_keep = names(data)
-        } else {
-            names_to_keep =
-                c(names_save[idCode_save],
-                  names_save[idDate_save],
-                  names_save[idValue_save][names_save[idValue_save] %in% keep])
-            names_to_keep = names_to_keep[names_to_keep %in% names(data)]
+        tree(paste0("Keeping only the needed data : " ,
+                    paste0(keep, collapse=", ")), 2, inEnd=1,
+             verbose=verbose)
+        if (!any(keep == "all")) {
+            data = dplyr::select(data, dplyr::all_of(keep))
         }
-        data = dplyr::select(data, names_to_keep)
     }
 
     data = tidyr::unnest(data,
@@ -2166,6 +2608,8 @@ process_extraction = function(data,
     }
 
     if (expand) {
+        tree("Expand the tibble in a list of tibble for each extracted variable",
+             2, inEnd=1, verbose=verbose)
         is.character_or_date = function (x) {
             is.character(x) | lubridate::is.Date(x)
         }
@@ -2205,6 +2649,7 @@ process_extraction = function(data,
         }
     }
     
+    tree("Return data", 2, end=TRUE, inEnd=1, verbose=verbose)
     if (verbose) {
         print(data)
     }
@@ -2227,14 +2672,10 @@ apply_extraction = function (i, data, colArgs, otherArgs,
             dplyr::mutate_all(data[unlist(colArg)],
                               as.numeric)))
 
-    # print(data)
-    # print(colArg)
-    # print(otherArg)
-    
     if (!is.null(keep) & !(timeStep %in% c("month",
                                            "season",
                                            "yearday"))) {
-        
+
         if (i == 1) {
             data = dplyr::mutate(
                               data,
@@ -2260,7 +2701,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
                               .keep="none"
                           )
         }
-        
+
     } else {
         if (i == 1) {
             data = dplyr::summarise(
@@ -2399,20 +2840,19 @@ reduce_convert_data_hide = function (data, i, isDate) {
         data = dplyr::mutate(dplyr::group_by(data, Code),
                              dplyr::across(.cols=dplyr::starts_with(
                                                             Value),
-                                           # .fns=add,
-                                           .fns=\(x) add(x, y=Shift)
-                                           # y=Shift
-                                           ),
+                                           .fns=\(x) add(x, y=Shift)),
                              dplyr::across(.cols=dplyr::starts_with(
                                                             Value),
-                                           .fns=convert_data_hide),
+                                           .fns=\(x) convert_data_hide(
+                                                         x,
+                                                         Date=Date)),
                              .keep="all")
     }
     data = dplyr::ungroup(data)
     return (data)
 }
 
-convert_data_hide = function (Value) {
+convert_data_hide = function (Value, Date) {
     Month = Value / (365.25/12)        
     MonthNoNA = Month[!is.na(Month)]    
     fact = 2*pi/12
@@ -2426,9 +2866,17 @@ convert_data_hide = function (Value) {
     above[is.na(above)] = FALSE
     below = Month < lowLim
     below[is.na(below)] = FALSE
+
+    Value = Value - 1
     
-    Value[above] = Value[above] - 366
-    Value[below] = Value[below] + 365
+    nDay = rep(365, length(Date))
+    nDay[check_leapYear(lubridate::year(Date))] = 366
+    
+    Value[above] = Value[above] - nDay[above]
+    Value[below] = Value[below] + nDay[below]
+
+    Value = round((Value + nDay/2) %% nDay - nDay/2)  
+    
     return (Value)
 }
 
@@ -2442,23 +2890,33 @@ convert_data_hide = function (Value) {
 #' @return A tibble containing a column named "Date" which corresponds to the date of each sample and one or several columns named "ValueEXx" (x being a number) that correspond to the extracted variables.
 #' @note documentation generated by chatGPT
 #' @export
-convert_dateEX = function(data, isDate, nValue,
+convert_dateEX = function(data, sampleInfo, isDate, nValue,
+                          keep=keep,
                           verbose=TRUE) {
-
-    tree('Converting index to date', 1, verbose=verbose)
-    data$sampleStart = pmax(data$Date_g,
-                            pmax(data$minDateRef,
-                                 data$minDate))    
-    data$Shift = lubridate::yday(data$sampleStart) - 1
+    
+    data = dplyr::full_join(data,
+                            dplyr::select(sampleInfo,
+                                          Code, minDate),
+                            by="Code")
+    if (is.null(keep)) {
+        data$reelSampleStart = pmax(data$Date,
+                                    data$minDate)
+    } else {
+        data$reelSampleStart = pmax(data$Date_group,
+                                    data$minDate)
+        data = dplyr::select(data, -Date_group)
+    }
+    
+    data$Shift = lubridate::yday(data$reelSampleStart) - 1
     
     nfunct = length(isDate)
-
-    data = purrr::reduce(.x=1:nfunct, .f=reduce_convert_data_hide,
+    data = purrr::reduce(.x=1:nfunct,
+                         .f=reduce_convert_data_hide,
                          isDate=isDate,
                          .init=data)
-    data = dplyr::select(data, -c(minDateRef,
-                                  minDate,
-                                  sampleStart,
+    
+    data = dplyr::select(data, -c(minDate,
+                                  reelSampleStart,
                                   Shift))
     return (data)
 }
@@ -2479,9 +2937,6 @@ convert_dateEX = function(data, isDate, nValue,
 #' @export
 NA_filter = function (data, timeStep, nValue, NApct_lim=1,
                       mod=NULL, verbose=TRUE) {
-
-    tree(paste0('Removing data if NA percentage is strictly above ',
-                NApct_lim, " %"), 1, verbose=verbose)
 
     NApct2filter = function (X, NApct_lim) {
         filter = X > NApct_lim
@@ -2537,7 +2992,7 @@ NA_filter = function (data, timeStep, nValue, NApct_lim=1,
     # }
 
     data = dplyr::select(data, -paste0("filter", 1:nValue))
-
+    
     if (!is.null(mod)) {
         res = list(data=data, mod=mod)
         return (res)

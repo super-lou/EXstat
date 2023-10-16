@@ -13,6 +13,7 @@ process_trend(
   period_trend = NULL,
   period_change = NULL,
   exProb = 0.01,
+  dev = FALSE,
   verbose = FALSE,
   ...
 )

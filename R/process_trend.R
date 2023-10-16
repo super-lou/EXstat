@@ -81,9 +81,124 @@ process_trend = function (dataEX,
                           period_trend=NULL,
                           period_change=NULL,
                           exProb=0.01,
+                          dev=FALSE,
                           verbose=FALSE,
                           ...) {
 
+    # check dataEX
+    if (!tibble::is_tibble(dataEX)) {
+        stop ("'dataEX' is not a tibble from the tibble package. This tibble needs a unique column of objects of class 'Date'")
+    }
+    
+    # check Date column
+    if (sum(sapply(dataEX, lubridate::is.Date)) == 0 & !dev) {
+        stop ("There needs to be at least one column of objects of class 'Date'.")
+    }
+    if (sum(sapply(dataEX, lubridate::is.Date)) > 1) {
+        stop ("There is more than one column of objects of class 'Date'. There needs to be only one column of objects of class 'Date'.")
+    }
+
+    # check numerical columns
+    if (sum(sapply(dataEX, is.numeric) |
+            sapply(dataEX, is.logical)) < 1) {
+        stop ("There needs to be at least one column of class 'numeric' or 'logical'.")
+    }
+    
+    # check character columns
+    ID_colnames = names(dplyr::select(dataEX,
+                                      dplyr::where(is.character)))
+    if (sum(sapply(dataEX, is.character)) == 0 & !dev) {
+        if (any(duplicated(
+            dataEX[[which(sapply(dataEX,
+                               lubridate::is.Date))]]))) {
+            stop ("There is at least one date value that repeat. It seems that either there is more than one time serie (so they need to be identify by a repeted character column for each serie) or there is an error in the format of the date column.")
+        } else {
+            warning ("There is no character column in order to identify uniquely each time serie. But hence it seems that there is only one time serie, a generic identifier will be add.")
+            dataEX$id = "time serie"
+        }
+    } else if (sum(sapply(dataEX, is.character)) > 1) {
+        message ("There is more than one character column. Thus, all the columns will be use to identify uniquely each time serie.")
+        dataEX = tidyr::unite(dataEX, "ID",
+                            dplyr::where(is.character),
+                            sep="_")
+    }
+
+    # DATE NA
+
+    if (!dev) {
+        # check unicity of Date column for each character identifier
+        Date_unicity =
+            dplyr::summarise(dplyr::group_by(dataEX,
+                                             get(names(dataEX)[sapply(dataEX, is.character)])),
+                             n=sum(duplicated(get(names(dataEX)[sapply(dataEX, lubridate::is.Date)]))))
+        if (any(Date_unicity$n > 0)) {
+            stop (paste0("There is at least one duplicated date in time serie(s) named '",
+                         paste0(Date_unicity[[1]][Date_unicity$n > 0],
+                                collapse=", "), "'."))
+        }
+    }
+    
+    # # check continuity of Date column for each character identifier
+    # Date_continuity =
+    #     dplyr::summarise(dplyr::group_by(dplyr::arrange(dataEX, get(names(dataEX)[sapply(dataEX, lubridate::is.Date)])),
+    #                                      get(names(dataEX)[sapply(dataEX, is.character)])),
+    #                      n=length(unique(diff(get(names(dataEX)[sapply(dataEX, lubridate::is.Date)])))))
+
+    # print(Date_continuity)
+    # print(dataEX)
+    
+    # if (any(Date_continuity$n > 1)) {
+    #     stop (paste0("There is at least one date discontinuity in time serie(s) named '",
+    #                  paste0(Date_continuity[[1]][Date_continuity$n > 1],
+    #                         collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
+    # }
+
+
+    # check period
+    if (!is.null(period_trend)) {
+        test = try(as.Date(period_trend), silent=TRUE)
+        if (any("try-error" %in% class(test)) || any(is.na(test))) {
+            stop ("'period_trend' is not in a format able to be coerced to a 'Date' object")
+        }
+        if (length(period_trend) == 1) {
+            stop ("There is only one date in 'period_trend'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period_trend' to NULL in order to use the entire available time serie(s).")
+        }
+        if (length(period_trend) > 2) {
+            stop ("There is more than two date in 'period_trend'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period_trend' to NULL in order to use the entire available time serie(s).")
+        }
+        if (all(order(period_trend) == c(2, 1))) {
+            message ("'period_trend' seems to have two date not in the increasing order. Thus, 'period_trend' will be re-ordered.")
+            period_trend = sort(period_trend)
+        }
+    }
+
+    if (!is.null(period_change)) {
+        test = try(as.Date(period_change), silent=TRUE)
+        if (any("try-error" %in% class(test)) || any(is.na(test))) {
+            stop ("'period_change' is not in a format able to be coerced to a 'Date' object")
+        }
+        if (length(period_change) == 1) {
+            stop ("There is only one date in 'period_change'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period_change' to NULL in order to use the entire available time serie(s).")
+        }
+        if (length(period_change) > 2) {
+            stop ("There is more than two date in 'period_change'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period_change' to NULL in order to use the entire available time serie(s).")
+        }
+        if (all(order(period_change) == c(2, 1))) {
+            message ("'period_change' seems to have two date not in the increasing order. Thus, 'period_change' will be re-ordered.")
+            period_change = sort(period_change)
+        }
+    }
+
+    # check verbose
+    if (!is.logical(verbose)) {
+        stop ("'verbose' needs to be an object of class 'logical'.")
+    }
+
+
+
+
+
+    
     tree("TREND ANALYSE", 0, verbose=verbose)
     
     names_save = names(dataEX)
@@ -131,7 +246,11 @@ process_trend = function (dataEX,
             }
             if (is.na(period[2])) {
                 period[2] = max(dataEX$Date, na.rm=TRUE)
-            }            
+            }
+
+            print(period)
+            print(dataEX)
+            
             dataEX_period = dplyr::filter(dataEX,
                                           min(period) <= Date &
                                           Date <= max(period))
@@ -200,6 +319,12 @@ process_trend = function (dataEX,
 
     names(trendEX)[c(idCode)] =
         names_save[c(idCode_save)]
+
+
+    if (length(ID_colnames) > 1) {
+        trendEX = tidyr::separate(trendEX, col="ID",
+                                  into=ID_colnames, sep="_")
+    }
 
     return (trendEX)
 }

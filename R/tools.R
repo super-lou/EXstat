@@ -610,12 +610,11 @@ tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {
 }
 
 
-
-check_leapYear = function (year) {
+check_leapYear_hide = function (year) {
     if ((year %% 4) == 0) {
         if ((year %% 100) == 0) {
             if ((year %% 400) == 0) {
-               return (TRUE)
+                return (TRUE)
             } else {
                 return (FALSE)
             }
@@ -624,7 +623,12 @@ check_leapYear = function (year) {
         }
     } else {
         return (FALSE)
-    }
+    }  
+}
+
+
+check_leapYear = function (year) {
+    sapply(year, check_leapYear_hide)
 }
 
 

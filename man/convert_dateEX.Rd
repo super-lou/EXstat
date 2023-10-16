@@ -4,7 +4,7 @@
 \alias{convert_dateEX}
 \title{convert_dateEX}
 \usage{
-convert_dateEX(data, isDate, nValue, verbose = TRUE)
+convert_dateEX(data, sampleInfo, isDate, nValue, keep = keep, verbose = TRUE)
 }
 \arguments{
 \item{data}{A tibble containing a column named "Date" which corresponds to the index of each sample and one or several columns named "ValueEXx" (x being a number) that correspond to the extracted variables.}

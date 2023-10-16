@@ -17,6 +17,7 @@ process_extraction(
   Seasons = c("DJF", "MAM", "JJA", "SON"),
   nameEX = "X",
   suffix = NULL,
+  suffix_delimiter = "_",
   keep = NULL,
   compress = FALSE,
   expand = FALSE,
@@ -67,7 +68,7 @@ A tibble: 201 × 4
 }}
 
 \item{samplePeriod}{A \link[base:character]{character} or a \link[base:c]{vector} of two \link[base:character]{characters} that will indicate how to sample the data for each time step defined by \link{timeStep}. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if \link{timeStep} is set to \code{"year"}, \link{samplePeriod} needs to be formated as \verb{\%m-\%d} (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if \code{timeStep="year"} and \code{samplePeriod="03-19"}, \link{funct} will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a \link[base:c]{vector} of two \link[base:character]{characters} as \code{samplePeriod=c("02-01", "07-31")} in order to process data only if the date is between the 1st february and the 31th jully of each year.
-For a monthly (or seasonal) extraction, \link{samplePeriod} needs to give only day in each month, so for example \code{samplePeriod="10"} to extract data from the 10th of each month to the 9th of each following month.}
+\strong{in developpement} For a monthly (or seasonal) extraction, \link{samplePeriod} needs to give only day in each month, so for example \code{samplePeriod="10"} to extract data from the 10th of each month to the 9th of each following month.}
 
 \item{period}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{samplePeriod=NULL}, which considers all available data for each time serie.}
 
