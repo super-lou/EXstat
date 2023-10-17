@@ -197,6 +197,7 @@ process_extraction = function(data,
                               verbose=FALSE) {
 
     # print(data)
+    # print(tail(data, n=20))
     
     # check data
     if (!tibble::is_tibble(data)) {
@@ -1073,14 +1074,6 @@ process_extraction = function(data,
                                                            "-",
                                                            minSpStart)),
                                             1, 0),
-                             add2end=
-                                 dplyr::if_else(
-                                            dt2add[1] == 1 &
-                                            maxDate < 
-                                            as.Date(paste0(maxYear,
-                                                           "-",
-                                                           maxSpEnd)),
-                                            1, 0),
 
                              rm2end=
                                  dplyr::if_else(
@@ -1089,6 +1082,15 @@ process_extraction = function(data,
                                             as.Date(paste0(maxYear,
                                                            "-",
                                                            minSpStart)),
+                                            1, 0),
+
+                             add2end=
+                                 dplyr::if_else(
+                                            dt2add[1] == 1 &
+                                            maxDate >
+                                            as.Date(paste0(maxYear - rm2end,
+                                                           "-",
+                                                           maxSpEnd)),
                                             1, 0),
                              
 
@@ -1213,7 +1215,7 @@ process_extraction = function(data,
                               size=interval-leapYear-dNA)
 
         # print(Group, n=Inf)
-        # print(Group)
+        # print(Group, n=Inf)
         
         Group = dplyr::filter(Group,
                               size > 0)
@@ -2404,8 +2406,7 @@ process_extraction = function(data,
 
         data = dplyr::select(data, -c(paste0("nNA",
                                              1:nValue),
-                                      n,
-                                      dNA))
+                                      n))
 
     } else {
         compute_NApct = function (nNA, dNA, nDay) {
@@ -2541,6 +2542,10 @@ process_extraction = function(data,
                                   Ref[lubridate::month(get(dateName))],
                               !!dateName:=
                                   lubridate::year(get(dateName)))
+
+            if (timeStep == "year-season") {
+                data = dplyr::select(data, -YearSeason)
+            }
             
         } else if (timeStep == "season") {
             data = dplyr::rename(data, Ref=Season)
@@ -2628,7 +2633,7 @@ process_extraction = function(data,
             append,
             x=names(data)[sapply(data,
                                  is.character_or_date)])
-        data = lapply(valueName_select, dplyr::select,
+        data = lapply(dplyr::all_of(valueName_select), dplyr::select,
                       .data=data)
         names(data) = valueName
 
