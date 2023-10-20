@@ -30,6 +30,7 @@ reduce_process = function (data, id, Process,
                            cancel_lim=FALSE,
                            expand_overwrite=NULL,
                            samplePeriod_overwrite=NULL,
+                           rm_duplicates=FALSE,
                            dev=FALSE,
                            verbose=FALSE) {
 
@@ -46,7 +47,7 @@ reduce_process = function (data, id, Process,
     rm ("process")
     gc()
     
-    if (!is.null(expand_overwrite)) {
+    if (!is.null(expand_overwrite) & id == (length(Process)-1)) {
         expand = expand_overwrite
     }
     
@@ -81,6 +82,7 @@ reduce_process = function (data, id, Process,
                               compress=compress,
                               expand=expand,
                               rmNApct=rmNApct,
+                              rm_duplicates=rm_duplicates,
                               dev=dev,
                               verbose=verbose)
     return (data)
@@ -138,6 +140,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             simplify=FALSE,
                             expand_overwrite=NULL,
                             samplePeriod_overwrite=NULL,
+                            rm_duplicates=FALSE,
                             dev=FALSE,
                             verbose=FALSE) {
     
@@ -238,6 +241,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                           cancel_lim=cancel_lim,
                           expand_overwrite=expand_overwrite,
                           samplePeriod_overwrite=samplePeriod_overwrite,
+                          rm_duplicates=rm_duplicates,
                           dev=dev,
                           verbose=verbose,
                           .init=data)
