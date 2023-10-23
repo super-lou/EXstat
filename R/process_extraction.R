@@ -689,6 +689,8 @@ process_extraction = function(data,
         }
     }
 
+    # nameEX_noSuffix = nameEX
+    
     if (!is.null(suffix)) {
         nameEX = paste0(nameEX, suffix)
     }
@@ -2648,25 +2650,27 @@ process_extraction = function(data,
                        names_glue="{.value}_{Ref}")
     }
 
-    if (compress) {
-        if (!is.null(suffix)) {
-            valueName = c()
-            for (i in 1:length(suffix)) {
-                ok = grepl(suffix[i], names(data), fixed=TRUE)
-                valueName_no_suffix = gsub(suffix[i], "",
-                                           names(data)[ok],
-                                           fixed=TRUE)
-                valueName = c(valueName, valueName_no_suffix)
-                valueName_suffix = paste0(valueName_no_suffix,
-                                          suffix[i])
-                names(data)[ok] = valueName_suffix
-            }
-            valueName = valueName[!duplicated(valueName)]
-
-        } else {
-            valueName = nameEX
+    
+    if (!is.null(suffix)) {
+        valueName = c()
+        for (i in 1:length(suffix)) {
+            ok = grepl(suffix[i], names(data), fixed=TRUE)
+            valueName_no_suffix = gsub(suffix[i], "",
+                                       names(data)[ok],
+                                       fixed=TRUE)
+            valueName = c(valueName, valueName_no_suffix)
+            valueName_suffix = paste0(valueName_no_suffix,
+                                      suffix[i])
+            names(data)[ok] = valueName_suffix
         }
+        valueName = valueName[!duplicated(valueName)]
 
+    } else {
+        valueName = nameEX
+    }
+    
+
+    if (compress) {
         if (timeStep %in% c("year-month", "year-season")) {
             data[[dateName]] = as.Date(paste0(data[[dateName]],
                                               "-01-01"))
@@ -2694,18 +2698,16 @@ process_extraction = function(data,
                                into=ID_colnames, sep="_")
     }
 
+
     if (expand) {
         tree("Expand the tibble in a list of tibble for each extracted variable",
              2, inEnd=1, verbose=verbose)
         is.character_or_date = function (x) {
             is.character(x) | lubridate::is.Date(x)
         }
-        if (compress) {
-            if (!is.null(suffix)) {
-                valueName_suffix = lapply(valueName, paste0, suffix)
-            } else {
-                valueName_suffix = valueName
-            }
+        
+        if (!is.null(suffix)) {
+            valueName_suffix = lapply(valueName, paste0, suffix)
         } else {
             valueName_suffix = valueName
         }
@@ -2715,6 +2717,7 @@ process_extraction = function(data,
             append,
             x=names(data)[sapply(data,
                                  is.character_or_date)])
+
         data = lapply(dplyr::all_of(valueName_select), dplyr::select,
                       .data=data)
         names(data) = valueName
