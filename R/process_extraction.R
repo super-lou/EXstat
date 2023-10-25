@@ -174,7 +174,6 @@
 #'                    expand=TRUE)
 #' 
 #' @importFrom rlang .data
-#' @importFrom rlang data_syms
 #' @export
 #' @md
 process_extraction = function(data,
@@ -2770,9 +2769,9 @@ apply_extraction = function (i, data, colArgs, otherArgs,
         if (i == 1) {
             data = dplyr::mutate(
                               data,
-                              !!!data_syms(keepDate),
+                              !!!rlang::data_syms(keepDate),
                               !!paste0("ValueEX", i) :=
-                                  f(!!!data_syms(colArg),
+                                  f(!!!rlang::data_syms(colArg),
                                     !!!otherArg),
                               !!paste0("nNA", i) :=
                                   sum(isNA),
@@ -2783,7 +2782,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
             data = dplyr::mutate(
                               data,
                               !!paste0("ValueEX", i) :=
-                                  f(!!!data_syms(colArg),
+                                  f(!!!rlang::data_syms(colArg),
                                     !!!otherArg),
                               !!paste0("nNA", i) :=
                                   sum(isNA),
@@ -2797,9 +2796,9 @@ apply_extraction = function (i, data, colArgs, otherArgs,
         if (i == 1) {
             data = dplyr::summarise(
                               data,
-                              !!!data_syms(keepDate),
+                              !!!rlang::data_syms(keepDate),
                               !!paste0("ValueEX", i) :=
-                                  f(!!!data_syms(colArg),
+                                  f(!!!rlang::data_syms(colArg),
                                     !!!otherArg),
                               !!paste0("nNA", i) :=
                                   sum(isNA),
@@ -2809,9 +2808,9 @@ apply_extraction = function (i, data, colArgs, otherArgs,
         } else {
             data = dplyr::summarise(
                               data,
-                              !!!data_syms(keepDate),
+                              !!!rlang::data_syms(keepDate),
                               !!paste0("ValueEX", i) :=
-                                  f(!!!data_syms(colArg),
+                                  f(!!!rlang::data_syms(colArg),
                                     !!!otherArg),
                               !!paste0("nNA", i) :=
                                   sum(isNA),
