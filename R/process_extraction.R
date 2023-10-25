@@ -2482,7 +2482,7 @@ process_extraction = function(data,
                                                dplyr::starts_with(
                                                           paste0("nNA",
                                                                  1:nValue)),
-                                           .fns=\(x) compute_NApct(x, n=n),
+                                           .fns=~compute_NApct(.x, n=n),
                                            .names=paste0("NApct{1:",
                                                          nValue, "}")),
                              .keep="all")
@@ -2502,9 +2502,9 @@ process_extraction = function(data,
                                                dplyr::starts_with(
                                                           paste0("nNA",
                                                                  1:nValue)),
-                                           .fns=\(x) compute_NApct(x,
-                                                                   dNA=dNA,
-                                                                   nDay=nDay),
+                                           .fns=~compute_NApct(.x,
+                                                               dNA=dNA,
+                                                               nDay=nDay),
                                            .names=paste0("NApct{1:",
                                                          nValue, "}")),
                              .keep="all")
@@ -2922,12 +2922,12 @@ reduce_convert_data_hide = function (data, i, isDate) {
         data = dplyr::mutate(dplyr::group_by(data, Code),
                              dplyr::across(.cols=dplyr::starts_with(
                                                             Value),
-                                           .fns=\(x) add(x, y=Shift)),
+                                           .fns=~add(.x, y=Shift)),
                              dplyr::across(.cols=dplyr::starts_with(
                                                             Value),
-                                           .fns=\(x) convert_data_hide(
-                                                         x,
-                                                         Date=Date)),
+                                           .fns=~convert_data_hide(
+                                                    .x,
+                                                    Date=Date)),
                              .keep="all")
     }
     data = dplyr::ungroup(data)
@@ -3048,8 +3048,9 @@ NA_filter = function (data, timeStep, nValue, NApct_lim=1,
                                                              1:nValue)),
                                        # .fns=NApct2filter,
                                        # NApct_lim=NApct_lim,
-                                       .fns=\(x) NApct2filter(x, NApct_lim=
-                                                                     NApct_lim),
+                                       .fns=~NApct2filter(.x,
+                                                          NApct_lim=
+                                                              NApct_lim),
                                        .names=paste0("filter{1:",
                                                      nValue, "}")),
                          .keep="all")
@@ -3176,10 +3177,10 @@ missing_year = function (data, nValue, NAyear_lim=10,
                          dplyr::across(.cols=paste0("Value",
                                               1:nValue),
                                        # .fns=missing_year_hide,
-                                       .fns=\(x) missing_year_hide(
-                                                     x,
-                                                     Date=Date,
-                                                     NAyear_lim=NAyear_lim)
+                                       .fns=~missing_year_hide(
+                                                .x,
+                                                Date=Date,
+                                                NAyear_lim=NAyear_lim)
                                        # Date=Date,
                                        # NAyear_lim=NAyear_lim
                                        ),
