@@ -199,6 +199,8 @@ process_extraction = function(data,
 
     # print(data)
     # print(tail(data, n=20))
+
+    # get(names(data)[sapply(data, is.character)])
     
     # check data
     if (!tibble::is_tibble(data)) {
@@ -244,7 +246,7 @@ process_extraction = function(data,
         # check unicity of Date column for each character identifier
         Date_unicity =
             dplyr::summarise(dplyr::group_by(data,
-                                             get(names(data)[sapply(data, is.character)])),
+                                             group=get(names(data)[sapply(data, is.character)])),
                              n=sum(duplicated(get(names(data)[sapply(data, lubridate::is.Date)]))))
         if (any(Date_unicity$n > 0)) {
 
@@ -265,8 +267,10 @@ process_extraction = function(data,
                              "'. 'rm_duplicates' is set to TRUE, so duplicated time serie(s) will be remove."))
                 data =
                     dplyr::filter(dplyr::group_by(data,
-                                                  get(names(data)[sapply(data, is.character)])),
+                                                  group=get(names(data)[sapply(data, is.character)])),
                                   !duplicated(get(names(data)[sapply(data, lubridate::is.Date)])))
+                data = dplyr::select(data, -group)
+                
             } else {
                 stop (paste0("There is at least one duplicated date in time serie(s) named '",
                              paste0(Date_unicity[[1]][Date_unicity$n > 0],
