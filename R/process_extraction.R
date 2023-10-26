@@ -1208,8 +1208,8 @@ process_extraction = function(data,
         Group = dplyr::reframe(dplyr::group_by(sampleInfo,
                                                Code),
                                Year =
-                                   lubridate::year(minSampleStart):
-                                   lubridate::year(maxSampleStart))
+                                   lubridate::year(get(minRef)):
+                                   lubridate::year(get(maxRef)))
 
         Group = dplyr::full_join(Group,
                                  dplyr::select(sampleInfoCompress,
