@@ -2656,12 +2656,16 @@ process_extraction = function(data,
         valueName = c()
         for (i in 1:length(suffix)) {
             ok = grepl(suffix[i], names(data), fixed=TRUE)
-            valueName_no_suffix = gsub(suffix[i], "",
-                                       names(data)[ok],
-                                       fixed=TRUE)
+            if (nchar(suffix[i]) > 0) {
+                valueName_no_suffix = gsub(suffix[i], "",
+                                           names(data)[ok],
+                                           fixed=TRUE)
+            } else {
+                valueName_no_suffix = names(data)[ok]
+            }
             valueName = c(valueName, valueName_no_suffix)
             valueName_suffix = paste0(valueName_no_suffix,
-                                      suffix[i])
+                                          suffix[i])
             names(data)[ok] = valueName_suffix
         }
         valueName = valueName[!duplicated(valueName)]
@@ -2700,7 +2704,7 @@ process_extraction = function(data,
     }
 
 
-    if (expand) {
+    if (expand & !any(suffix == "")) {
         tree("Expand the tibble in a list of tibble for each extracted variable",
              2, inEnd=1, verbose=verbose)
         is.character_or_date = function (x) {
@@ -2718,7 +2722,6 @@ process_extraction = function(data,
             append,
             x=names(data)[sapply(data,
                                  is.character_or_date)])
-
         data = lapply(dplyr::all_of(valueName_select), dplyr::select,
                       .data=data)
         names(data) = valueName
