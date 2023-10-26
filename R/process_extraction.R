@@ -229,7 +229,7 @@ process_extraction = function(data,
             stop ("There is at least one date value that repeat. It seems that either there is more than one time serie (so they need to be identify by a repeted character column for each serie) or there is an error in the format of the date column.")
         } else {
             warning ("There is no character column in order to identify uniquely each time serie. But hence it seems that there is only one time serie, a generic identifier will be add.")
-            data$id = "time serie"
+            data$ID = "time serie"
         }
     } else if (sum(sapply(data, is.character)) > 1) {
         message ("There is more than one character column. Thus, all the columns will be use to identify uniquely each time serie.")
@@ -354,13 +354,21 @@ process_extraction = function(data,
             }
 
             if (tibble::is_tibble(samplePeriod)) {
+
+                if (length(ID_colnames) == 1) {
+                    length_test =
+                        length(unique(data[[names(data)[
+                                               sapply(data,
+                                                      is.character)]]]))
+                } else {
+                    length_test =
+                        length(unique(data$ID))
+                }
+                
                 if ("sp" %in% names(samplePeriod) &
                     1 < ncol(samplePeriod) &
                     ncol(samplePeriod) <= 3 &
-                    nrow(samplePeriod) ==
-                    length(unique(data[[names(data)[
-                                           sapply(data,
-                                                  is.character)]]]))) {
+                    nrow(samplePeriod) == length_test) {
                     dplyr::mutate(samplePeriod,
                                   check_samplePeriod(sp, timeStep))
                 }
