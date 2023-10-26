@@ -2288,18 +2288,18 @@ process_extraction = function(data,
         data = dplyr::full_join(data,
                                 dplyr::select(sampleInfo,
                                               Code,
-                                              minYear,
-                                              maxYear),
+                                              minSampleStart),
                                 by="Code")
 
         data = dplyr::rename(data, Yearday=group)
         data = dplyr::mutate(data,
                              Date=
                                  as.Date(
-                                     paste0(round((maxYear+minYear)/2),
+                                     paste0(lubridate::year(minSampleStart),
                                             "-01-01")) +
                                  Yearday - 1)
         data = dplyr::relocate(data, Date, .after=Code)
+        data = dplyr::select(data, -minSampleStart)
         
         data = dplyr::full_join(data,
                                 dplyr::select(sampleInfoCompress,
@@ -2358,15 +2358,18 @@ process_extraction = function(data,
         data = dplyr::full_join(data,
                                 dplyr::select(sampleInfo,
                                               Code,
-                                              spStart),
+                                              spStart,
+                                              minSampleStart),
                                 by="Code")
         data = dplyr::mutate(data,
                              Date=
-                                 as.Date(paste0("1972-",
+                                 as.Date(paste0(lubridate::year(minSampleStart),
+                                                "-",
                                                 Month,
                                                 "-",
                                                 spStart)))
         data = dplyr::select(data, -spStart)
+        data = dplyr::select(data, -minSampleStart)
         data = dplyr::relocate(data, Date, .after=Code)
         
         data = dplyr::full_join(data,
@@ -2432,15 +2435,18 @@ process_extraction = function(data,
         data = dplyr::full_join(data,
                                 dplyr::select(sampleInfo,
                                               Code,
-                                              spStart),
+                                              spStart,
+                                              minSampleStart),
                                 by="Code")
         data = dplyr::mutate(data,
                              Date=
-                                 as.Date(paste0("1972-",
+                                 as.Date(paste0(lubridate::year(minSampleStart),
+                                                "-",
                                                 group,
                                                 "-",
                                                 spStart)))
         data = dplyr::select(data, -spStart)
+        data = dplyr::select(data, -minSampleStart)
         data = dplyr::select(data, -group)
         data = dplyr::relocate(data, Date, .after=Code)
         data = dplyr::relocate(data, Season, .after=Date)
