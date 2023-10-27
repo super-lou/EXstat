@@ -902,7 +902,11 @@ process_extraction = function(data,
 
 
     # <3
-    data = dplyr::arrange(data, Code, Date)
+    if ("Date" %in% names(data)) {
+        data = dplyr::arrange(data, Code, Date)
+    } else {
+        data = dplyr::arrange(data, Code)
+    }
     # <3
     
     
