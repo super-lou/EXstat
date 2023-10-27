@@ -900,6 +900,11 @@ process_extraction = function(data,
         }
     }
 
+
+    # <3
+    data = dplyr::arrange(data, Code, Date)
+    # <3
+    
     
     if (timeStep == "none") {
         tree("None extraction", 1, verbose=verbose)
