@@ -197,6 +197,7 @@ process_extraction = function(data,
                               dev=FALSE,
                               verbose=FALSE) {
 
+
     # print(data)
     # print(tail(data, n=20))
 
@@ -1328,51 +1329,51 @@ process_extraction = function(data,
                                 by="Code")
         
         
-        if (any(samplePeriod$interval != 366)) {
+        # if (any(samplePeriod$interval != 366)) {
             
-            samplePeriod$mStart =
-                as.numeric(substr(samplePeriod$spStart, 1, 2))
-            samplePeriod$dStart =
-                as.numeric(substr(samplePeriod$spStart, 4, 5))
-            samplePeriod$mEnd =
-                as.numeric(substr(samplePeriod$spEnd, 1, 2))
-            samplePeriod$dEnd =
-                as.numeric(substr(samplePeriod$spEnd, 4, 5))
+        #     samplePeriod$mStart =
+        #         as.numeric(substr(samplePeriod$spStart, 1, 2))
+        #     samplePeriod$dStart =
+        #         as.numeric(substr(samplePeriod$spStart, 4, 5))
+        #     samplePeriod$mEnd =
+        #         as.numeric(substr(samplePeriod$spEnd, 1, 2))
+        #     samplePeriod$dEnd =
+        #         as.numeric(substr(samplePeriod$spEnd, 4, 5))
             
-            data = dplyr::full_join(data,
-                                    samplePeriod[c("Code",
-                                                   "mStart",
-                                                   "dStart",
-                                                   "mEnd",
-                                                   "dEnd")],
-                                    by="Code")
+        #     data = dplyr::full_join(data,
+        #                             samplePeriod[c("Code",
+        #                                            "mStart",
+        #                                            "dStart",
+        #                                            "mEnd",
+        #                                            "dEnd")],
+        #                             by="Code")
 
-            data = dplyr::filter(data,
+        #     data = dplyr::filter(data,
                                  
-            dt2add == 0
-            & (mStart < lubridate::month(Date)
-                | (mStart == lubridate::month(Date)
-                    & dStart <= lubridate::day(Date)))
-            & (lubridate::month(Date) < mEnd
-                | (lubridate::month(Date) == mEnd
-                    & lubridate::day(Date) <= dEnd))
+        #     dt2add == 0
+        #     & (mStart < lubridate::month(Date)
+        #         | (mStart == lubridate::month(Date)
+        #             & dStart <= lubridate::day(Date)))
+        #     & (lubridate::month(Date) < mEnd
+        #         | (lubridate::month(Date) == mEnd
+        #             & lubridate::day(Date) <= dEnd))
             
-            |
+        #     |
             
-            dt2add == 1
-            & ((lubridate::month(Date) < mEnd
-                | (lubridate::month(Date) == mEnd
-                    & lubridate::day(Date) <= dEnd))
-                | (mStart < lubridate::month(Date)
-                    | (mStart == lubridate::month(Date)
-                        & dStart <= lubridate::day(Date))))
-            )
+        #     dt2add == 1
+        #     & ((lubridate::month(Date) < mEnd
+        #         | (lubridate::month(Date) == mEnd
+        #             & lubridate::day(Date) <= dEnd))
+        #         | (mStart < lubridate::month(Date)
+        #             | (mStart == lubridate::month(Date)
+        #                 & dStart <= lubridate::day(Date))))
+        #     )
             
-            data = dplyr::select(data, -c(mStart,
-                                          dStart,
-                                          mEnd,
-                                          dEnd))
-        }
+        #     data = dplyr::select(data, -c(mStart,
+        #                                   dStart,
+        #                                   mEnd,
+        #                                   dEnd))
+        # }
 
         tree("Computing of time indicators for each time serie",
              3, inEnd=2, verbose=verbose)
@@ -1502,65 +1503,65 @@ process_extraction = function(data,
             lubridate::year(sampleInfoCompress$Date)
 
         
-        tree("Create each group",
-             3, end=TRUE, inEnd=2, verbose=verbose)
+        # tree("Create each group",
+        #      3, end=TRUE, inEnd=2, verbose=verbose)
         
-        Group = dplyr::reframe(dplyr::group_by(sampleInfo,
-                                               Code),
-                               Year =
-                                   lubridate::year(minSampleStart):
-                                   lubridate::year(maxSampleStart))
+        # Group = dplyr::reframe(dplyr::group_by(sampleInfo,
+        #                                        Code),
+        #                        Year =
+        #                            lubridate::year(minSampleStart):
+        #                            lubridate::year(maxSampleStart))
 
-        Group = dplyr::full_join(Group,
-                                 dplyr::select(sampleInfoCompress,
-                                               Code,
-                                               Year,
-                                               dNA),
-                                 by=c("Code", "Year"))
-        Group = tidyr::replace_na(Group, list(dNA=0)) 
-        Group = dplyr::full_join(Group,
-                                 dplyr::select(sampleInfo,
-                                               Code,
-                                               interval,
-                                               isStartAfter29Feb,
-                                               is29FebIn,
-                                               spStart),
-                                 by=c("Code"))
+        # Group = dplyr::full_join(Group,
+        #                          dplyr::select(sampleInfoCompress,
+        #                                        Code,
+        #                                        Year,
+        #                                        dNA),
+        #                          by=c("Code", "Year"))
+        # Group = tidyr::replace_na(Group, list(dNA=0)) 
+        # Group = dplyr::full_join(Group,
+        #                          dplyr::select(sampleInfo,
+        #                                        Code,
+        #                                        interval,
+        #                                        isStartAfter29Feb,
+        #                                        is29FebIn,
+        #                                        spStart),
+        #                          by=c("Code"))
 
-        Group = dplyr::mutate(
-                           Group, 
-                           isLeapYear=
-                               dplyr::if_else(
-                                          isStartAfter29Feb,
-                                          check_leapYear(Year+1),
-                                          check_leapYear(Year)))
+        # Group = dplyr::mutate(
+        #                    Group, 
+        #                    isLeapYear=
+        #                        dplyr::if_else(
+        #                                   isStartAfter29Feb,
+        #                                   check_leapYear(Year+1),
+        #                                   check_leapYear(Year)))
         
-        Group = dplyr::mutate(Group,
-                              leapYear=
-                                  dplyr::if_else(isLeapYear,
-                                                 0, 1),
-                              leapYear=
-                                  dplyr::if_else(is29FebIn,
-                                                 leapYear, 0),
-                              size=interval-leapYear-dNA)
+        # Group = dplyr::mutate(Group,
+        #                       leapYear=
+        #                           dplyr::if_else(isLeapYear,
+        #                                          0, 1),
+        #                       leapYear=
+        #                           dplyr::if_else(is29FebIn,
+        #                                          leapYear, 0),
+        #                       size=interval-leapYear-dNA)
 
-        Group = dplyr::filter(Group,
-                              size > 0)
+        # Group = dplyr::filter(Group,
+        #                       size > 0)
 
-        Group = dplyr::reframe(
-                           dplyr::group_by(Group, Code, Year),
-                           Date=as.Date(paste0(Year,
-                                               "-",
-                                               spStart)),
-                           Date=seq.Date(
-                               Date+dNA,
-                               Date+dNA+size-1,
-                               "days"),
-                           group=
-                               lubridate::yday(Date))
-        Group = dplyr::select(Group, group)
+        # Group = dplyr::reframe(
+        #                    dplyr::group_by(Group, Code, Year),
+        #                    Date=as.Date(paste0(Year,
+        #                                        "-",
+        #                                        spStart)),
+        #                    Date=seq.Date(
+        #                        Date+dNA,
+        #                        Date+dNA+size-1,
+        #                        "days"),
+        #                    group=
+        #                        lubridate::yday(Date))
+        # Group = dplyr::select(Group, group)
         
-        data = dplyr::bind_cols(data, Group)
+        # data = dplyr::bind_cols(data, Group)
 
         
         sampleInfoCompress =
@@ -1582,6 +1583,9 @@ process_extraction = function(data,
                                        Code, Yearday),
                        dNA=sum(dNA),
                        .groups="drop")
+
+        data$group = lubridate::yday(data$Date)
+        # data$group = data$Yearday
         
         
 ### Month ____________________________________________________________
@@ -2292,6 +2296,10 @@ process_extraction = function(data,
                                 by="Code")
 
         data = dplyr::rename(data, Yearday=group)
+
+        # print(data)
+        # print(dplyr::summarise(dplyr::group_by(data, Code), Date=which.min(ValueEX2)))
+
         data = dplyr::mutate(data,
                              Date=
                                  as.Date(
