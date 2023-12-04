@@ -24,6 +24,8 @@ Imports:
     lubridate,
     stats,
     rlang,
-    CircStats
+    CircStats,
+    stringr,
+    purrr
 RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)

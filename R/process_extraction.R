@@ -2872,7 +2872,6 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
                                        timeStep="month",
                                        rmNApct=TRUE,
                                        verbose=FALSE)
-        
         data_code_month = data_code
         names(data_code)[names(data_code) == "XM"] = args[[1]][1]
         data_code = process_extraction(data=data_code,
@@ -2890,7 +2889,6 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
         }
         samplePeriod = paste0(samplePeriod, "-01")
     }
-
     samplePeriod = unlist(samplePeriod)
     
     if (length(samplePeriod) == 1 | any(is.na(samplePeriod))) {

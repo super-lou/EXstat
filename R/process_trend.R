@@ -174,40 +174,57 @@ process_trend = function (dataEX,
             stop ("'suffix_delimiter' needs to be an object of class 'character' of length 1.")
         }
     }
+
+    check_date = function (x) {try(as.Date(x), silent=TRUE)}
+    check_order = function (x) {all(order(x) == c(2, 1))}
     
     # check period
     if (!is.null(period_trend)) {
-        test = try(as.Date(period_trend), silent=TRUE)
+        if (!is.list(period_trend)) {
+            period_trend = list(period_trend)
+        }
+        nPeriod_trend = length(period_trend)
+        test = unlist(lapply(period_trend, check_date))
         if (any("try-error" %in% class(test)) || any(is.na(test))) {
             stop ("'period_trend' is not in a format able to be coerced to a 'Date' object")
         }
-        if (length(period_trend) == 1) {
+        if (any(unlist(lapply(period_trend, length)) == 1)) {
             stop ("There is only one date in 'period_trend'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period_trend' to NULL in order to use the entire available time serie(s).")
         }
-        if (length(period_trend) > 2) {
+        if (any(unlist(lapply(period_trend, length)) > 2)) {
             stop ("There is more than two date in 'period_trend'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period_trend' to NULL in order to use the entire available time serie(s).")
         }
-        if (all(order(period_trend) == c(2, 1))) {
+        if (any(unlist(lapply(period_trend, check_order)))) {
             message ("'period_trend' seems to have two date not in the increasing order. Thus, 'period_trend' will be re-ordered.")
-            period_trend = sort(period_trend)
+            period_trend = lapply(period_trend, sort)
         }
+    } else {
+        nPeriod_trend = 1
     }
 
+    
+
     if (!is.null(period_change)) {
-        test = try(as.Date(period_change), silent=TRUE)
+        if (!is.list(period_change)) {
+            period_change = list(period_change)
+        }
+        nPeriod_change = length(period_change)
+        test = unlist(lapply(period_change, check_date))
         if (any("try-error" %in% class(test)) || any(is.na(test))) {
             stop ("'period_change' is not in a format able to be coerced to a 'Date' object")
         }
-        if (length(period_change) == 1) {
+        if (any(unlist(lapply(period_trend, length)) == 1)) {
             stop ("There is only one date in 'period_change'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period_change' to NULL in order to use the entire available time serie(s).")
         }
-        if (length(period_change) > 2) {
+        if (any(unlist(lapply(period_trend, length)) > 2)) {
             stop ("There is more than two date in 'period_change'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period_change' to NULL in order to use the entire available time serie(s).")
         }
-        if (all(order(period_change) == c(2, 1))) {
+        if (any(unlist(lapply(period_change, check_order)))) {
             message ("'period_change' seems to have two date not in the increasing order. Thus, 'period_change' will be re-ordered.")
-            period_change = sort(period_change)
+            period_change = lapply(period_change, sort)
         }
+    } else {
+        nPeriod_change = 1
     }
 
     # check verbose
@@ -262,15 +279,7 @@ process_trend = function (dataEX,
         c("Code", "Date", unlist(colName))
 
     
-    if (is.null(period_trend)) {
-        nPeriod_trend = 1
-    } else {
-        if (!is.list(period_trend)) {
-            period_trend = list(period_trend)
-        }
-        nPeriod_trend = length(period_trend)
-    }
-    
+
     trendEX = dplyr::tibble()
     
     for (j in 1:nPeriod_trend) {
