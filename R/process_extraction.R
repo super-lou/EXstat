@@ -1046,8 +1046,7 @@ process_extraction = function(data,
                                                "spEnd",
                                                "dt2add")],
                                 by="Code")
-        
-        
+
         if (any(samplePeriod$interval != 366)) {
             tree("Sampling of the data", 3, inEnd=2, verbose=verbose)
             
@@ -1097,7 +1096,7 @@ process_extraction = function(data,
         
         tree("Computing of time indicators for each time serie",
              3, inEnd=2, verbose=verbose)
-        
+
         sampleInfo =
             dplyr::summarise(dplyr::group_by(data, Code),
                              
@@ -2881,9 +2880,9 @@ fix_samplePeriod = function (samplePeriod, data_code=NULL, args=NA,
                                        timeStep="none",
                                        rmNApct=TRUE,
                                        verbose=FALSE)
-
         samplePeriod =
-            data_code_month$Month[data_code_month$XM == data_code$fXM]
+            data_code_month$Month[data_code_month$XM == data_code$fXM][1]
+        
         if (any(is.na(samplePeriod))) {
             samplePeriod = "09"
         }
