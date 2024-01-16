@@ -198,10 +198,6 @@ process_extraction = function(data,
                               verbose=FALSE) {
 
 
-    # print(data)
-    # print(tail(data, n=20))
-
-    # get(names(data)[sapply(data, is.character)])
     
     # check data
     if (!tibble::is_tibble(data)) {
@@ -908,8 +904,8 @@ process_extraction = function(data,
         data = dplyr::arrange(data, Code)
     }
     # <3
-    
-    
+
+
     if (timeStep == "none") {
         tree("None extraction", 1, verbose=verbose)
 
@@ -2181,7 +2177,6 @@ process_extraction = function(data,
         
     }
 
-
 ### Pre Extraction ___________________________________________________
     tree("Grouping data", 1, verbose=verbose)
 
@@ -2494,7 +2489,6 @@ process_extraction = function(data,
                               verbose=verbose)
     }
 
-    
 ### Compute NApct ____________________________________________________
     tree("NA management", 1, verbose=verbose)
     tree("Compute NA percentage", 2, verbose=verbose)
