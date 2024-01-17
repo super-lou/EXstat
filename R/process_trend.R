@@ -56,13 +56,13 @@
 #'
 #' # Extraction
 #' dataEX = process_extraction(data=data,
-#'                             samplePeriod=c("05-01",
+#'                             sampling_period=c("05-01",
 #'                                            "11-30"),
 #'                             funct=max,
 #'                             na.rm=TRUE,
 #'                             period=c(as.Date("1990-01-01"),
 #'                                      as.Date("2020-12-31")),
-#'                             timeStep="year")
+#'                             time_step="year")
 #'
 #' trendEX = process_trend(data=dataEX)
 #' trendEX
@@ -338,7 +338,7 @@ process_trend = function (dataEX,
 
             trendEX_period_Value =
                 dplyr::bind_cols(trendEX_period_Value,
-                                 var=names_save[idValue_save[k]])
+                                 variable=names_save[idValue_save[k]])
 
             if (!is.null(metaEX)) {
                 dataEX_Value =
@@ -507,7 +507,7 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
     Code = levels(factor(dataEX$Code))
     nCode = length(Code)
     # period = unique(trendEX$period)
-    var =  levels(factor(trendEX$var))
+    variable =  levels(factor(trendEX$variable))
 
     dataEX = dplyr::full_join(dataEX,
                               dplyr::select(trendEX,
@@ -516,18 +516,18 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
                               by="Code")
 
     if (!is.null(suffix)) {
-        var_no_suffix = var
+        variable_no_suffix = variable
         for (i in 1:length(suffix)) {
-            var_no_suffix = gsub(suffix[i], "",
-                                 var_no_suffix,
+            variable_no_suffix = gsub(suffix[i], "",
+                                 variable_no_suffix,
                                  fixed=TRUE)
         }
-        normalize = metaEX$normalize[metaEX$var == var_no_suffix]
+        is_normalize = metaEX$is_normalize[metaEX$variable == variable_no_suffix]
     } else {
-        normalize = metaEX$normalize[metaEX$var == var]
+        is_normalize = metaEX$is_normalize[metaEX$variable == variable]
     }
     
-    if (normalize) {
+    if (is_normalize) {
         dataEX = dplyr::filter(dataEX,
                                Date >= period[[1]][1] &
                                Date <= period[[1]][2],
@@ -568,7 +568,7 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
             if (jj == 1) {
                 dataMean_tmp = dataMean                            
             } else {
-                if (normalize) {
+                if (is_normalize) {
                     dataMean$change =
                         (dataMean$mean - dataMean_tmp$mean) /
                         dataMean_tmp$mean

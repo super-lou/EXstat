@@ -29,7 +29,7 @@ reduce_process = function (data, id, Process,
                            suffix=NULL,
                            cancel_lim=FALSE,
                            expand_overwrite=NULL,
-                           samplePeriod_overwrite=NULL,
+                           sampling_period_overwrite=NULL,
                            rm_duplicates=FALSE,
                            dev=FALSE,
                            verbose=FALSE) {
@@ -51,13 +51,13 @@ reduce_process = function (data, id, Process,
         expand = expand_overwrite
     }
     
-    if (is.null(samplePeriod_overwrite)) {
-        if (is.function(samplePeriod[[1]])) {
-            samplePeriod = dplyr::tibble(sp=list(samplePeriod[[1]]),
-                                         args=samplePeriod[2])
+    if (is.null(sampling_period_overwrite)) {
+        if (is.function(sampling_period[[1]])) {
+            sampling_period = dplyr::tibble(sp=list(sampling_period[[1]]),
+                                         args=sampling_period[2])
         }
     } else {
-        samplePeriod = samplePeriod_overwrite
+        sampling_period = sampling_period_overwrite
     }
 
     if (cancel_lim) {
@@ -69,10 +69,10 @@ reduce_process = function (data, id, Process,
     data = process_extraction(data=data,
                               funct=funct,
                               funct_args=funct_args,
-                              timeStep=timeStep,
-                              samplePeriod=samplePeriod,
+                              time_step=time_step,
+                              sampling_period=sampling_period,
                               period=period,
-                              isDate=isDate,
+                              is_date=is_date,
                               NApct_lim=NApct_lim,
                               NAyear_lim=NAyear_lim,
                               Seasons=Seasons,
@@ -100,7 +100,7 @@ get_last_Process = function (Process) {
             assign(process_names[pp], process[[pp]])
         }
     }
-    res = list(compress=compress, timeStep=timeStep, Seasons=Seasons)
+    res = list(compress=compress, time_step=time_step, Seasons=Seasons)
     return (res)
 }
 
@@ -119,7 +119,7 @@ get_last_Process = function (Process) {
 #' @param cancel_lim Specify whether to cancel limits (default = FALSE)
 #' @param simplify Specify whether to simplify the extracted data by column name (default = FALSE)
 #' @param expand_overwrite Overwrite the expand parameter (optional)
-#' @param samplePeriod_overwrite Overwrite the samplePeriod parameter (optional)
+#' @param sampling_period_overwrite Overwrite the sampling_period parameter (optional)
 #' @param verbose Specify whether to print out the process details (default = FALSE)
 #'
 #' @return A list of extracted data, along with meta data.
@@ -139,7 +139,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             cancel_lim=FALSE,
                             simplify=FALSE,
                             expand_overwrite=NULL,
-                            samplePeriod_overwrite=NULL,
+                            sampling_period_overwrite=NULL,
                             rm_duplicates=FALSE,
                             dev=FALSE,
                             verbose=FALSE) {
@@ -173,7 +173,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
     structure = replicate(length(topic_to_analyse), c())
     names(structure) = topic_to_analyse
 
-    var_analyse = c()
+    variable_analyse = c()
 
     nScript = length(script_to_analyse)
     metaEX = dplyr::tibble()
@@ -211,24 +211,24 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             if (!('None' %in% names(structure))) {
                 structure = append(list(None=c()), structure)
             }
-            structure[['None']] = c(structure[['None']], var)
+            structure[['None']] = c(structure[['None']], variable)
         } else if (length(split_script) == 2) {
             dir = split_script[2]
             dir = gsub('.*_', '', dir)
-            structure[[dir]] = c(structure[[dir]], var)
+            structure[[dir]] = c(structure[[dir]], variable)
         }
 
-        if (any(var %in% var_analyse)) {
+        if (any(variable %in% variable_analyse)) {
             next
         }
         
-        var_analyse = c(var_analyse, var)
+        variable_analyse = c(variable_analyse, variable)
 
         if (verbose) {
-            print(paste0('Computes ', Process$P$var))
+            print(paste0('Computes ', Process$P$variable))
         }
 
-        var_meta = var
+        variable_meta = variable
 
         nProcess = length(Process) - 1
         
@@ -240,7 +240,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                           suffix=suffix,
                           cancel_lim=cancel_lim,
                           expand_overwrite=expand_overwrite,
-                          samplePeriod_overwrite=samplePeriod_overwrite[[ss]],
+                          sampling_period_overwrite=sampling_period_overwrite[[ss]],
                           rm_duplicates=rm_duplicates,
                           dev=dev,
                           verbose=verbose,
@@ -250,9 +250,9 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         if (tibble::is_tibble(dataEX[[ss]])) {
             dataEX[[ss]] = list(dataEX[[ss]])
             if (!simplify) {
-                var = paste0(var, collapse=" ")
+                variable = paste0(variable, collapse=" ")
                 glose = paste0(glose, collapse=" ")
-                names(dataEX[[ss]]) = var
+                names(dataEX[[ss]]) = variable
             }
         }
 
@@ -261,22 +261,22 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         gc()
 
         compress = res$compress
-        timeStep = res$timeStep
+        time_step = res$time_step
         Seasons = res$Seasons
 
         metaEX = dplyr::bind_rows(
                             metaEX,
-                            dplyr::tibble(var=var_meta,
+                            dplyr::tibble(variable=variable_meta,
                                           unit=unit,
                                           is_date=is_date,
-                                          normalize=normalize,
+                                          is_normalize=is_normalize,
                                           palette=palette,
                                           glose=glose,
                                           topic=
                                               paste0(topic,
                                                      collapse="|"),
-                                          samplePeriod=
-                                              paste0(samplePeriod,
+                                          sampling_period=
+                                              paste0(sampling_period,
                                                      collapse="/")))
     }
     rm ("data")
@@ -287,7 +287,9 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
     if (simplify) {
         by = names(dplyr::select(dataEX[[1]],
                                  dplyr::where(is.character)))
-        dataEX = purrr::reduce(.x=dataEX, .f=full_join, by=by)
+        dataEX = purrr::reduce(.x=dataEX,
+                               .f=dplyr::full_join,
+                               by=by)
     }
 
     return (list(metaEX=metaEX, dataEX=dataEX))
