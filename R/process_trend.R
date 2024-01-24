@@ -522,12 +522,12 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
                                  variable_no_suffix,
                                  fixed=TRUE)
         }
-        is_normalize = metaEX$is_normalize[metaEX$variable == variable_no_suffix]
+        to_normalize = metaEX$to_normalize[metaEX$variable == variable_no_suffix]
     } else {
-        is_normalize = metaEX$is_normalize[metaEX$variable == variable]
+        to_normalize = metaEX$to_normalize[metaEX$variable == variable]
     }
     
-    if (is_normalize) {
+    if (to_normalize) {
         dataEX = dplyr::filter(dataEX,
                                Date >= period[[1]][1] &
                                Date <= period[[1]][2],
@@ -568,7 +568,7 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
             if (jj == 1) {
                 dataMean_tmp = dataMean                            
             } else {
-                if (is_normalize) {
+                if (to_normalize) {
                     dataMean$change =
                         (dataMean$mean - dataMean_tmp$mean) /
                         dataMean_tmp$mean

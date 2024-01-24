@@ -204,7 +204,8 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         for (pp in 1:length(principal)) {
             assign(principal_names[pp], principal[[pp]])
         }
-        
+
+        variable = variable_en
         split_script = split_path(script)
         
         if (length(split_script) == 1) {
@@ -227,8 +228,6 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         if (verbose) {
             print(paste0('Computes ', Process$P$variable))
         }
-
-        variable_meta = variable
 
         nProcess = length(Process) - 1
         
@@ -264,20 +263,36 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         time_step = res$time_step
         Seasons = res$Seasons
 
-        metaEX = dplyr::bind_rows(
-                            metaEX,
-                            dplyr::tibble(variable=variable_meta,
-                                          unit=unit,
-                                          is_date=is_date,
-                                          is_normalize=is_normalize,
-                                          palette=palette,
-                                          glose=glose,
-                                          topic=
-                                              paste0(topic,
-                                                     collapse="|"),
-                                          sampling_period=
-                                              paste0(sampling_period,
-                                                     collapse="/")))
+        
+        metaEX =
+            dplyr::bind_rows(
+                       metaEX,
+                       dplyr::tibble(
+                                  ### English ___
+                                  variable_en=variable_en,
+                                  unit_en=unit_en,
+                                  name_en=name_en,
+                                  description_en=description_en,
+                                  method_en=method_en,
+                                  sampling_period_en=
+                                      paste0(sampling_period_en,
+                                             collapse=", "),
+                                  topic_en=topic_en,
+                                  ### French ___
+                                  variable_fr=variable_fr,
+                                  unit_fr=unit_fr,
+                                  name_fr=name_fr,
+                                  description_fr=description_fr,
+                                  method_fr=method_fr,
+                                  sampling_period_fr=
+                                      paste0(sampling_period_fr,
+                                             collapse=", "),
+                                  topic_fr=topic_fr,
+                                  ### Global ___
+                                  source=source,
+                                  is_date=is_date, 
+                                  to_normalize=to_normalize,
+                                  palette=palette))
     }
     rm ("data")
     gc()
