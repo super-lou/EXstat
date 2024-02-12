@@ -520,7 +520,6 @@ process_extraction = function(data,
     }
 
 
-    post(period)
     if (is.character(period)) {
         period = as.Date(period)
         if (is.na(period[1])) {
@@ -530,7 +529,6 @@ process_extraction = function(data,
             period[2] = max(data[[idDate_save]], na.rm=TRUE)
         }
     }
-    post("ok")
     
     if (!is.null(idDate_save)) {
         data = dplyr::relocate(data,
@@ -799,7 +797,7 @@ process_extraction = function(data,
             sampling_period = "01"
         }
     }
-    
+
     if (dplyr::is.tbl(sampling_period)) {
 
         if (nrow(sampling_period) == 1) {
@@ -849,9 +847,9 @@ process_extraction = function(data,
                  verbose=verbose)
 
             sampling_period = fix_sampling_period(sampling_period,
-                                            refDate=refDate,
-                                            sampleFormat=sampleFormat,
-                                            verbose=verbose)
+                                                  refDate=refDate,
+                                                  sampleFormat=sampleFormat,
+                                                  verbose=verbose)
             
         } else {
             tree("Sample period fully given", 2, end=TRUE,
@@ -2206,7 +2204,6 @@ process_extraction = function(data,
         }
     }
 
-
     tree("Application of the function",
          1, verbose=verbose)
 
@@ -2222,7 +2219,7 @@ process_extraction = function(data,
                                    colGroup=colGroup),
                          .f=dplyr::full_join, by=colGroup)
 
-
+    
     tree("Cleaning extracted tibble", 1, verbose=verbose)
     tree("Manage possible infinite values", 2, verbose=verbose)
 
@@ -2480,7 +2477,8 @@ process_extraction = function(data,
 
         data$nDay = nchar(data$Season) * 30.4375 * data$nYear
         data = dplyr::select(data, -nYear)
-    } 
+    }
+
 
 ### is_date ___________________________________________________________
     if (any(is_date)) {
@@ -2720,7 +2718,6 @@ process_extraction = function(data,
     }
 
 
-    
 ### Keep _____________________________________________________________
     if (!is.null(keep)) {
         tree(paste0("Keeping only the needed data : " ,

@@ -254,7 +254,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             dataEX[[ss]] = list(dataEX[[ss]])
             if (!simplify) {
                 variable = paste0(variable, collapse=" ")
-                glose = paste0(glose, collapse=" ")
+                # glose = paste0(glose, collapse=" ")
                 names(dataEX[[ss]]) = variable
             }
         }
