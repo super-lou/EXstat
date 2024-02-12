@@ -381,15 +381,10 @@ process_extraction = function(data,
     }
 
     # check period
-
-    post(period)
-    
     if (!is.null(period)) {
         test = try(as.Date(period), silent=TRUE)
         if (any("try-error" %in% class(test)) || any(is.na(test))) {
             stop ("'period' is not in a format able to be coerced to a 'Date' object")
-        } else {
-            period = as.Date(period)
         }
         if (length(period) == 1) {
             stop ("There is only one date in 'period'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period' to NULL in order to use the entire available time serie(s).")
@@ -524,6 +519,8 @@ process_extraction = function(data,
         }
     }
 
+
+    post(period)
     if (is.character(period)) {
         period = as.Date(period)
         if (is.na(period[1])) {
@@ -533,6 +530,7 @@ process_extraction = function(data,
             period[2] = max(data[[idDate_save]], na.rm=TRUE)
         }
     }
+    post("ok")
     
     if (!is.null(idDate_save)) {
         data = dplyr::relocate(data,
