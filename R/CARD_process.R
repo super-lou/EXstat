@@ -25,7 +25,7 @@
 
 
 reduce_process = function (data, id, Process,
-                           period=NULL,
+                           period_default=NULL,
                            suffix=NULL,
                            cancel_lim=FALSE,
                            expand_overwrite=NULL,
@@ -58,6 +58,10 @@ reduce_process = function (data, id, Process,
         }
     } else {
         sampling_period = sampling_period_overwrite
+    }
+
+    if (is.null(period)) {
+        period = period_default
     }
 
     if (cancel_lim) {
@@ -114,7 +118,7 @@ get_last_Process = function (Process) {
 #' @param CARD_dir Subdirectory name where the script files are located (default = "WIP")
 #' @param CARD_name Name of the script files to be used (optional)
 #' @param CARD_tmp Temporary directory path (optional)
-#' @param period Period to extract from the data (optional)
+#' @param period_default Period to extract from the data (optional)
 #' @param suffix Suffix to append to extracted variables (optional)
 #' @param cancel_lim Specify whether to cancel limits (default = FALSE)
 #' @param simplify Specify whether to simplify the extracted data by column name (default = FALSE)
@@ -134,7 +138,7 @@ get_last_Process = function (Process) {
 #' @keywords data extraction CARD
 CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                             CARD_name=NULL, CARD_tmp=NULL,
-                            period=NULL,
+                            period_default=NULL,
                             suffix=NULL, 
                             cancel_lim=FALSE,
                             simplify=FALSE,
@@ -235,7 +239,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             purrr::reduce(1:nProcess,
                           reduce_process,
                           Process=Process,
-                          period=period,
+                          period_default=period_default,
                           suffix=suffix,
                           cancel_lim=cancel_lim,
                           expand_overwrite=expand_overwrite,

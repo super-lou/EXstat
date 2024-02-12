@@ -2628,15 +2628,24 @@ process_extraction = function(data,
         shiftRef = startSeasonsMonth
         
     } else if (time_step %in% c("year-month", "month")) {
-        Ref = format(seq.Date(as.Date("1970-01-01"),
-                              as.Date("1970-12-01"),
-                              "month"), "%b")
-        Ref = gsub("û", "u", Ref)
-        Ref = gsub("é", "e", Ref)
-        Ref = gsub("[.]", "", Ref)
+        # Ref = format(seq.Date(as.Date("1970-01-01"),
+        #                       as.Date("1970-12-01"),
+        #                       "month"), "%b")
+        # Ref = gsub("û", "u", Ref)
+        # Ref = gsub("é", "e", Ref)
+        # Ref = gsub("[.]", "", Ref)
+        Ref = c("jan", "feb", "mar", "apr",
+                "may", "jun", "jul", "aug",
+                "sep", "oct", "nov", "dec")
         shiftRef = 1:12
-        names(shiftRef) =
-            gsub("[.]", "", gsub("û", "u", gsub("é", "e", format(seq.Date(as.Date("1970-01-01"), as.Date("1970-12-01"), "month"), "%b"))))
+        names(shiftRef) = Ref
+            # gsub("[.]", "",
+            #      gsub("û", "u",
+            #           gsub("é", "e", format(seq.Date(
+            #                              as.Date("1970-01-01"),
+            #                              as.Date("1970-12-01"),
+            #                              "month"),
+            #                              "%b"))))
     }
 
     if (compress) {
