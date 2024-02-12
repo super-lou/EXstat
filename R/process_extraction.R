@@ -381,6 +381,9 @@ process_extraction = function(data,
     }
 
     # check period
+
+    post(period)
+    
     if (!is.null(period)) {
         test = try(as.Date(period), silent=TRUE)
         if (any("try-error" %in% class(test)) || any(is.na(test))) {
