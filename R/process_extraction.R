@@ -385,6 +385,8 @@ process_extraction = function(data,
         test = try(as.Date(period), silent=TRUE)
         if (any("try-error" %in% class(test)) || any(is.na(test))) {
             stop ("'period' is not in a format able to be coerced to a 'Date' object")
+        } else {
+            period = as.Date(period)
         }
         if (length(period) == 1) {
             stop ("There is only one date in 'period'. Please, select a time period in your time serie(s) with two objects of class 'Date' or set 'period' to NULL in order to use the entire available time serie(s).")
