@@ -760,6 +760,10 @@ process_extraction = function(data,
     }
 
 
+    post(period)
+    print(data)
+    post(nrow(data))
+    
     tree("Period", 1, verbose=verbose)
     if (is.null(period) | is.null(idDate_save)) {
         tree("Selecting all the data",
@@ -782,6 +786,10 @@ process_extraction = function(data,
         refDate = "1972-07"
         sampleFormat = "%d"
     }
+
+    post(nrow(data))
+    post("ok")
+    
 
     Code = names(table(data$Code))
 
