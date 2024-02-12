@@ -760,10 +760,6 @@ process_extraction = function(data,
     }
 
 
-    post(period)
-    print(data)
-    post(nrow(data))
-    
     tree("Period", 1, verbose=verbose)
     if (is.null(period) | is.null(idDate_save)) {
         tree("Selecting all the data",
@@ -787,8 +783,10 @@ process_extraction = function(data,
         sampleFormat = "%d"
     }
 
-    post(nrow(data))
-    post("ok")
+    if (nrow(data) == 0) {
+        warning ("No data is kept when the period filter is apply")
+        return (dplyr::tibble())
+    }
     
 
     Code = names(table(data$Code))
