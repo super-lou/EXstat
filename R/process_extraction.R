@@ -2225,6 +2225,8 @@ process_extraction = function(data,
                                    colGroup=colGroup),
                          .f=dplyr::full_join, by=colGroup)
 
+
+    # print(data)
     
     tree("Cleaning extracted tibble", 1, verbose=verbose)
     tree("Manage possible infinite values", 2, verbose=verbose)
@@ -2486,6 +2488,9 @@ process_extraction = function(data,
     }
 
 
+    # print(data)
+
+
 ### is_date ___________________________________________________________
     if (any(is_date)) {
         tree('Converting index to date', 1, verbose=verbose)
@@ -2574,6 +2579,9 @@ process_extraction = function(data,
     }
 
 
+    # print(data)
+
+
 ### Reshape __________________________________________________________
     tree("Last cleaning and formating for output", 1, end=TRUE,
          verbose=verbose)
@@ -2623,6 +2631,9 @@ process_extraction = function(data,
             
         }
     }
+
+
+    # print(data)
 
     dateName = names_save[idDate_save]
     valueName = names_save[idValue_save]
@@ -2713,7 +2724,7 @@ process_extraction = function(data,
         valueName = valueName[!duplicated(valueName)]
 
     } else {
-        valueName = grep(nameEX, names(data), fixed=TRUE, value=TRUE)
+        valueName = names(data)[names(data) %in% nameEX]
     }
 
     if (compress) {
@@ -2743,6 +2754,7 @@ process_extraction = function(data,
                                into=ID_colnames, sep="_")
     }
 
+
     
     if (expand & !any(suffix == "")) {
 
@@ -2763,15 +2775,9 @@ process_extraction = function(data,
             append,
             x=names(data)[sapply(data,
                                  is.character_or_date)])
-
         data = lapply(dplyr::all_of(valueName_select), dplyr::select,
                       .data=data)
-
         names(data) = valueName
-
-        
-
-        
 
         if (time_step %in% c("year-month", "year-season")) {
             for (i in 1:length(valueName)) {
