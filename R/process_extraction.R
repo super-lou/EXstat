@@ -2724,7 +2724,8 @@ process_extraction = function(data,
         valueName = valueName[!duplicated(valueName)]
 
     } else {
-        valueName = names(data)[names(data) %in% nameEX]
+        pattern = paste0("(", paste0(nameEX, collapse=")|("), ")")
+        valueName = names(data)[grepl(pattern, names(data))]
     }
 
     if (compress) {
@@ -2755,7 +2756,6 @@ process_extraction = function(data,
     }
 
 
-    
     if (expand & !any(suffix == "")) {
 
         tree("Expand the tibble in a list of tibble for each extracted variable",

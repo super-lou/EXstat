@@ -230,7 +230,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         variable_analyse = c(variable_analyse, variable)
 
         if (verbose) {
-            print(paste0('Computes ', Process$P$variable))
+            print(paste0('Computes ', Process$P$variable_en))
         }
 
         nProcess = length(Process) - 1
