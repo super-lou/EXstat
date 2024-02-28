@@ -522,12 +522,12 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
                                  variable_no_suffix,
                                  fixed=TRUE)
         }
-        to_normalize = metaEX$to_normalize[metaEX$variable_en == variable_no_suffix]
+        to_normalise = metaEX$to_normalise[metaEX$variable_en == variable_no_suffix]
     } else {
-        to_normalize = metaEX$to_normalize[metaEX$variable_en == variable]
+        to_normalise = metaEX$to_normalise[metaEX$variable_en == variable]
     }
 
-    if (to_normalize) {
+    if (to_normalise) {
         dataEX = dplyr::filter(dataEX,
                                date >= period[[1]][1] &
                                date <= period[[1]][2],
@@ -542,11 +542,11 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
                             dataEX_mean,
                             by="code")
         
-        trendEX$trend = trendEX$a / trendEX$mean
+        trendEX$a_normalise = trendEX$a / trendEX$mean
         
     } else {
         trendEX$mean = NA
-        trendEX$trend = trendEX$a
+        trendEX$a_normalise = trendEX$a
     }
         
     if (!is.null(period_change)) {
@@ -568,7 +568,7 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
             if (jj == 1) {
                 dataMean_tmp = dataMean                            
             } else {
-                if (to_normalize) {
+                if (to_normalise) {
                     dataMean$change =
                         (dataMean$mean - dataMean_tmp$mean) /
                         dataMean_tmp$mean
@@ -599,21 +599,21 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
     }
 
     if (!take_not_signif_into_account) {
-        trendEX_trend = trendEX$trend
-        trendEX$trend[!trendEX$H] = NA
+        trendEX_a_normalise = trendEX$a_normalise
+        trendEX$a_normalise[!trendEX$H] = NA
     }
     
     trendEX = dplyr::mutate(trendEX,
-                            trend_min=quantile(trend,
-                                               exProb,
-                                               na.rm=TRUE),
-                            trend_max=quantile(trend,
-                                               1-exProb,
-                                               na.rm=TRUE),
+                            a_normalise_min=quantile(a_normalise,
+                                                     exProb,
+                                                     na.rm=TRUE),
+                            a_normalise_max=quantile(a_normalise,
+                                                     1-exProb,
+                                                     na.rm=TRUE),
                             .keep="all")
 
     if (!take_not_signif_into_account) {
-        trendEX$trend = trendEX_trend
+        trendEX$a_normalise = trendEX_a_normalise
     }
 
     return (trendEX)

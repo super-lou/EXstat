@@ -295,7 +295,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                   ### Global ___
                                   source=source,
                                   is_date=is_date, 
-                                  to_normalize=to_normalize,
+                                  to_normalise=to_normalise,
                                   palette=palette))
     }
     rm ("data")
