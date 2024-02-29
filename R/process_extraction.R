@@ -2307,9 +2307,13 @@ process_extraction = function(data,
 
         data = dplyr::rename(data, Yearday=group)
 
-        # print(data)
+        # print(data, n=1000)
         # print(dplyr::summarise(dplyr::group_by(data, Code), Date=which.min(ValueEX2)))
 
+        
+        # print(data, n=1000)
+        # print(sampleInfo)
+        
         data = dplyr::mutate(data,
                              Date=
                                  as.Date(
@@ -2334,6 +2338,7 @@ process_extraction = function(data,
                                 by="Code")
         data = dplyr::rename(data, nDay=nYear)
 
+        data = dplyr::filter(data, Yearday < 366)
         
     } else if (time_step == "year-month") {
         data = dplyr::full_join(data,
