@@ -197,14 +197,16 @@ process_extraction = function(data,
                               dev=FALSE,
                               verbose=FALSE) {
 
+    if (nrow(data) == 0) {
+        return (dplyr::tibble())
+    }
+    
     # check data
     if (!tibble::is_tibble(data)) {
         stop ("'data' is not a tibble from the tibble package. This tibble needs a unique column of objects of class 'Date'")
     }
     
     # check Date column
-    post("ddatatatata")
-    print(data)
     if (sum(sapply(data, lubridate::is.Date)) == 0 & time_step != "none" & !dev) {
         stop ("There needs to be at least one column of objects of class 'Date'.")
     }
