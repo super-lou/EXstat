@@ -203,6 +203,8 @@ process_extraction = function(data,
     }
     
     # check Date column
+    post("ddatatatata")
+    print(data)
     if (sum(sapply(data, lubridate::is.Date)) == 0 & time_step != "none" & !dev) {
         stop ("There needs to be at least one column of objects of class 'Date'.")
     }
