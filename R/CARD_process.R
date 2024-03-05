@@ -267,6 +267,12 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
         time_step = res$time_step
         Seasons = res$Seasons
 
+        if (!is.null(sampling_period_overwrite[[ss]])) {
+            sampling_period_en = sampling_period_overwrite[[ss]]
+            sampling_period_fr = sapply(
+                lapply(strsplit(sampling_period_en, "-"), rev),
+                paste0, collapse="-")                               
+        }
         
         metaEX =
             dplyr::bind_rows(
