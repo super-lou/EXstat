@@ -542,7 +542,7 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
                             dataEX_mean,
                             by="code")
         
-        trendEX$a_normalise = trendEX$a / trendEX$mean
+        trendEX$a_normalise = trendEX$a / trendEX$mean * 100
         
     } else {
         trendEX$mean = NA
