@@ -85,7 +85,7 @@
 #'  }
 #' @export
 generalMannKendall = function(X, level=0.1, dep.option='INDE',
-                              DoDetrending=TRUE) {
+                              DoDetrending=TRUE, verbose=FALSE) {
     
     #*****************************************************************
     # STEP 0: preliminaries
@@ -94,7 +94,7 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
     OUT = list(H=NA, P=NA, STAT=NA, TREND=NA, DEP=NA)
     # Check dep.option is valid
     if (!((dep.option == 'INDE') | (dep.option == 'AR1') | (dep.option == 'LTP'))) {
-        warning('Unknown dep.option')
+        if (verbose) warning('Unknown dep.option')
         return (OUT)
     }
     # Remove Nas from X to create NA-free vector Z
@@ -102,7 +102,7 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
     n = length(Z)
     # Don't even try if less than 3 non-missing values
     if (n < 3) {
-        warning('less than 3 non-missing values')
+        if (verbose) warning('less than 3 non-missing values')
         return (OUT)
     }
     # Get basic MK stat + Sen's trend estimate
@@ -119,10 +119,11 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
         # Compute ties correction and get ties-corrected variance
         var1 = var0-getTiesCorrection(Z)
         if (is.na(var1)) {
-            warning('NA variance')
+            if (verbose) warning('NA variance')
             return (OUT)
         }
-        if (var1 <= 0) {warning('negative variance')
+        if (var1 <= 0) {
+            if (verbose) warning('negative variance')
             return (OUT)
         }
         # Compute autocorrelation correction if dep.option == 'AR1'
@@ -136,7 +137,7 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
         }
         MKvar = var1*correction
         if (MKvar <= 0) {
-            warning('negative variance')
+            if (verbose) warning('negative variance')
             return (OUT)
         }
     }
@@ -166,11 +167,11 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
         }
         var1 = (2/pi)*var0
         if (is.na(var1)) {
-            warning('NA variance')
+            if (verbose) warning('NA variance')
             return (OUT)
         }
         if (var1 <= 0) {
-            warning('negative variance')
+            if (verbose) warning('negative variance')
             return (OUT)
         }
         # bias correction
@@ -182,7 +183,7 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
         B = a0+a1*Hu+a2*Hu^2+a3*Hu^3+a4*Hu^4
         MKvar = var1*B
         if (MKvar <= 0) {
-            warning('negative variance')
+            if (verbose) warning('negative variance')
             return (OUT)
         }
     }
@@ -225,22 +226,31 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
 #' @export
 GeneralMannKendall_WRAP = function(X,
                                    level=0.1,
-                                   timeDep_option='INDE',
-                                   DoDetrending=TRUE) {
+                                   time_dependency_option='INDE',
+                                   DoDetrending=TRUE,
+                                   show_advance_stat=FALSE,
+                                   verbose=FALSE) {
     
     # Assume that the package BFunk is installed on the machine
     # Apply the Mann Kendall test on vector X
     res = generalMannKendall(X=X,
                              level=level,
-                             dep.option=timeDep_option,
-                             DoDetrending=DoDetrending)
+                             dep.option=time_dependency_option,
+                             DoDetrending=DoDetrending,
+                             verbose=verbose)
 
-    res = dplyr::tibble(level=level,
-                        H=res$H,
-                        p=res$P,
-                        stat=res$STAT,
-                        timeDep=res$DEP,
-                        a=res$TREND)
+    if (show_advance_stat) {
+        res = dplyr::tibble(level=level,
+                            H=res$H,
+                            p=res$P,
+                            stat=res$STAT,
+                            time_dependency_option=res$DEP,
+                            a=res$TREND)
+    } else {
+        res = dplyr::tibble(level=level,
+                            H=res$H,
+                            a=res$TREND)
+    }
     return (res)
 }
 

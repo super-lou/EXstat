@@ -26,11 +26,11 @@
 #' @param dataEX A data frame containing the data to be analyzed.
 #' @param metaEX A data frame containing metadata information (optional).
 #' @param MK_level The significance level for the Mann-Kendall statistical test.
-#' @param timeDep_option The time dependency option to use in the Mann-Kendall test.
-#' @param take_not_signif_into_account Flag indicating whether to take into account non-significant trends.
+#' @param time_dependency_option The time dependency option to use in the Mann-Kendall test.
+#' @param extreme_take_not_signif_into_account Flag indicating whether to take into account non-significant trends.
 #' @param period_trend A list of periods to consider for trend analysis (optional).
 #' @param period_change A list of periods to consider for change analysis (optional).
-#' @param exProb The extreme probability threshold for identifying extreme values (optional).
+#' @param extreme_prob The extreme probability threshold for identifying extreme values (optional).
 #' @param verbose Flag indicating whether to display verbose output during the analysis.
 #' @param ... Additional parameters to be passed to the statistical test and estimation methods.
 #'
@@ -46,7 +46,7 @@
 #' End = as.Date("2020-12-31")
 #' Date = seq.Date(Start, End, by="day")
 #' 
-#' # Value to analyse
+#' # Variable to analyse
 #' set.seed(100)
 #' X = seq(1, length(Date))/1e4 + runif(length(Date), -100, 100)
 #' X[as.Date("2000-03-01") <= Date & Date <= as.Date("2000-09-30")] = NA
@@ -74,18 +74,21 @@
 process_trend = function (dataEX,
                           metaEX=NULL,
                           MK_level=0.1,
-                          timeDep_option="INDE",
+                          time_dependency_option="INDE",
                           # isFDR=FALSE,
                           # FDR_level=0.1,
                           suffix=NULL,
                           suffix_delimiter="_",
-                          take_not_signif_into_account=TRUE,
+                          extreme_take_not_signif_into_account=TRUE,
+                          extreme_take_only_id=NULL,
+                          extreme_by_suffix=TRUE,
                           period_trend=NULL,
                           period_change=NULL,
-                          exProb=0.01,
+                          extreme_prob=0.01,
+                          show_advance_stat=FALSE,
                           dev=FALSE,
                           verbose=FALSE,
-                          ...) {
+                          verbose_stat=FALSE) {
 
     # check dataEX
     if (!tibble::is_tibble(dataEX)) {
@@ -112,7 +115,7 @@ process_trend = function (dataEX,
     if (sum(sapply(dataEX, is.character)) == 0 & !dev) {
         if (any(duplicated(
             dataEX[[which(sapply(dataEX,
-                               lubridate::is.Date))]]))) {
+                                 lubridate::is.Date))]]))) {
             stop ("There is at least one date value that repeat. It seems that either there is more than one time serie (so they need to be identify by a repeted character column for each serie) or there is an error in the format of the date column.")
         } else {
             warning ("There is no character column in order to identify uniquely each time serie. But hence it seems that there is only one time serie, a generic identifier will be add.")
@@ -121,8 +124,8 @@ process_trend = function (dataEX,
     } else if (sum(sapply(dataEX, is.character)) > 1) {
         message ("There is more than one character column. Thus, all the columns will be use to identify uniquely each time serie.")
         dataEX = tidyr::unite(dataEX, "ID",
-                            dplyr::where(is.character),
-                            sep="_")
+                              dplyr::where(is.character),
+                              sep="_")
     }
 
     # DATE NA
@@ -154,9 +157,6 @@ process_trend = function (dataEX,
     #                  paste0(Date_continuity[[1]][Date_continuity$n > 1],
     #                         collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
     # }
-
-
-
 
 
     # check suffix
@@ -223,6 +223,8 @@ process_trend = function (dataEX,
             message ("'period_change' seems to have two date not in the increasing order. Thus, 'period_change' will be re-ordered.")
             period_change = lapply(period_change, sort)
         }
+        period_change = lapply(period_change, as.Date)
+        
     } else {
         nPeriod_change = 1
     }
@@ -231,35 +233,15 @@ process_trend = function (dataEX,
     if (!is.logical(verbose)) {
         stop ("'verbose' needs to be an object of class 'logical'.")
     }
- 
+    
     tree("TREND ANALYSE", 0, verbose=verbose)
 
     names_save = names(dataEX)
     idCode_save = NULL
     idDate_save = NULL
-    idValue_save = c()
-    
-    for (id in 1:ncol(dataEX)) {
-        x = dataEX[[id]]
-
-        if (is.character(x)) {
-            idCode_save = id
-        } else if (lubridate::is.Date(x)) {
-            idDate_save = id
-        } else if (is.numeric(x) | is.logical(x)) {
-            idValue_save = c(idValue_save, id)
-        }
-    }
-    
-    dataEX = dplyr::relocate(dataEX,
-                             names_save[idDate_save],
-                             .before=dplyr::everything())
-    dataEX = dplyr::relocate(dataEX,
-                             names_save[idCode_save],
-                             .before=dplyr::everything())
-
+    idVariable = c()
     names_save = names(dataEX)
-    idValue_save = c()
+    
     for (id in 1:ncol(dataEX)) {
         x = dataEX[[id]]
 
@@ -268,22 +250,44 @@ process_trend = function (dataEX,
         } else if (lubridate::is.Date(x)) {
             idDate_save = id
         } else if (is.numeric(x) | is.logical(x)) {
-            idValue_save = c(idValue_save, id)
+            idVariable = c(idVariable, id)
         }
     }
-
-    nValue = length(idValue_save)
-    colName = paste0("Value", 1:nValue)
-
-    names(dataEX)[c(idCode_save, idDate_save, idValue_save)] =
-        c("code", "date", unlist(colName))
-
     
+    # dataEX = dplyr::relocate(dataEX,
+    #                          names_save[idDate_save],
+    #                          .before=dplyr::everything())
+    # dataEX = dplyr::relocate(dataEX,
+    #                          names_save[idCode_save],
+    #                          .before=dplyr::everything())
 
+    # names_save = names(dataEX)
+    # idVariable = c()
+    # for (id in 1:ncol(dataEX)) {
+    #     x = dataEX[[id]]
+
+    #     if (is.character(x)) {
+    #         idCode_save = id
+    #     } else if (lubridate::is.Date(x)) {
+    #         idDate_save = id
+    #     } else if (is.numeric(x) | is.logical(x)) {
+    #         idVariable_save = c(idVariable_save, id)
+    #     }
+    # }
+
+    nVariable = length(idVariable)
+    Variable = names(dataEX)[idVariable]
+    # colName = paste0("Variable", 1:nVariable)
+    
+    # names(dataEX)[c(idCode_save, idDate_save, idVariable_save)] =
+    # c("code", "date", unlist(colName))
+    names(dataEX)[c(idCode_save, idDate_save)] =
+        c("code", "date")
+    
+    
     trendEX = dplyr::tibble()
     
     for (j in 1:nPeriod_trend) {
-
         if (is.null(period_trend)) {
             dataEX_period = dataEX
         } else {
@@ -299,74 +303,139 @@ process_trend = function (dataEX,
                                           min(period) <= date &
                                           date <= max(period))
         }
+
+        tree(paste0("For period ", paste0(period, collapse=" ")),
+             1, end=j==nPeriod_trend, verbose=verbose)
+        if (j==nPeriod_trend) {
+            inEnd_period = 1
+        } else {
+            inEnd_period = NULL
+        }
         
-        tree("Grouping dataEX by code", 1, verbose=verbose)
-        # Group dataEX accordingly to group.names
         dataEX_period = dplyr::group_by(dataEX_period, code)
-
-        tree("Statistical test",
-             1, verbose=verbose)
-
-        tree(paste0("Application of the Mann-Kendall statistical test ",
-                    "with a level of ",
-                    round(MK_level*100), " % and ",
-                    timeDep_option, " time dependency option"),
-             2, verbose=verbose)
-
+        trendEX_period = dplyr::tibble()
         
-        for (k in 1:nValue) {
-            dataEX_period_Value =
+        for (k in 1:nVariable) {
+            variable = Variable[k]
+
+            tree(paste0("For variable ", variable),
+                 2, end=k==nVariable&is.null(metaEX),
+                 inEnd=inEnd_period, verbose=verbose)
+            if (k == nVariable & is.null(metaEX)) {
+                inEnd = c(inEnd_period, 2)
+            } else {
+                inEnd = inEnd_period
+            }
+            
+            dataEX_period_Variable =
                 dplyr::select(dataEX_period,
                               dplyr::all_of(c("code", "date",
-                                              paste0("Value", k))))
-            trendEX_period_Value =
-                dplyr::summarise(dataEX_period_Value,
+                                              variable)))
+
+            tree(paste0("Application of the Mann-Kendall statistical test ",
+                        "with a level of ",
+                        round(MK_level*100), " % and ",
+                        time_dependency_option, " time dependency option"),
+                 3, inEnd=inEnd, verbose=verbose)
+            
+            trendEX_period_Variable =
+                dplyr::summarise(dataEX_period_Variable,
                                  GeneralMannKendall_WRAP(
-                                     get(paste0("Value", k)),
+                                     get(variable),
                                      level=MK_level,
-                                     timeDep_option=timeDep_option,
-                                     ...))
+                                     time_dependency_option=
+                                         time_dependency_option,
+                                     DoDetrending=TRUE,
+                                     show_advance_stat=show_advance_stat,
+                                     verbose=verbose_stat))
+
+            trendEX_period_Variable$variable_en = variable
+            trendEX_period_Variable = dplyr::relocate(trendEX_period_Variable,
+                                                      variable_en,
+                                                      .after=code)
+            if (!is.null(suffix)) {
+                variable_no_suffix = variable
+                for (i in 1:length(suffix)) {
+                    variable_no_suffix = gsub(suffix[i], "",
+                                              variable_no_suffix,
+                                              fixed=TRUE)
+                }
+                trendEX_period_Variable$variable_no_suffix_en = variable_no_suffix
+                trendEX_period_Variable = dplyr::relocate(trendEX_period_Variable,
+                                                          variable_no_suffix_en,
+                                                          .after=variable_en)
+            }
             
-            tree("Estimation of other variable",
-                 1, end=TRUE, verbose=verbose)
-            trendEX_period_Value = get_intercept(dataEX_period_Value,
-                                                 trendEX_period_Value,
+            tree(paste0("Estimation of other variable"),
+                 3, end=TRUE, inEnd=inEnd, verbose=verbose)
+            
+            tree("Computing of the intercept of trend",
+                 4, inEnd=c(inEnd, 3), verbose=verbose)
+            trendEX_period_Variable = get_intercept(dataEX_period_Variable,
+                                                    trendEX_period_Variable,
+                                                    verbose=verbose)
+
+            tree("Computing of the optimal period",
+                 4, end=is.null(metaEX), inEnd=c(inEnd, 3), verbose=verbose)
+            trendEX_period_Variable = get_period(dataEX_period_Variable,
+                                                 trendEX_period_Variable,
                                                  verbose=verbose)
-            trendEX_period_Value = get_period(dataEX_period_Value,
-                                              trendEX_period_Value,
-                                              verbose=verbose)
-
-            trendEX_period_Value =
-                dplyr::bind_cols(trendEX_period_Value,
-                                 variable_en=names_save[idValue_save[k]])
-
+            
             if (!is.null(metaEX)) {
-                dataEX_Value =
-                    dplyr::select(dataEX,
-                                  dplyr::all_of(c("code", "date",
-                                                  paste0("Value", k))))
-                trendEX_period_Value =
-                    get_valueExtremes(dataEX_Value, metaEX,
-                                      trendEX_period_Value,
-                                      suffix=suffix,
-                                      take_not_signif_into_account=
-                                          take_not_signif_into_account,
-                                      period_change=period_change,
-                                      exProb=exProb,
-                                      verbose=verbose)
+                tree("Normalise trend value",
+                     4, end=is.null(period_change), inEnd=c(inEnd, 3), verbose=verbose)
+                trendEX_period_Variable =
+                    get_normalise(dataEX_period_Variable,
+                                  trendEX_period_Variable,
+                                  metaEX,
+                                  suffix=suffix,
+                                  verbose=verbose)
+            }
+
+            if (!is.null(period_change) & !is.null(metaEX)) {
+                tree("Get period change",
+                     4, end=TRUE, inEnd=c(inEnd, 3), verbose=verbose)
+                trendEX_period_Variable =
+                    get_change(dataEX_period_Variable, 
+                               trendEX_period_Variable,
+                               metaEX,
+                               period_change,
+                               suffix=suffix,
+                               verbose=verbose)
             }
             
-            if (nrow(trendEX) == 0) {
-                trendEX = trendEX_period_Value
-            } else {
-                trendEX = dplyr::bind_rows(trendEX,
-                                           trendEX_period_Value)
-            }
+            trendEX_period = dplyr::bind_rows(trendEX_period,
+                                              trendEX_period_Variable)
         }
+        
+        if (!is.null(metaEX)) {
+            tree(paste0("Computing extreme trend values"),
+                 2, end=is.null(period_change), inEnd=inEnd_period, verbose=verbose)
+            trendEX_period =
+                get_extreme_trend(trendEX_period,
+                                  suffix=suffix,
+                                  extreme_take_not_signif_into_account=
+                                      extreme_take_not_signif_into_account,
+                                  extreme_take_only_id=extreme_take_only_id,
+                                  extreme_by_suffix=extreme_by_suffix, 
+                                  extreme_prob=extreme_prob,
+                                  verbose=verbose)
+        }
+        
+        if (!is.null(period_change) & !is.null(metaEX)) {
+            tree(paste0("Computing extreme change values"),
+                 2, end=TRUE, inEnd=inEnd_period, verbose=verbose)
+            trendEX_period =
+                get_extreme_change(trendEX_period,
+                                   suffix=suffix,
+                                   extreme_take_only_id=extreme_take_only_id,
+                                   extreme_by_suffix=extreme_by_suffix, 
+                                   extreme_prob=extreme_prob,
+                                   verbose=verbose)
+        }
+
+        trendEX = dplyr::bind_rows(trendEX, trendEX_period)
     }
-
-
-
 
     # if (isFDR) { ### /!\ pas ok
     #     dataEX.final$p.FDR =
@@ -378,7 +447,6 @@ process_trend = function (dataEX,
 
     names(trendEX)[c(idCode)] =
         names_save[c(idCode_save)]
-
 
     if (length(ID_colnames) > 1) {
         trendEX = tidyr::separate(trendEX, col="ID",
@@ -409,18 +477,15 @@ process_trend = function (dataEX,
 #' @export
 get_period = function (dataEX, trendEX, verbose=TRUE) {
 
-    tree("Computing of the optimal periods of trend analysis",
-         2, end=TRUE, inEnd=1, verbose=verbose)
-
     Period = dplyr::summarise(dplyr::group_by(dataEX, code),
                               start=min(date, na.rm=TRUE),
                               end=max(date, na.rm=TRUE),
-                              period=list(c(start, end)))
+                              period_trend=list(c(start, end)))
     
     trendEX = dplyr::full_join(trendEX,
                                dplyr::select(Period,
                                              c("code",
-                                               "period")),
+                                               "period_trend")),
                                by="code")
     return (trendEX)
 }
@@ -435,7 +500,7 @@ get_period = function (dataEX, trendEX, verbose=TRUE) {
 #'
 #' @return A modified data frame with an additional column indicating the intercept of the trend.
 #'
-#' @details The function computes the intercept of the trend in the data based on the results of the trend analysis. It calculates the mean value of the dependent variable (Value) and the mean time variable (date) for each code group. Then, it computes the intercept using the formula: b = mu_X - mu_t * a, where mu_X is the mean value, mu_t is the mean time, and a is the slope of the trend.
+#' @details The function computes the intercept of the trend in the data based on the results of the trend analysis. It calculates the mean value of the dependent variable (Variable) and the mean time variable (date) for each code group. Then, it computes the intercept using the formula: b = mu_X - mu_t * a, where mu_X is the mean value, mu_t is the mean time, and a is the slope of the trend.
 #'
 #' @note documentation generated by chatGPT
 #'
@@ -445,19 +510,16 @@ get_period = function (dataEX, trendEX, verbose=TRUE) {
 get_intercept = function (dataEX, trendEX,
                           verbose=TRUE) {
 
-    tree("Computing of the intercept of trend",
-         2, inEnd=1, verbose=verbose)
-
-    Value = grep("Value", names(dataEX), value=TRUE)
+    variable =  levels(factor(trendEX$variable_en))
     
     MU_X = dplyr::summarise(dplyr::group_by(dataEX, code),
-                            mu_X=mean(get(Value),
+                            mu_X=mean(get(variable),
                                       na.rm=TRUE))
 
     MU_t = dplyr::summarise(dplyr::group_by(dataEX, code),
                             mu_t=as.numeric(mean(date,
                                                  na.rm=TRUE)) /
-                            mean(as.numeric(diff(date)), na.rm=TRUE))
+                                mean(as.numeric(diff(date)), na.rm=TRUE))
 
     analyse = dplyr::tibble(code=trendEX$code,
                             a=trendEX$a,
@@ -469,58 +531,24 @@ get_intercept = function (dataEX, trendEX,
     
     trendEX = dplyr::full_join(trendEX, B, by="code")
 
+    trendEX$b[!is.finite(trendEX$b)] = NA
+
     return (trendEX)
 }
 
 
-#' @title get_valueExtremes
-#' @description Identifies extreme values in the data based on trend analysis.
-#'
-#' @param dataEX A data frame containing the data.
-#' @param metaEX A data frame containing metadata information.
-#' @param trendEX A data frame containing the results of the trend analysis.
-#' @param take_not_signif_into_account Flag indicating whether to take into account non-significant trends.
-#' @param period_change A list of periods to consider for change analysis (optional).
-#' @param exProb The extreme probability threshold for identifying extreme values.
-#'
-#' @return A modified data frame with additional columns indicating extreme values.
-#'
-#' @details The function identifies extreme values in the data based on the results of the trend analysis. It computes the trend and change for each period and code, and determines extreme values based on the specified extreme probability threshold. If period change analysis is enabled, it also calculates the change between specified periods.
-#'
-#' @note documentation generated by chatGPT
-#'
-#' @importFrom dplyr group_by filter select mutate ungroup
-#'
-#' @export
-get_valueExtremes = function (dataEX, metaEX, trendEX,
-                              suffix=NULL,
-                              take_not_signif_into_account=TRUE,
-                              period_change=NULL,
-                              exProb=0.01,
-                              verbose=FALSE) {
-
-    tree("Computing extrem values",
-         2, end=TRUE, inEnd=1, verbose=verbose)
-
-    Value = grep("Value", names(dataEX), value=TRUE)
+get_normalise = function (dataEX, trendEX, metaEX,
+                          suffix=NULL,
+                          verbose=FALSE) {
     
-    Code = levels(factor(dataEX$code))
-    nCode = length(Code)
-    # period = unique(trendEX$period)
     variable =  levels(factor(trendEX$variable_en))
-
-    dataEX = dplyr::full_join(dataEX,
-                              dplyr::select(trendEX,
-                                            "code",
-                                            "period"),
-                              by="code")
 
     if (!is.null(suffix)) {
         variable_no_suffix = variable
         for (i in 1:length(suffix)) {
             variable_no_suffix = gsub(suffix[i], "",
-                                 variable_no_suffix,
-                                 fixed=TRUE)
+                                      variable_no_suffix,
+                                      fixed=TRUE)
         }
         to_normalise = metaEX$to_normalise[metaEX$variable_en == variable_no_suffix]
     } else {
@@ -528,93 +556,193 @@ get_valueExtremes = function (dataEX, metaEX, trendEX,
     }
 
     if (to_normalise) {
-        dataEX = dplyr::filter(dataEX,
-                               date >= period[[1]][1] &
-                               date <= period[[1]][2],
-                               .by="code")
-        
         dataEX_mean =
             dplyr::summarise(group_by(dataEX, code),
-                             mean=mean(get(Value),
+                             mean=mean(get(variable),
                                        na.rm=TRUE))
-
         trendEX = full_join(trendEX,
                             dataEX_mean,
                             by="code")
-        
         trendEX$a_normalise = trendEX$a / trendEX$mean * 100
+        trendEX$mean[!is.finite(trendEX$mean)] = NA
+        trendEX = dplyr::rename(trendEX, mean_period_trend=mean)
         
     } else {
-        trendEX$mean = NA
+        trendEX$mean_period_trend = NA
         trendEX$a_normalise = trendEX$a
     }
-        
-    if (!is.null(period_change)) {
-        nPeriod_change = length(period_change)
-        if (nPeriod_change != 2) {
-            break
+    return (trendEX)
+}
+
+
+get_change = function (dataEX, trendEX, metaEX,
+                       period_change,
+                       suffix=NULL,
+                       verbose=FALSE) {
+    
+    variable =  levels(factor(trendEX$variable_en))
+
+    if (!is.null(suffix)) {
+        variable_no_suffix = variable
+        for (i in 1:length(suffix)) {
+            variable_no_suffix = gsub(suffix[i], "",
+                                      variable_no_suffix,
+                                      fixed=TRUE)
         }
-
-        for (jj in 1:nPeriod_change) {
-            dataEX = dataEX[dataEX$date >=
-                            period_change[[jj]][1] &
-                            dataEX$date <=
-                            period_change[[jj]][2],]
-
-            dataMean =
-                dplyr::summarise(group_by(dataEX, code),
-                                 mean=mean(get(Value), na.rm=TRUE))
-            
-            if (jj == 1) {
-                dataMean_tmp = dataMean                            
-            } else {
-                if (to_normalise) {
-                    dataMean$change =
-                        (dataMean$mean - dataMean_tmp$mean) /
-                        dataMean_tmp$mean
-                } else {
-                    dataMean$change = dataMean$mean - dataMean_tmp$mean
-                }
-            }
-        }
-
-        dataMean$period_change = list(period_change)
-        trendEX = full_join(trendEX,
-                            select(dataMean,
-                                   c("code",
-                                     "period_change",
-                                     "change")),
-                            by="code")
+        to_normalise = metaEX$to_normalise[metaEX$variable_en == variable_no_suffix]
+    } else {
+        to_normalise = metaEX$to_normalise[metaEX$variable_en == variable]
     }
     
-    if (!is.null(period_change)) {
-        trendEX = dplyr::mutate(trendEX,
-                                change_min=quantile(change,
-                                                    exProb,
-                                                    na.rm=TRUE),
-                                change_max=quantile(change,
-                                                    1-exProb,
-                                                    na.rm=TRUE),
-                                .keep="all")
+    nPeriod_change = length(period_change)
+    if (nPeriod_change != 2) {
+        break
     }
 
-    if (!take_not_signif_into_account) {
-        trendEX_a_normalise = trendEX$a_normalise
-        trendEX$a_normalise[!trendEX$H] = NA
-    }
+    dataEX_change = 
+        dplyr::summarise(dplyr::group_by(dataEX, code),
+                         
+                         start_1=max(c(period_change[[1]][1],
+                                       min(date, na.rm=TRUE)), na.rm=TRUE),
+                         end_1=min(c(period_change[[1]][2],
+                                     max(date, na.rm=TRUE)), na.rm=TRUE),
+                         
+                         start_2=max(c(period_change[[2]][1],
+                                       min(date, na.rm=TRUE)), na.rm=TRUE),
+                         end_2=min(c(period_change[[2]][2],
+                                     max(date, na.rm=TRUE)), na.rm=TRUE),
+                         
+                         .groups="drop")
+
+    dataEX_change = 
+        dplyr::mutate(dplyr::group_by(dataEX_change, code),
+                      period_change=list(list(c(start_1, end_1),
+                                              c(start_2, end_2))))
     
-    trendEX = dplyr::mutate(trendEX,
-                            a_normalise_min=quantile(a_normalise,
-                                                     exProb,
-                                                     na.rm=TRUE),
-                            a_normalise_max=quantile(a_normalise,
-                                                     1-exProb,
-                                                     na.rm=TRUE),
-                            .keep="all")
+    dataEX_change_1 =
+        dplyr::summarise(
+                   dplyr::group_by(
+                              dplyr::filter(dataEX,
+                                            period_change[[1]][1] <= date &
+                                            date <= period_change[[1]][2]),
+                              code),
+                   mean_1=mean(get(variable), na.rm=TRUE))
 
-    if (!take_not_signif_into_account) {
-        trendEX$a_normalise = trendEX_a_normalise
+    dataEX_change_2 =
+        dplyr::summarise(
+                   dplyr::group_by(
+                              dplyr::filter(dataEX,
+                                            period_change[[2]][1] <= date &
+                                            date <= period_change[[2]][2]),
+                              code),
+                   mean_2=mean(get(variable), na.rm=TRUE))
+
+    dataEX_change_tmp = dplyr::full_join(dataEX_change_1, dataEX_change_2,
+                                         by="code")
+    dataEX_change_tmp =
+        dplyr::mutate(dplyr::group_by(dataEX_change_tmp, code),
+                      mean_period_change=list(c(mean_1, mean_2)))
+    
+    dataEX_change = dplyr::full_join(dataEX_change, dataEX_change_tmp,
+                                     by="code")
+    
+    if (to_normalise) {
+        dataEX_change$change =
+            (dataEX_change$mean_2 - dataEX_change$mean_1) / dataEX_change$mean_1 * 100
+    } else {
+        dataEX_change$change =
+            dataEX_change$mean_2 - dataEX_change$mean_1
     }
+
+    dataEX_change$change[!is.finite(dataEX_change$change)] = NA
+    
+    trendEX = full_join(trendEX,
+                        select(dataEX_change,
+                               c("code",
+                                 "period_change",
+                                 "mean_period_change",
+                                 "change")),
+                        by="code")
 
     return (trendEX)
 }
+
+
+
+get_extreme_trend = function (trendEX,
+                              suffix=NULL,
+                              extreme_take_not_signif_into_account=TRUE,
+                              extreme_take_only_id=NULL,
+                              extreme_by_suffix=TRUE,
+                              extreme_prob=0.01,
+                              verbose=FALSE) {
+
+    if (!extreme_take_not_signif_into_account) {
+        trendEX_a_normalise = trendEX$a_normalise
+        trendEX$a_normalise[!trendEX$H] = NA
+    }
+
+    if (is.null(extreme_take_only_id)) {
+        extreme_take_only_id = trendEX$code
+    }
+
+    if (extreme_by_suffix) {
+        variable_tmp = "variable_en" 
+    } else {
+        variable_tmp = "variable_no_suffix_en" 
+    }
+    
+    trendEX = dplyr::mutate(dplyr::group_by(trendEX,
+                                            !!!rlang::data_syms(variable_tmp)),
+                            a_normalise_min=
+                                quantile(a_normalise[code %in% extreme_take_only_id],
+                                         extreme_prob,
+                                         na.rm=TRUE),
+                            a_normalise_max=
+                                quantile(a_normalise[code %in% extreme_take_only_id],
+                                         1-extreme_prob,
+                                         na.rm=TRUE),
+                            .keep="all")
+
+    if (!extreme_take_not_signif_into_account) {
+        trendEX$a_normalise = trendEX_a_normalise
+    }
+    
+    return (trendEX)
+}
+
+
+
+
+get_extreme_change = function (trendEX,
+                               suffix=NULL,
+                               extreme_take_only_id=NULL,
+                               extreme_by_suffix=TRUE,
+                               extreme_prob=0.01,
+                               verbose=FALSE) {
+
+    if (is.null(extreme_take_only_id)) {
+        extreme_take_only_id = trendEX$code
+    }
+
+    if (extreme_by_suffix) {
+        variable_tmp = "variable_en" 
+    } else {
+        variable_tmp = "variable_no_suffix_en" 
+    }
+    
+    trendEX = dplyr::mutate(dplyr::group_by(trendEX,
+                                            !!!rlang::data_syms(variable_tmp)),
+                            change_min=
+                                quantile(change[code %in% extreme_take_only_id],
+                                         extreme_prob,
+                                         na.rm=TRUE),
+                            change_max=
+                                quantile(change[code %in% extreme_take_only_id],
+                                         1-extreme_prob,
+                                         na.rm=TRUE),
+                            .keep="all")
+    
+    return (trendEX)
+}
+
