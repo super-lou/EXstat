@@ -562,6 +562,7 @@ process_extraction = function(data,
     }
 
     idValue_keepSave = idValue_save
+    # idDate_keepSave = idDate_save
     names_keepSave = names_save
 
     if (!is.null(keep)) {
@@ -643,17 +644,22 @@ process_extraction = function(data,
     colArgs_order = list()
     
     nfunct = length(funct)
-    
+    first_time = TRUE
+        
     for (i in 1:nfunct) {
         arg = funct_args[[i]]
 
         is_dateColArgs = any(arg %in% names_save[idDate_save])
         if (is_dateColArgs) {
-            names_save = c(names_save, "ValueDate")
-            idValue_save = c(idValue_save, max(idValue_save)+1)
-            colName = c(colName, paste0("Value",
-                                        length(idValue_save)))
-            data["ValueDate"] = data[idDate_save]
+            if (first_time) {
+                names_save = c(names_save, "ValueDate")
+                idValue_keepSave = c(idValue_keepSave, idDate_save)
+                idValue_save = c(idValue_save, max(idValue_save)+1)
+                colName = c(colName, paste0("Value",
+                                            length(idValue_save)))
+                data["ValueDate"] = data[idDate_save]
+            }
+            first_time = FALSE
             funct_args[[i]][arg %in% names_save[idDate_save]] =
                 "ValueDate"
             arg = funct_args[[i]]
@@ -685,12 +691,25 @@ process_extraction = function(data,
                            list(otherarg))
     }
 
+    # print("funct")
+    # print(funct)
+    # print("funct_args")
+    # print(funct_args)
+
+    # print("colArgs")
+    # print(colArgs)
+    # print("otherArgs")
+    # print(otherArgs)
+    
+    # print(data)
+    
+
     if (length(colArgs) == 0) {
         stop (paste0("Are the given parameters that refer to column names spelled correctly ? ",
                      funct_args, " is given but only names in ",
                      paste0(names_keepSave[idValue_save], collapse=", "),
                      " are possible."))
-    }    
+    }
 
     if (!is.null(idDate_save)) {
         names(data)[c(idCode_save, idDate_save, idValue_save)] =
@@ -699,6 +718,13 @@ process_extraction = function(data,
         names(data)[c(idCode_save, idValue_save)] =
             c("Code", unlist(colName))
     }
+
+    # Remove ValueDate column from names saved because it is useless to keep it after computation
+    if ("ValueDate" %in% names_save) {
+        names_save = names_save[-length(names_save)]
+        idValue_save = idValue_save[-length(idValue_save)]
+    }
+    
     
     if (!is.null(names(funct)) & all(names(funct) != "")) {
         nameEX = names(funct)
@@ -708,7 +734,6 @@ process_extraction = function(data,
         }
     }
 
-    # nameEX_noSuffix = nameEX
     
     if (!is.null(suffix)) {
         nameEX = paste0(nameEX, suffix)
@@ -2216,7 +2241,7 @@ process_extraction = function(data,
 
     tree("Application of the function",
          1, verbose=verbose)
-
+    
     data = purrr::reduce(.x=lapply(1:nfunct,
                                    apply_extraction,
                                    data=data,
@@ -2230,8 +2255,6 @@ process_extraction = function(data,
                          .f=dplyr::full_join, by=colGroup)
 
 
-    # print(data)
-    
     tree("Cleaning extracted tibble", 1, verbose=verbose)
     tree("Manage possible infinite values", 2, verbose=verbose)
 
@@ -2496,7 +2519,7 @@ process_extraction = function(data,
         data = dplyr::select(data, -nYear)
     }
 
-
+    # print("b")
     # print(data)
 
 
@@ -2587,7 +2610,7 @@ process_extraction = function(data,
                                              1:nValue)))
     }
 
-
+    # print("c")
     # print(data)
 
 
@@ -2602,32 +2625,25 @@ process_extraction = function(data,
     }
     
     idValue = which(grepl("ValueEX[[:digit:]]", names(data)))
-
-    if (is_dateColArgs) {
-        names_save = names_save[-length(names_save)]
-        idValue_save = idValue_save[-length(idValue_save)]
-    }
-
+    
     if (time_step == "none" & is.null(keep)) {
-
-        data = dplyr::relocate(data, )
-        
         names(data)[c(idCode, idValue)] =
             names_save[c(idCode_save, idValue_save)]
     } else {
         names(data)[c(idCode, idDate, idValue)] =
             names_save[c(idCode_save, idDate_save, idValue_save)] 
     }
+    
+    # print(data)
 
     if (!is.null(keep)) {
         test = grepl("Value[[:digit:]]", names(data))
+
         if (any(test)) {
-            
             idValue_keep = which(test)
-            idIn =
+            idIn = 
                 which(names_keepSave[idValue_keepSave] %in%
                       names(data))
-
             if (length(idIn) > 0) {
                 idRm = idValue_keep[idIn]
                 data = data[-idRm] 
@@ -2636,14 +2652,12 @@ process_extraction = function(data,
             }
             names(data)[idValue_keep] =
                 names_keepSave[idValue_keepSave]
-
-            
         }
     }
 
-
+    # print("d")
     # print(data)
-
+    
     dateName = names_save[idDate_save]
     valueName = names_save[idValue_save]
     if (time_step == "season") {
@@ -2734,6 +2748,9 @@ process_extraction = function(data,
 
     } else {
         pattern = paste0("(", paste0(nameEX, collapse=")|("), ")")
+        pattern = gsub("[{]", "[{]", gsub("[}]", "[}]", pattern))
+        pattern = gsub("[_]", "[_]", gsub("[-]", "[-]", pattern))
+        # print(pattern)
         valueName = names(data)[grepl(pattern, names(data))]
     }
 
@@ -2754,6 +2771,9 @@ process_extraction = function(data,
             data = dplyr::select(data, dplyr::all_of(keep))
         }
     }
+
+    # print("e")
+    # print(data)
 
     data = tidyr::unnest(data,
                          dplyr::everything(),
