@@ -8,14 +8,19 @@ process_trend(
   dataEX,
   metaEX = NULL,
   MK_level = 0.1,
-  timeDep_option = "INDE",
-  take_not_signif_into_account = TRUE,
+  time_dependency_option = "INDE",
+  suffix = NULL,
+  suffix_delimiter = "_",
+  extreme_take_not_signif_into_account = TRUE,
+  extreme_take_only_id = NULL,
+  extreme_by_suffix = TRUE,
   period_trend = NULL,
   period_change = NULL,
-  exProb = 0.01,
+  extreme_prob = 0.01,
+  show_advance_stat = FALSE,
   dev = FALSE,
   verbose = FALSE,
-  ...
+  verbose_stat = FALSE
 )
 }
 \arguments{
@@ -25,15 +30,15 @@ process_trend(
 
 \item{MK_level}{The significance level for the Mann-Kendall statistical test.}
 
-\item{timeDep_option}{The time dependency option to use in the Mann-Kendall test.}
+\item{time_dependency_option}{The time dependency option to use in the Mann-Kendall test.}
 
-\item{take_not_signif_into_account}{Flag indicating whether to take into account non-significant trends.}
+\item{extreme_take_not_signif_into_account}{Flag indicating whether to take into account non-significant trends.}
 
 \item{period_trend}{A list of periods to consider for trend analysis (optional).}
 
 \item{period_change}{A list of periods to consider for change analysis (optional).}
 
-\item{exProb}{The extreme probability threshold for identifying extreme values (optional).}
+\item{extreme_prob}{The extreme probability threshold for identifying extreme values (optional).}
 
 \item{verbose}{Flag indicating whether to display verbose output during the analysis.}
 
@@ -57,23 +62,23 @@ Start = as.Date("1972-01-01")
 End = as.Date("2020-12-31")
 Date = seq.Date(Start, End, by="day")
 
-# Value to analyse
+# Variable to analyse
 set.seed(100)
 X = seq(1, length(Date))/1e4 + runif(length(Date), -100, 100)
 X[as.Date("2000-03-01") <= Date & Date <= as.Date("2000-09-30")] = NA
 
 # Creation of tibble
-data = dplyr::tibble(Date=Date, ID="serie A", X=X)
+data = dplyr::tibble(date=Date, ID="serie A", X=X)
 
 # Extraction
 dataEX = process_extraction(data=data,
-                            samplePeriod=c("05-01",
+                            sampling_period=c("05-01",
                                            "11-30"),
                             funct=max,
                             na.rm=TRUE,
                             period=c(as.Date("1990-01-01"),
                                      as.Date("2020-12-31")),
-                            timeStep="year")
+                            time_step="year")
 
 trendEX = process_trend(data=dataEX)
 trendEX

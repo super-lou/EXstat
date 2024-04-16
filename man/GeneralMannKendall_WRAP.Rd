@@ -7,8 +7,10 @@
 GeneralMannKendall_WRAP(
   X,
   level = 0.1,
-  timeDep_option = "INDE",
-  DoDetrending = TRUE
+  time_dependency_option = "INDE",
+  DoDetrending = TRUE,
+  show_advance_stat = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{

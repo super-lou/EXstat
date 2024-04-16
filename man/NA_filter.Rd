@@ -4,12 +4,12 @@
 \alias{NA_filter}
 \title{NA filter}
 \usage{
-NA_filter(data, timeStep, nValue, NApct_lim = 1, mod = NULL, verbose = TRUE)
+NA_filter(data, time_step, nValue, NApct_lim = 1, mod = NULL, verbose = TRUE)
 }
 \arguments{
 \item{data}{Data after extraction that should be filtered.}
 
-\item{timeStep}{Character string indicating the time step of the extraction, could be 'none' if the time step doesn't matter, 'year' or 'year-month'.}
+\item{time_step}{Character string indicating the time step of the extraction, could be 'none' if the time step doesn't matter, 'year' or 'year-month'.}
 
 \item{nValue}{Number of values extracted.}
 

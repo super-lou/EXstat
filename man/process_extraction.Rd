@@ -8,10 +8,10 @@ process_extraction(
   data,
   funct = max,
   funct_args = list(),
-  timeStep = "year",
-  samplePeriod = NULL,
+  time_step = "year",
+  sampling_period = NULL,
   period = NULL,
-  isDate = FALSE,
+  is_date = FALSE,
   NApct_lim = NULL,
   NAyear_lim = NULL,
   Seasons = c("DJF", "MAM", "JJA", "SON"),
@@ -22,6 +22,7 @@ process_extraction(
   compress = FALSE,
   expand = FALSE,
   rmNApct = FALSE,
+  rm_duplicates = FALSE,
   dev = FALSE,
   verbose = FALSE
 )
@@ -56,7 +57,7 @@ A tibble: 201 × 4
 
 \item{funct_args}{A \link[base:list]{list} of \link[base:list]{list} of named arguments needed for each functions provided through \link{funct}. This \link[base:list]{list} can be a simple \link[base:list]{list} if there is only one function given by \link{funct}. The argument can relate to a column name in order to specify on which numerical column the extraction will be perfom. For the simple example, \code{funct_args=list("Q_obs", na.rm=TRUE)} and for the more complex case \code{funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=FALSE))}.}
 
-\item{timeStep}{A \link[base:character]{character} specifying the time step of the variable extraction process. Possible values are :
+\item{time_step}{A \link[base:character]{character} specifying the time step of the variable extraction process. Possible values are :
 \itemize{
 \item "year" for a value per year
 \item "month" for a value for each month of the year (so 12 values if at least a full year is given)
@@ -67,12 +68,12 @@ A tibble: 201 × 4
 "none" if you want to extract a unique value for the whole time serie
 }}
 
-\item{samplePeriod}{A \link[base:character]{character} or a \link[base:c]{vector} of two \link[base:character]{characters} that will indicate how to sample the data for each time step defined by \link{timeStep}. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if \link{timeStep} is set to \code{"year"}, \link{samplePeriod} needs to be formated as \verb{\%m-\%d} (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if \code{timeStep="year"} and \code{samplePeriod="03-19"}, \link{funct} will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a \link[base:c]{vector} of two \link[base:character]{characters} as \code{samplePeriod=c("02-01", "07-31")} in order to process data only if the date is between the 1st february and the 31th jully of each year.
-\strong{in developpement} For a monthly (or seasonal) extraction, \link{samplePeriod} needs to give only day in each month, so for example \code{samplePeriod="10"} to extract data from the 10th of each month to the 9th of each following month.}
+\item{sampling_period}{A \link[base:character]{character} or a \link[base:c]{vector} of two \link[base:character]{characters} that will indicate how to sample the data for each time step defined by \link{time_step}. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if \link{time_step} is set to \code{"year"}, \link{sampling_period} needs to be formated as \verb{\%m-\%d} (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if \code{time_step="year"} and \code{sampling_period="03-19"}, \link{funct} will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a \link[base:c]{vector} of two \link[base:character]{characters} as \code{sampling_period=c("02-01", "07-31")} in order to process data only if the date is between the 1st february and the 31th jully of each year.
+\strong{in developpement} For a monthly (or seasonal) extraction, \link{sampling_period} needs to give only day in each month, so for example \code{sampling_period="10"} to extract data from the 10th of each month to the 9th of each following month.}
 
-\item{period}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{samplePeriod=NULL}, which considers all available data for each time serie.}
+\item{period}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{sampling_period=NULL}, which considers all available data for each time serie.}
 
-\item{isDate}{\link[base:logical]{logical}. If TRUE, \code{\link[=process_extration]{process_extration()}} will convert the result of the application of \link{funct} to a day of the year. The aim is for example to give \code{funct=which.min} and if \code{isDate=TRUE}, the result will not be the indice of the minimum of the sample but the associated day of the year given by an \link[base:integer]{integer} (1 is the 1st of january).}
+\item{is_date}{\link[base:logical]{logical}. If TRUE, \code{\link[=process_extration]{process_extration()}} will convert the result of the application of \link{funct} to a day of the year. The aim is for example to give \code{funct=which.min} and if \code{is_date=TRUE}, the result will not be the indice of the minimum of the sample but the associated day of the year given by an \link[base:integer]{integer} (1 is the 1st of january).}
 
 \item{NApct_lim}{\link[base:numeric]{numeric}. The maximum percentage of missing values in each sample allowed. If this threshold is exceeded, the value associated to the current sample will be convert to NA.}
 
@@ -87,11 +88,11 @@ A tibble: 201 × 4
 \item{keep}{\emph{in developpement} A \link[base:character]{character} \link[base:c]{vector} of column names to keep in the output \link[tibble:tibble]{tibble}. In the current state, \link{keep} can only be set to \code{NULL} if you don't want to keep anythings in the output besides the usefull column, or \code{"all"} if you want to conserve all the initial column in the output column.
 Warning : the number of row of the output with \code{keep="all"} is by consequences the same as the input. So, for example, the extracted value for a year of a daily time serie will be repeated each day of that year in the output.}
 
-\item{compress}{\link[base:logical]{logical}. If \link{timeStep} is set to \code{"month"} or \code{"season"}, should the function return a classical \link[tibble:tibble]{tibble} or a compressed \link[tibble:tibble]{tibble} ? Hence for these two \link{timeStep} a small number of time chunk will be present in the output (12 for \code{timeStep="month"} and by default 4 for \code{timeStep="season"}), it is possible to make a \link[tidyr:pivot_wider]{pivot_wider} in order to have the time chunk indication in column and not anymore in line.
+\item{compress}{\link[base:logical]{logical}. If \link{time_step} is set to \code{"month"} or \code{"season"}, should the function return a classical \link[tibble:tibble]{tibble} or a compressed \link[tibble:tibble]{tibble} ? Hence for these two \link{time_step} a small number of time chunk will be present in the output (12 for \code{time_step="month"} and by default 4 for \code{time_step="season"}), it is possible to make a \link[tidyr:pivot_wider]{pivot_wider} in order to have the time chunk indication in column and not anymore in line.
 
 e.g.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{# for timeStep="season" and compress=FALSE
+\if{html}{\out{<div class="sourceCode">}}\preformatted{# for time_step="season" and compress=FALSE
 # A tibble: 8 × 4
   ID       <time    Q    NApct
   <chr>    <chr>  <dbl>  <dbl>
@@ -104,7 +105,7 @@ e.g.
 7 serie 2  MAM       1    0  
 8 serie 2  SON       4    0
 
-# for timeStep="season" and compress=TRUE
+# for time_step="season" and compress=TRUE
 # A tibble: 2 × 5
  ID       Q_DJF  Q_JJA  Q_MAM  Q_SON
  <chr>    <dbl>  <dbl>  <dbl>  <dbl>
@@ -151,20 +152,20 @@ data = dplyr::bind_rows(data_1, data_2)
 process_extraction(data=data,
                    funct=list(XA_state1=mean),
                    funct_args=list("X_state1", na.rm=TRUE),
-                   timeStep="year")
+                   time_step="year")
 
 dataEX_tmp =
     process_extraction(data=data,
                        funct=list(X_month_state2=mean),
                        funct_args=list("X_state2", na.rm=TRUE),
-                       timeStep="year-month",
+                       time_step="year-month",
                        NApct_lim=20)
 
 process_extraction(data=dataEX_tmp,
                    funct=list(XX_state2=max),
                    funct_args=list("X_month_state2", na.rm=TRUE),
-                   samplePeriod=c("05-01", "11-30"),
-                   timeStep="year",
+                   sampling_period=c("05-01", "11-30"),
+                   time_step="year",
                    rmNApct=TRUE)
 
 process_extraction(data=data,
@@ -172,28 +173,28 @@ process_extraction(data=data,
                               XX_state2=max),
                    funct_args=list(list("X_state1", na.rm=TRUE),
                                    list("X_state2", na.rm=TRUE)),
-                   timeStep="month")
+                   time_step="month")
 
 process_extraction(data=data,
                    funct=list(XA_state1=mean,
                               XX_state2=max),
                    funct_args=list(list("X_state1", na.rm=TRUE),
                                    list("X_state2", na.rm=TRUE)),
-                   timeStep="month",
+                   time_step="month",
                    compress=TRUE)
 
 process_extraction(data=data,
                    funct=list(XA=mean),
                    funct_args=list(list("X", na.rm=TRUE)),
                    suffix=c("_state1", "_state2"),
-                   timeStep="season",
+                   time_step="season",
                    expand=TRUE)
 
 process_extraction(data=data,
                    funct=list(XA=mean),
                    funct_args=list(list("X", na.rm=TRUE)),
                    suffix=c("_state1", "_state2"),
-                   timeStep="season",
+                   time_step="season",
                    compress=TRUE,
                    expand=TRUE)
 

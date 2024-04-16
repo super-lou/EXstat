@@ -10,12 +10,13 @@ CARD_extraction(
   CARD_dir = "WIP",
   CARD_name = NULL,
   CARD_tmp = NULL,
-  period = NULL,
+  period_default = NULL,
   suffix = NULL,
   cancel_lim = FALSE,
   simplify = FALSE,
   expand_overwrite = NULL,
-  samplePeriod_overwrite = NULL,
+  sampling_period_overwrite = NULL,
+  rm_duplicates = FALSE,
   dev = FALSE,
   verbose = FALSE
 )
@@ -31,7 +32,7 @@ CARD_extraction(
 
 \item{CARD_tmp}{Temporary directory path (optional)}
 
-\item{period}{Period to extract from the data (optional)}
+\item{period_default}{Period to extract from the data (optional)}
 
 \item{suffix}{Suffix to append to extracted variables (optional)}
 
@@ -41,7 +42,7 @@ CARD_extraction(
 
 \item{expand_overwrite}{Overwrite the expand parameter (optional)}
 
-\item{samplePeriod_overwrite}{Overwrite the samplePeriod parameter (optional)}
+\item{sampling_period_overwrite}{Overwrite the sampling_period parameter (optional)}
 
 \item{verbose}{Specify whether to print out the process details (default = FALSE)}
 }

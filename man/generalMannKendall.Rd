@@ -4,7 +4,13 @@
 \alias{generalMannKendall}
 \title{General Mann-Kendall}
 \usage{
-generalMannKendall(X, level = 0.1, dep.option = "INDE", DoDetrending = TRUE)
+generalMannKendall(
+  X,
+  level = 0.1,
+  dep.option = "INDE",
+  DoDetrending = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{X}{numeric vector, data. IMPORTANT: X is assumed to be
