@@ -284,9 +284,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                   name_en=name_en,
                                   description_en=description_en,
                                   method_en=method_en,
-                                  sampling_period_en=
-                                      paste0(sampling_period_en,
-                                             collapse=", "),
+                                  sampling_period_en=sampling_period_en,
                                   topic_en=topic_en,
                                   ### French ___
                                   variable_fr=variable_fr,
@@ -294,9 +292,7 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
                                   name_fr=name_fr,
                                   description_fr=description_fr,
                                   method_fr=method_fr,
-                                  sampling_period_fr=
-                                      paste0(sampling_period_fr,
-                                             collapse=", "),
+                                  sampling_period_fr=sampling_period_fr,
                                   topic_fr=topic_fr,
                                   ### Global ___
                                   source=source,
