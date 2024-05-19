@@ -249,6 +249,7 @@ GeneralMannKendall_WRAP = function(X,
     } else {
         res = dplyr::tibble(level=level,
                             H=res$H,
+                            p=res$P,
                             a=res$TREND)
     }
     return (res)
