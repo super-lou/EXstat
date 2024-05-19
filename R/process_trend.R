@@ -686,7 +686,7 @@ get_extreme_trend = function (trendEX,
         extreme_take_only_id = trendEX$code
     }
 
-    if (extreme_by_suffix) {
+    if (extreme_by_suffix | is.null(suffix)) {
         variable_tmp = "variable_en" 
     } else {
         variable_tmp = "variable_no_suffix_en" 
