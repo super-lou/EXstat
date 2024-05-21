@@ -1,6 +1,5 @@
 # Copyright xxxx Benjamin Renard (benjamin.renard@inrae.fr)*1,
-#           2020-2021 Valentin Mansanarez
-#                     (valentin.mansanarez@inrae.fr)*1,
+#           2020-2021 Valentin Mansanarez,
 #           2022-2023 Louis Héraut (louis.heraut@inrae.fr)*1
 #
 # *1   INRAE, France
