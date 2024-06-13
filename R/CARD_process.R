@@ -271,7 +271,9 @@ CARD_extraction = function (data, CARD_path, CARD_dir="WIP",
             sampling_period_en = sampling_period_overwrite[[ss]]
             sampling_period_fr = sapply(
                 lapply(strsplit(sampling_period_en, "-"), rev),
-                paste0, collapse="-")                               
+                paste0, collapse="-")
+            sampling_period_en = paste0(sampling_period_en, collapse=", ")
+            sampling_period_fr = paste0(sampling_period_fr, collapse=", ")
         }
         
         metaEX =

@@ -279,20 +279,18 @@ process_extraction = function(data,
         }
     }
     
-    # # check continuity of Date column for each character identifier
-    # Date_continuity =
-    #     dplyr::summarise(dplyr::group_by(dplyr::arrange(data, get(names(data)[sapply(data, lubridate::is.Date)])),
-    #                                      get(names(data)[sapply(data, is.character)])),
-    #                      n=length(unique(diff(get(names(data)[sapply(data, lubridate::is.Date)])))))
-
-    # print(Date_continuity)
-    # print(data)
-    
-    # if (any(Date_continuity$n > 1)) {
-    #     stop (paste0("There is at least one date discontinuity in time serie(s) named '",
-    #                  paste0(Date_continuity[[1]][Date_continuity$n > 1],
-    #                         collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
-    # }
+    # check continuity of Date column for each character identifier
+    date = names(data)[sapply(data, lubridate::is.Date)]
+    chr = names(data)[sapply(data, is.character)]
+    Date_continuity =
+        dplyr::summarise(dplyr::group_by(dplyr::arrange(data, get(date)),
+                                         get(chr)),
+                         n=length(unique(diff(get(date)))))
+    if (any(Date_continuity$n > 1) & !dev) {
+        stop (paste0("There is at least one date discontinuity in time serie(s) named '",
+                     paste0(Date_continuity[[1]][Date_continuity$n > 1],
+                            collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
+    }
 
 
     # check funct
@@ -2804,7 +2802,9 @@ process_extraction = function(data,
             append,
             x=names(data)[sapply(data,
                                  is.character_or_date)])
-        data = lapply(dplyr::all_of(valueName_select), dplyr::select,
+        # data = lapply(dplyr::all_of(valueName_select), dplyr::select,
+        # .data=data)
+        data = lapply(valueName_select, dplyr::select,
                       .data=data)
         names(data) = valueName
 
