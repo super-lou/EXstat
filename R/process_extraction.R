@@ -180,6 +180,7 @@ process_extraction = function(data,
                               funct=max,
                               funct_args=list(),
                               time_step="year",
+                              year_without_day=FALSE,
                               sampling_period=NULL,
                               period=NULL,
                               is_date=FALSE,
@@ -1254,38 +1255,38 @@ process_extraction = function(data,
         sampleInfoCompress$Year =
             lubridate::year(sampleInfoCompress$Date)
 
-
         tree("Create each group",
              3, end=TRUE, inEnd=2, verbose=verbose)
         
-        Group = dplyr::reframe(dplyr::group_by(sampleInfo,
-                                               Code),
-                               Year =
-                                   lubridate::year(minSampleStart):
-                                   lubridate::year(maxSampleStart))
+        if (!year_without_day) {
+            Group = dplyr::reframe(dplyr::group_by(sampleInfo,
+                                                   Code),
+                                   Year =
+                                       lubridate::year(minSampleStart):
+                                       lubridate::year(maxSampleStart))
 
-        Group = dplyr::full_join(Group,
-                                 dplyr::select(sampleInfoCompress,
-                                               Code,
-                                               Year,
-                                               dNA),
-                                 by=c("Code", "Year"))
-        Group = tidyr::replace_na(Group, list(dNA=0)) 
-        Group = dplyr::full_join(Group,
-                                 dplyr::select(sampleInfo,
-                                               Code,
-                                               interval,
-                                               isStartAfter29Feb,
-                                               is29FebIn),
-                                 by=c("Code"))
+            Group = dplyr::full_join(Group,
+                                     dplyr::select(sampleInfoCompress,
+                                                   Code,
+                                                   Year,
+                                                   dNA),
+                                     by=c("Code", "Year"))
+            Group = tidyr::replace_na(Group, list(dNA=0)) 
+            Group = dplyr::full_join(Group,
+                                     dplyr::select(sampleInfo,
+                                                   Code,
+                                                   interval,
+                                                   isStartAfter29Feb,
+                                                   is29FebIn),
+                                     by=c("Code"))
 
-        Group = dplyr::mutate(
-                           Group, 
-                           isLeapYear=
-                               dplyr::if_else(
-                                          isStartAfter29Feb,
-                                          check_leapYear(Year+1),
-                                          check_leapYear(Year)))
+            Group = dplyr::mutate(
+                               Group, 
+                               isLeapYear=
+                                   dplyr::if_else(
+                                              isStartAfter29Feb,
+                                              check_leapYear(Year+1),
+                                              check_leapYear(Year)))
 
 
             Group = dplyr::mutate(Group,
@@ -1296,27 +1297,17 @@ process_extraction = function(data,
                                       dplyr::if_else(is29FebIn,
                                                      leapYear, 0),
                                   size=interval-leapYear-dNA)
-        
+            
+            Group = dplyr::filter(Group,
+                                  size > 0)
+            Group = dplyr::reframe(Group,
+                                   group=rep(Year, size))
+            
+            data = dplyr::bind_cols(data, Group)
 
-
-        # print(sampleInfo, width=Inf)
-        # print(Group, n=Inf)
-        
-        Group = dplyr::filter(Group,
-                              size > 0)
-        Group = dplyr::reframe(Group,
-                               group=rep(Year, size))
-        
-        # print(data, n=Inf)
-        # print(data, n=366)
-        # print(tail(data, n=366), n=366)
-        # print(Group, n=366)
-        # print(tail(Group, n=366), n=366)
-
-        # print(data)
-        # print(Group)
-        
-        data = dplyr::bind_cols(data, Group)
+        } else {
+            data$group = format(data$Date, "%Y")
+        }
         
 
 ### Yearday __________________________________________________________
@@ -1902,7 +1893,7 @@ process_extraction = function(data,
             #                          formatC(Group$Month, width=2, flag="0"))
             # Group = dplyr::reframe(Group,
             #                        group=rep(YearMonth, size))
-            
+
         } else if (time_step == "month") {
             # Group = dplyr::reframe(Group,
             #                        group=rep(Month, size))
