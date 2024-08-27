@@ -180,7 +180,6 @@ process_extraction = function(data,
                               funct=max,
                               funct_args=list(),
                               time_step="year",
-                              # year_without_day=FALSE,
                               sampling_period=NULL,
                               period=NULL,
                               is_date=FALSE,
@@ -193,7 +192,7 @@ process_extraction = function(data,
                               keep=NULL,
                               compress=FALSE,
                               expand=FALSE,
-                              rmNApct=FALSE,
+                              rmNApct=TRUE,
                               rm_duplicates=FALSE,
                               dev=FALSE,
                               verbose=FALSE) {
@@ -279,20 +278,38 @@ process_extraction = function(data,
             }
         }
     }
+
+
+
     
     # check continuity of Date column for each character identifier
-    # date = names(data)[sapply(data, lubridate::is.Date)]
-    # chr = names(data)[sapply(data, is.character)]
-    # Date_continuity =
-    #     dplyr::summarise(dplyr::group_by(dplyr::arrange(data, get(date)),
-    #                                      get(chr)),
-    #                      n=length(unique(diff(get(date)))))
-    # if (any(Date_continuity$n > 1) & !dev) {
-    #     stop (paste0("There is at least one date discontinuity in time serie(s) named '",
-    #                  paste0(Date_continuity[[1]][Date_continuity$n > 1],
-    #                         collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
-    # }
+    date_col = names(data)[sapply(data, lubridate::is.Date)]
+    chr_col = names(data)[sapply(data, is.character)]
+    Date_continuity =
+        dplyr::summarise(dplyr::group_by(dplyr::arrange(data,
+                                                        get(date_col)),
+                                         !!sym(chr_col)),
+                         n=length(unique(diff(get(date_col)))))
 
+    if (any(Date_continuity$n > 1) & time_step %in% c("year", "yearday")) {
+        values_col = setdiff(names(data), c(date_col, chr_col))
+        fill = as.list(rep(NaN, length(values_col)))
+        names(fill) = values_col
+
+        data = data %>%
+            dplyr::group_by(!!sym(chr_col)) %>%
+            tidyr::complete(date=seq(min(get(date_col)),
+                                     max(get(date_col)),
+                                     by="day"),
+                            fill=fill)
+        
+        # stop (paste0("There is at least one date discontinuity in time serie(s) named '",
+                     # paste0(Date_continuity[[1]][Date_continuity$n > 1],
+                            # collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
+    }
+
+
+    
 
     # check funct
     if (is.function(funct) | all(sapply(funct, is.function))) {
@@ -939,6 +956,7 @@ process_extraction = function(data,
     # <3
 
 
+### None ___________________________________________________
     if (time_step == "none") {
         tree("None extraction", 1, verbose=verbose)
 
@@ -1033,6 +1051,8 @@ process_extraction = function(data,
                                       spEnd,
                                       dt2add))
 
+        
+### Year ___________________________________________________
     } else if (time_step == "year") {
         tree("Yearly extraction", 1, verbose=verbose)
 
@@ -1075,6 +1095,7 @@ process_extraction = function(data,
                                                "spEnd",
                                                "dt2add")],
                                 by="Code")
+
 
         if (any(sampling_period$interval != 366)) {
             tree("Sampling of the data", 3, inEnd=2, verbose=verbose)
@@ -1255,8 +1276,19 @@ process_extraction = function(data,
         sampleInfoCompress$Year =
             lubridate::year(sampleInfoCompress$Date)
 
+
         tree("Create each group",
              3, end=TRUE, inEnd=2, verbose=verbose)
+
+        
+
+        # print(data)
+        # print(sampling_period, width=Inf)
+        # print(sampleInfoCompress, width=Inf)
+        # print(sampleInfo, width=Inf)
+        # print("")
+        
+
         
         Group = dplyr::reframe(dplyr::group_by(sampleInfo,
                                                Code),
@@ -1275,8 +1307,11 @@ process_extraction = function(data,
                                  dplyr::select(sampleInfo,
                                                Code,
                                                interval,
+                                               dt2add,
                                                isStartAfter29Feb,
-                                               is29FebIn),
+                                               is29FebIn,
+                                               spStart,
+                                               spEnd),
                                  by=c("Code"))
 
         Group = dplyr::mutate(
@@ -1296,13 +1331,44 @@ process_extraction = function(data,
                                   dplyr::if_else(is29FebIn,
                                                  leapYear, 0),
                               size=interval-leapYear-dNA)
-        
+
         Group = dplyr::filter(Group,
                               size > 0)
         Group = dplyr::reframe(Group,
                                group=rep(Year, size))
-        
         data = dplyr::bind_cols(data, Group)
+
+        
+        # Group = Group %>%
+        #     dplyr::group_by(Code) %>%
+        #     dplyr::mutate(start=
+        #                       lubridate::ymd(paste0(
+        #                                      Year,
+        #                                      "-",
+        #                                      spStart), quiet=TRUE),
+        #                   # start=
+        #                   #     dplyr::if_else(
+        #                   #                is.na(start),
+        #                   #                lubridate::ymd(paste0(
+        #                   #                               Year,
+        #                   #                               "-02-08")),
+        #                   #                start),
+                          
+        #                   end=lubridate::ymd(paste0(
+        #                                      Year + dt2add,
+        #                                      "-",
+        #                                      spEnd))) %>%
+        #     dplyr::select(Code, Year, start, end)
+    
+        # print(data)
+
+        
+
+
+
+
+
+        
 
 
 ### Yearday __________________________________________________________
@@ -2238,6 +2304,18 @@ process_extraction = function(data,
                                    colGroup=colGroup),
                          .f=dplyr::full_join, by=colGroup)
 
+    # print(data)
+
+    # if (!is.null(keep)) {
+    #     data = dplyr::mutate(data,
+    #                          dplyr::across(.cols=dplyr::starts_with(
+    #                                                         "Value"),
+    #                                        .fns=infinite2NA),
+    #                          .keep="all")
+    # }
+
+    
+    
 
     tree("Cleaning extracted tibble", 1, verbose=verbose)
     tree("Manage possible infinite values", 2, verbose=verbose)
@@ -2830,7 +2908,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
     f = funct[[i]]
 
     data$isNA =
-        is.na(rowSums(
+        is.na_not_nan(rowSums(
             dplyr::mutate_all(data[unlist(colArg)],
                               as.numeric)))
 
@@ -2839,23 +2917,52 @@ apply_extraction = function (i, data, colArgs, otherArgs,
                                            "yearday"))) {
 
         if (i == 1) {
+            # data = dplyr::mutate(
+            #                   data,
+            #                   !!!rlang::data_syms(keepDate),
+            #                   !!paste0("ValueEX", i) :=
+            #                       f(!!!rlang::data_syms(colArg),
+            #                         !!!otherArg),
+            #                   !!paste0("nNA", i) :=
+            #                       sum(isNA),
+            #                   n=dplyr::n(),
+            #                   id=1:max(c(length(get(paste0("ValueEX",
+            #                                                i))), 1)))
             data = dplyr::mutate(
                               data,
                               !!!rlang::data_syms(keepDate),
+                              dplyr::across(.cols=dplyr::matches("Value[[:digit:]]+"),
+                                            .fns=~dplyr::if_else(dplyr::row_number() == 1,
+                                                                 .x, NaN)),
                               !!paste0("ValueEX", i) :=
-                                  f(!!!rlang::data_syms(colArg),
-                                    !!!otherArg),
+                                  dplyr::if_else(dplyr::row_number() == 1,
+                                                 f(!!!rlang::data_syms(colArg),
+                                                   !!!otherArg),
+                                                 NaN),
                               !!paste0("nNA", i) :=
                                   sum(isNA),
                               n=dplyr::n(),
                               id=1:max(c(length(get(paste0("ValueEX",
                                                            i))), 1)))
         } else {
+            # data = dplyr::mutate(
+            #                   data,
+            #                   !!paste0("ValueEX", i) :=
+            #                       f(!!!rlang::data_syms(colArg),
+            #                         !!!otherArg),
+            #                   !!paste0("nNA", i) :=
+            #                       sum(isNA),
+            #                   id=1:max(c(length(get(paste0("ValueEX",
+            #                                                i))), 1)),
+            #                   .keep="none"
+            #               )
             data = dplyr::mutate(
                               data,
                               !!paste0("ValueEX", i) :=
-                                  f(!!!rlang::data_syms(colArg),
-                                    !!!otherArg),
+                                  dplyr::if_else(dplyr::row_number() == 1,
+                                                f(!!!rlang::data_syms(colArg),
+                                                  !!!otherArg),
+                                                NaN),
                               !!paste0("nNA", i) :=
                                   sum(isNA),
                               id=1:max(c(length(get(paste0("ValueEX",
@@ -2901,10 +3008,12 @@ apply_extraction = function (i, data, colArgs, otherArgs,
 
 
 
-fix_sampling_period = function (sampling_period, data_code=NULL, args=NA,
-                             suffix=NULL,
-                             refDate="1972", sampleFormat="%m-%d",
-                             verbose=FALSE) {
+fix_sampling_period = function (sampling_period, data_code=NULL,
+                                args=NA,
+                                suffix=NULL,
+                                refDate="1972",
+                                sampleFormat="%m-%d",
+                                verbose=FALSE) {
 
     if (is.function(sampling_period[[1]]) & sampleFormat == "%m-%d") {
         data_code = process_extraction(data=data_code,

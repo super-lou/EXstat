@@ -691,3 +691,40 @@ get_time = function (timer=NULL) {
     }
     return (Sys.time())
 }
+
+
+check_date_hide = function (x) {
+    ok = !is.na(lubridate::ymd(x, quiet=TRUE))
+    return (ok)
+}
+check_date = function (X) {
+    Ok = sapply(X, check_date_hide, USE.NAMES=FALSE)
+    return (Ok)
+}
+
+
+adjust_date_hide = function (x) {
+    date = lubridate::ymd(x, quiet=TRUE)
+    if (is.na(date)) {
+        year = as.numeric(substr(x, 1, 4))
+        month = as.numeric(substr(x, 6, 7))
+        day = as.numeric(substr(x, 9, 10))
+        
+        while (is.na(date)) {
+            day = day - 1
+            date = lubridate::ymd(sprintf("%04d-%02d-%02d", year, month, day),
+                                  quiet=TRUE)
+        }
+    }
+    return (date)
+}
+
+adjust_date = function (X) {
+    Date = as.Date(sapply(X, adjust_date_hide, USE.NAMES=FALSE))
+    return (Date)
+}
+
+
+is.na_not_nan = function(x) {
+  is.na(x) & !is.nan(x)
+}
