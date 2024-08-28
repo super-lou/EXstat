@@ -6,13 +6,14 @@
 \usage{
 process_trend(
   dataEX,
-  metaEX = NULL,
   MK_level = 0.1,
   time_dependency_option = "INDE",
   suffix = NULL,
   suffix_delimiter = "_",
+  to_normalise = FALSE,
+  metaEX = NULL,
   extreme_take_not_signif_into_account = TRUE,
-  extreme_take_only_id = NULL,
+  extreme_take_only_series = NULL,
   extreme_by_suffix = TRUE,
   period_trend = NULL,
   period_change = NULL,
@@ -24,63 +25,122 @@ process_trend(
 )
 }
 \arguments{
-\item{dataEX}{A data frame containing the data to be analyzed.}
+\item{dataEX}{Input data format is a \link[tibble:tibble]{tibble} from the tibble package. It needs to have :
+\itemize{
+\item Only one column of \link[base:Dates]{Date} that are regularly spaced and unique for each time serie.
+\item If there is more than one time serie, at least one column needs to be of \link[base:character]{character} for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
+\item At least one column of \link[base:numeric]{numeric} (or \link[base:logical]{logical}) on which the process of variable extraction will be perform. More numerical column can be leave but if they are useless, they will be suppressed.
+The \link[tibble:tibble]{tibble} output of the \link{process_extraction} function is the kind of wanted input data.
+}}
 
-\item{metaEX}{A data frame containing metadata information (optional).}
+\item{MK_level}{\link[base:numeric]{numeric} Mann-Kendall test significance level between \code{0} and \code{1}. Default is \code{0.1}.}
 
-\item{MK_level}{The significance level for the Mann-Kendall statistical test.}
+\item{time_dependency_option}{\link[base:character]{character} for handling temporal dependence for the Mann-Kendall test. Possible values are :
+\itemize{
+\item \code{"INDE"}, assume independence (i.e. the standard MK test)
+\item \code{"AR1"}, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
+\item \code{"LTP"}, assume long-term persistence (i.e. Hamed's version of the MK test)
+}}
 
-\item{time_dependency_option}{The time dependency option to use in the Mann-Kendall test.}
+\item{suffix}{A \link[base:character]{character} \link[base:c]{vector} representing suffixes to be appended to the column names of the extracted variables. See \link{process_extraction} for more info. Default \code{NULL}.}
 
-\item{extreme_take_not_signif_into_account}{Flag indicating whether to take into account non-significant trends.}
+\item{suffix_delimiter}{\link[base:character]{character} specifies the delimiter to use between the variable name and the suffix if not \code{NULL}. The default is \code{"_"}.}
 
-\item{period_trend}{A list of periods to consider for trend analysis (optional).}
+\item{to_normalise}{A named \link[base:logical]{logical} \link[base:c]{vector} indicating whether each variable's trend should be normalised. \code{TRUE} performs normalisation, while \code{FALSE} does nothing. This vector must be of length one or have the same length as the number of \link[base:numeric]{numeric} (or \link[base:logical]{logical}) variables in \link{dataEX}, with names specifying which value corresponds to which variable. Default 'FALSE'.}
 
-\item{period_change}{A list of periods to consider for change analysis (optional).}
+\item{metaEX}{One of the outputs of the \link{CARD_extraction} function that contains metadata for the normalisation process. Default is \code{NULL}. If supplied, this normalisation information will be used instead of the settings provided in the \link{to_normalise} variable.}
 
-\item{extreme_prob}{The extreme probability threshold for identifying extreme values (optional).}
+\item{extreme_take_not_signif_into_account}{\link[base:logical]{logical} Whether to consider non-significant trends in the computation of extreme trends. Default is \code{TRUE}.}
 
-\item{verbose}{Flag indicating whether to display verbose output during the analysis.}
+\item{extreme_take_only_series}{\link[base:character]{character} A \link[base:c]{vector} of the names of time series to be used for computing extreme trends. Default is \code{NULL}, which includes all available series.}
 
-\item{...}{Additional parameters to be passed to the statistical test and estimation methods.}
+\item{extreme_by_suffix}{\link[base:logical]{logical} If \code{TRUE}, extreme trends will be computed across separate sets of trend values of the same variable and the same suffix. If \code{FALSE}, all extreme trends of a variable will be used without considering suffixes. Default is \code{TRUE}.}
+
+\item{period_trend}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{period_trend=NULL}, which considers all available data for each time serie.}
+
+\item{period_change}{\emph{in developpement} A \link[base:list]{list} of two \link[base:c]{vectors} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict two period for the change analysis. As an example, it can be \code{list(c("1950-01-01", "1999-12-31"), c("2000-01-01", "2020-12-31"))}. The default option is \code{period_change=NULL}, which does not do any analysis.}
+
+\item{extreme_prob}{\link[base:numeric]{numeric} The probability for identifying extreme trends using quantiles. Default is \code{0.01}, so the computed extremes will be based on the \link[base:quantile]{quantile} at \code{0.01} and \code{0.99}.}
+
+\item{show_advance_stat}{\link[base:logical]{logical} Whether to display advanced statistical details. Default is \code{FALSE}.}
+
+\item{dev}{\link[base:logical]{logical} If \code{TRUE}, development mode is enabled. Default is \code{FALSE}.}
+
+\item{verbose}{\link[base:logical]{logical} Whether to print intermediate messages. Default is \code{FALSE}.}
+
+\item{verbose_stat}{\link[base:logical]{logical} Whether to print detailed statistical messages. Default is \code{FALSE}.}
 }
 \value{
-A data frame containing the results of the trend analysis.
+\subsection{A \link[tibble:tibble]{tibble} with trend analysis results, including trend coefficients and statistical significance for each variables.
+More precisly :}{
+}
 }
 \description{
-Analyzes the trend in data using statistical tests and estimation methods.
-}
-\details{
-The function analyzes the trend in the provided data using statistical tests, such as the Mann-Kendall test, and estimation methods. It computes the trend for each specified period, detects significant trends, estimates other variables related to the trend, and identifies extreme values if metadata information is provided.
-}
-\note{
-documentation generated by chatGPT
+Process a trend analyze on time series data. The Mann-Kendall statistical test is applied to detect trends and some additional statistics are computed like the Sen-Theil slope estimator.
 }
 \examples{
-# Date
-Start = as.Date("1972-01-01")
-End = as.Date("2020-12-31")
+## Creation of random data set
+set.seed(99)
+Start = as.Date("2000-02-01")
+End = as.Date("2010-04-04")
 Date = seq.Date(Start, End, by="day")
 
-# Variable to analyse
-set.seed(100)
-X = seq(1, length(Date))/1e4 + runif(length(Date), -100, 100)
-X[as.Date("2000-03-01") <= Date & Date <= as.Date("2000-09-30")] = NA
+# First time serie
+data_1 = dplyr::tibble(time=Date,
+                       X_state1=as.numeric(Date) +
+                           rnorm(length(Date), 1e4, 1e3),
+                       X_state2=seq(1, length(Date))/1e2 +
+                           rnorm(length(Date), 0, 1),
+                       id="serie 1")
+data_1$X_state2[round(runif(500, 1, nrow(data_1)))] = NA
 
-# Creation of tibble
-data = dplyr::tibble(date=Date, ID="serie A", X=X)
+# Second time serie
+data_2 = dplyr::tibble(time=Date,
+                       X_state1=as.numeric(Date) +
+                           rnorm(length(Date), 1e4, 1e3),
+                       X_state2=seq(1, length(Date))/1e2 +
+                           rnorm(length(Date), 0, 1),
+                       id="serie 2")
+data_2$X_state2[round(runif(1000, 1, nrow(data_2)))] = NA
 
-# Extraction
+# Final data for testing
+data = dplyr::bind_rows(data_1, data_2)
+
+## Extraction of the yearly average of daily value.
 dataEX = process_extraction(data=data,
-                            sampling_period=c("05-01",
-                                           "11-30"),
-                            funct=max,
-                            na.rm=TRUE,
-                            period=c(as.Date("1990-01-01"),
-                                     as.Date("2020-12-31")),
+                   funct=list(XA_state1=mean),
+                   funct_args=list("X_state1", na.rm=TRUE),
+                   time_step="year")
+
+dataEX = process_extraction(data=data,
+                            funct=list(XA=mean,
+                                       XX=max),
+                            funct_args=list(list("X", na.rm=TRUE),
+                                            list("X", na.rm=TRUE)),
+                            suffix=c("state1", "state2"),
                             time_step="year")
 
-trendEX = process_trend(data=dataEX)
-trendEX
+## Trend test
+# The direct application does not take care of possible grouped variables by suffix for extremes trends values.
+trendEX1 = process_trend(dataEX,
+                         to_normalise=TRUE)
+print(trendEX1, width=Inf)
+
+# More complicated case with the use of 'period_change' and customs normalisation info
+trendEX2 =
+    process_trend(dataEX,
+                  suffix=c("state1", "state2"),
+                  suffix_delimiter="_",
+                  to_normalise=c("XA_state1"=FALSE,
+                                 "XA_state2"=FALSE,
+                                 "XX_state1"=TRUE,
+                                 "XX_state2"=TRUE),
+                  extreme_take_only_series=NULL,
+                  extreme_by_suffix=FALSE,
+                  period_change=list(c(as.Date("2000-01-01"),
+                                       as.Date("2005-01-01")),
+                                     c(as.Date("2006-01-01"),
+                                       as.Date("2010-01-01"))))
+print(trendEX2, width=Inf)
 
 }

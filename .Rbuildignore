@@ -5,5 +5,4 @@ test.R
 .emacs.desktop
 data*
 figures*
-*.pdf
 results*
