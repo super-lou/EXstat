@@ -1,26 +1,40 @@
 Package: EXstat
-Version: 2.0.0
-Date: 2023-10-17
+Version: 2.1.0
+Date: 2024-08-28
 Title: EXstat
 Description: Provides an efficient and simple solution to aggregate and analyze the stationarity of time series.
 Authors@R: c(
-    person(given = "Valentin",
-           family = "Mansanarez",
-           role = c("aut"),
-           email = "valentin.mansanarez@inrae.fr"),
     person(given = "Benjamin",
            family = "Renard",
            role = c("aut"),
            email = "benjamin.renard@inrae.fr"),
+    person(given = "Valentin",
+           family = "Mansanarez",
+           role = c("aut")),
     person(given = "Louis",
            family = "Héraut",
            role = c("cre", "aut"),
-           email = "louis.heraut@inrae.fr")
-    )
+           email = "louis.heraut@inrae.fr"),
+    person(given = "Éric",
+           family = "Sauquet",
+           role = c("ctb"),
+           email = "eric.sauquet@inrae.fr"),
+    person(given = "Jean-Philippe",
+           family = "Vidal",
+           role = c("ctb"),
+           email = "jean-philippe.vidal@inrae.fr"),
+    person(given = "Nathan",
+           family = "Pellerin",
+           role = c("ctb"))
+	   )
+Maintainer: Louis Héraut <louis.heraut@inrae.fr>
 Encoding: UTF-8
 License: GPL-3 + file LICENSE
 Imports: 
     dplyr,
+    tibble,
+    tidyr,
+    data.table,
     lubridate,
     stats,
     rlang,

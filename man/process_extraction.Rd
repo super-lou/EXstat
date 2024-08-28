@@ -21,7 +21,7 @@ process_extraction(
   keep = NULL,
   compress = FALSE,
   expand = FALSE,
-  rmNApct = FALSE,
+  rmNApct = TRUE,
   rm_duplicates = FALSE,
   dev = FALSE,
   verbose = FALSE

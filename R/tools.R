@@ -1,6 +1,6 @@
-# Copyright xxxx Benjamin Renard (benjamin.renard@inrae.fr)*1,
-#           2020-2021 Valentin Mansanarez,
-#           2022-2023 Louis Héraut (louis.heraut@inrae.fr)*1
+# Copyright xxxx      Benjamin Renard (benjamin.renard@inrae.fr)*1
+#           2020-2021 Valentin Mansanarez
+#           2021-2024 Louis Héraut (louis.heraut@inrae.fr)*1
 #
 # *1   INRAE, France
 #
@@ -11,8 +11,8 @@
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# EXstat R package is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
+# EXstat R package is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
 #
@@ -222,7 +222,6 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
 #' @examples
 #' GeneralMannKendall_WRAP(X=1:100)
 #' GeneralMannKendall_WRAP(X=rep(1, 100))
-#' @export
 GeneralMannKendall_WRAP = function(X,
                                    level=0.1,
                                    time_dependency_option='INDE',
@@ -480,42 +479,6 @@ fieldSignificance_FDR = function (pvals, level=0.1) {
 
 
 ## 3. OTHER __________________________________________________________
-# #' @title compute_NApct
-# #' @description Compute the percentage of NA value in a sample.
-# #' @param Value Numeric Vector of value on which the
-# #' percentage of NA is computed
-# #' @param minDate Date vector computed by 'process_extraction' 
-# #' @param maxDate Date vector computed by 'process_extraction' 
-# #' @param sampleStart Date vector computed by 'process_extraction' 
-# #' @param sampleEnd Date vector computed by 'process_extraction' 
-# #' @return Percentage of NA
-# compute_exactNApct = function(Value, minDate, maxDate,
-#                               sampleStart, sampleEnd) {
-
-#     dStart = as.numeric(minDate[1] - min(sampleStart))
-#     dEnd = as.numeric(max(sampleEnd) - maxDate[1])
-#     dNA = max(0, dStart) + max(0, dEnd)
-#     nNA = sum(is.na(Value))
-
-#     sampleStart = sampleStart[!duplicated(sampleStart)]
-#     sampleEnd = sampleEnd[!duplicated(sampleEnd)]
-#     nDayAll = as.numeric(sampleEnd - sampleStart) + 1
-#     nDay = sum(nDayAll)
-
-#     NApct = (nNA + dNA)/nDay * 100 
-#     return (NApct)
-# }
-
-
-#' @title compute_NApct
-#' @description Compute the percentage of NA value in a sample.
-#' @param Value Numeric Vector of value on which the
-#' percentage of NA is computed
-#' @param minDate Date vector computed by 'process_extraction' 
-#' @param maxDate Date vector computed by 'process_extraction' 
-#' @param sampleStart Date vector computed by 'process_extraction' 
-#' @param sampleEnd Date vector computed by 'process_extraction' 
-#' @return Percentage of NA
 compute_NApct = function(Value, Date,
                          minDate, maxDate,
                          sampleStart, sampleEnd) {
@@ -535,8 +498,7 @@ compute_NApct = function(Value, Date,
 }
 
 
-#' @title Add modification info
-#' @export
+
 add_mod = function (df_mod, Code, type, fun_name, comment, df_meta=NULL) {
     
     if (Code == 'all' & is.null(df_meta)) {

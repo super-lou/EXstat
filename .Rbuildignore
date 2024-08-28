@@ -2,3 +2,8 @@ Makefile
 .github
 CODE_OF_CONDUCT.md
 test.R
+.emacs.desktop
+data*
+figures*
+*.pdf
+results*
