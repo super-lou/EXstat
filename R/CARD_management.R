@@ -22,6 +22,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
+
 #' @title CARD_management
 #' @description Manage the CARD directory structure by performing automatic file operations to copy and paste CARD parameterization files more efficiently.
 #'
@@ -88,7 +89,7 @@ CARD_management = function (CARD_path,
     }
 
     if (is.null(args$CARD_tmp)) {
-        args$CARD_tmp = file.path(args$CARD_path, "tmp")
+        args$CARD_tmp = file.path(args$CARD_path)
     }
         
     if (args$verbose) {
@@ -238,3 +239,16 @@ remind = function (args) {
                      paste0(args[[i]], collapse=" ")))
     }
 }
+
+
+# CARD_path = "/home/louis/Documents/bouleau/INRAE/project/CARD_project/CARD"
+# CARD_tmp = "/home/louis/Téléchargements/clara"
+# CARD_dir = "analyse_1"
+# CARD_name = c("QMNA-5", "BFI_Wal")
+
+# CARD_management(CARD_path=CARD_path,
+#                 CARD_tmp=NULL,
+#                 CARD_dir=CARD_dir,
+#                 CARD_name=CARD_name,
+#                 layout=c(CARD_dir, "[", "QMNA-5", "BFI_Wal", "]"),
+#                 verbose=TRUE)
