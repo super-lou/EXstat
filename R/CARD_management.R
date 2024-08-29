@@ -22,52 +22,53 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
-remind = function (args) {
-    print("PARAMETERS:")
-    n = length(args)
-    args_name = names(args)
-    for (i in 1:n) {
-        print(paste0("    --", args_name[i], " ",
-                     paste0(args[[i]], collapse=" ")))
-    }
-}
-
-
 #' @title CARD_management
-#' @description This function manages the CARD directory structure and performs file operations based on the specified arguments.
+#' @description Manage the CARD directory structure by performing automatic file operations to copy and paste CARD parameterization files more efficiently.
 #'
-#' @param CARD The CARD directory path (need to ends by "CARD").
-#' @param tmp The temporary directory path. If not provided, it will default to the value of `CARD`.
-#' @param layout A character vector specifying the layout of files to be managed. The default layout is c("EX", "[", "QA", "]").
-#' @param underscore_to_white Logical. If TRUE, underscores in file names will be replaced with spaces. Default is TRUE.
-#' @param add_id Logical. If TRUE, numerical id will be added to the start of the file names. Default is TRUE.
-#' @param overwrite Logical. If TRUE, existing files in the temporary directory will be overwritten. Default is TRUE.
-#' @param verbose Logical. If TRUE, intermediate prints will be printed during the execution of the function. Default is FALSE.
-#' @param args A list of arguments needed for the function. If not provided, it will be automatically created using the other function arguments. It is an intermediate form of arguments useful if argparse package is used.
+#' @param CARD_path A [character][base::character] string representing the path to the downloaded CARD directory (it should end with `"CARD"`). In this directory, you can search the CARDs that you want in the `"__all__"` subdirectory that will be use for an analysis (see [layout] to know how to specify which CARD you want).
+#' @param CARD_out A [character][base::character] string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is `NULL` if you want to use a `tmp` subdirectory in the [CARD_path] directory.
+#' @param layout A [character][base::character] [vector][base::c()] specifying the tree structure of files that you want for your analysis. Each element of the vector represents either:
+#' * the name of an analysis directory (e.g., `"EX"`)
+#' * the beginning and ending of an analysis directory: `"["` for the start and `"]"` for the end
+#' * the CARD name (e.g., `"QA"`)
+#' For example, if you want to create an `"EX"` analysis directory for the CARDs named `"QA"` and `"QJXA"`, you can provide `c("EX", "[", "QA", "QJXA", "]")` (which is the default value).
+#' @param underscore_to_white [logical][base::logical]. If `TRUE`, underscores in directory names will be replaced with spaces. Default is `TRUE`.
+#' @param add_id [logical][base::logical]. If `TRUE`, numerical IDs will be added to the start of the copied and pasted CARD names to maintain the input order. Default is `TRUE`.
+#' @param overwrite [logical][base::logical]. If `TRUE`, existing CARD files in the [CARD_out] directory will be overwritten. Default is `TRUE`.
+#' @param verbose [logical][base::logical]. Should intermediate messages be printed during the execution of the function ? Default `FALSE`.
+#' @param args An intermediate form of arguments that is useful if the argparse package is used. If not provided, it will be automatically created using the other function arguments. Default is `NULL`.
 #'
+#' @return CARD parameterization files will be copied and pasted from [CARD_path] and organized according to the structure given by [layout] into the [CARD_out] directory.
+#' 
 #' @examples
-#' # Manage CARD directory with default arguments
-#' CARD_management(CARD = "/path/to/CARD")
-#'
-#' # Manage CARD directory with custom arguments
-#' CARD_management(CARD="/path/to/CARD", tmp="/path/to/tmp", layout=c("EX", "[", "QA", "]"),
-#'                 underscore_to_white=TRUE, add_id=TRUE, overwrite=TRUE, verbose=TRUE)
-#'
+#' \dontrun{
+#' CARD_management(CARD="path/to/CARD",
+#'                 tmp="path/to/copy/CARD",
+#'                 layout=c("EX", "[", "QA", "QJXA", "]"),
+#'                 overwrite=TRUE,
+#'                 verbose=TRUE)
+#' }
+#' 
+#' @export
 #' @md
-CARD_management = function (CARD=".", tmp="",
-                            layout=c("EX", "[", "QA", "]"), underscore_to_white=TRUE,
-                            add_id=TRUE, overwrite=TRUE,
-                            verbose=FALSE, args=NULL) {
+CARD_management = function (CARD_path,
+                            CARD_out=NULL,
+                            layout=c("EX", "[", "QA", "QJXA", "]"),
+                            underscore_to_white=TRUE,
+                            add_id=TRUE,
+                            overwrite=TRUE,
+                            verbose=FALSE,
+                            args=NULL) {
     
     if (is.null(args)) {
-        args = list(CARD=CARD, tmp=tmp, layout=layout,
+        args = list(CARD_path=CARD_path, CARD_out=CARD_out, layout=layout,
                     underscore_to_white=underscore_to_white,
                     add_id=add_id, overwrite=overwrite,
                     verbose=verbose)        
     }
 
-    if (args$tmp == "") {
-        args$tmp = args$CARD
+    if (is.null(args$CARD_out)) {
+        args$CARD_out = file.path(args$CARD_path, "tmp")
     }
         
     if (args$verbose) {
@@ -78,7 +79,7 @@ CARD_management = function (CARD=".", tmp="",
         stop ()
     }
 
-    source_dir = file.path(args$CARD, "__all__")
+    source_dir = file.path(args$CARD_path, "__all__")
 
     OUT = unlist(args$layout)
     nOUT = length(OUT)
@@ -175,7 +176,7 @@ CARD_management = function (CARD=".", tmp="",
     }
 
     DIR = DIR[!duplicated(DIR)]
-    DIR = file.path(args$tmp, DIR)
+    DIR = file.path(args$CARD_out, DIR)
 
     if (any(dir.exists(DIR)) &
         args$overwrite |
@@ -193,7 +194,7 @@ CARD_management = function (CARD=".", tmp="",
             names(files) = basename(files)
             
             file.copy(file.path(source_dir, files[IN[i]]),
-                      file.path(args$tmp, OUT[i]))
+                      file.path(args$CARD_out, OUT[i]))
         }
         
     } else if (any(dir.exists(DIR)) &
@@ -204,5 +205,16 @@ CARD_management = function (CARD=".", tmp="",
 
     if (args$verbose) {
         print("done")
+    }
+}
+
+
+remind = function (args) {
+    print("PARAMETERS:")
+    n = length(args)
+    args_name = names(args)
+    for (i in 1:n) {
+        print(paste0("    --", args_name[i], " ",
+                     paste0(args[[i]], collapse=" ")))
     }
 }

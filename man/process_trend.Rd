@@ -60,7 +60,7 @@ The \link[tibble:tibble]{tibble} output of the \link{process_extraction} functio
 
 \item{period_change}{\emph{in developpement} A \link[base:list]{list} of two \link[base:c]{vectors} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict two period for the change analysis. As an example, it can be \code{list(c("1950-01-01", "1999-12-31"), c("2000-01-01", "2020-12-31"))}. The default option is \code{period_change=NULL}, which does not do any analysis.}
 
-\item{extreme_prob}{\link[base:numeric]{numeric} The probability for identifying extreme trends using quantiles. Default is \code{0.01}, so the computed extremes will be based on the \link[base:quantile]{quantile} at \code{0.01} and \code{0.99}.}
+\item{extreme_prob}{\link[base:numeric]{numeric} The probability for identifying extreme trends using quantiles. Default is \code{0.01}, so the computed extremes will be based on the \link[stats:quantile]{quantile} at \code{0.01} and \code{0.99}.}
 
 \item{show_advance_stat}{\link[base:logical]{logical} Whether to display advanced statistical details. Default is \code{FALSE}.}
 

@@ -22,7 +22,7 @@
 
 
 #' @title process_extraction
-#' @description This process extracts a variable from time series (for example the yearly mean of time series). Extraction can have a specific time step and sampled differently along this time step.
+#' @description Extracts a variable from time series (for example the yearly mean of time series). Extraction can have a specific time step and sampled differently along this time step.
 #'
 #' @param data Input data format is a [tibble][tibble::tibble()] from the tibble package. It needs to have :
 #' * Only one column of [Date][base::Date] that are regularly spaced and unique for each time serie.
@@ -59,7 +59,7 @@
 #' "none" if you want to extract a unique value for the whole time serie
 #' Default `"year"`.
 #' @param sampling_period A [character][base::character] or a [vector][base::c()] of two [characters][base::character] that will indicate how to sample the data for each time step defined by [time_step]. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if [time_step] is set to `"year"`, [sampling_period] needs to be formated as `%m-%d` (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if `time_step="year"` and `sampling_period="03-19"`, [funct] will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a [vector][base::c()] of two [characters][base::character] as `sampling_period=c("02-01", "07-31")` in order to process data only if the date is between the 1st february and the 31th jully of each year.
-#' **not available for now** For a monthly (or seasonal) extraction, [sampling_period] needs to give only day in each month, so for example `sampling_period="10"` to extract data from the 10th of each month to the 9th of each following month.
+#' *not available for now* For a monthly (or seasonal) extraction, [sampling_period] needs to give only day in each month, so for example `sampling_period="10"` to extract data from the 10th of each month to the 9th of each following month.
 #' Default `NULL`.
 #' @param period A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `period=NULL`, which considers all available data for each time serie.
 #' @param is_date [logical][base::logical]. If TRUE, [process_extration()] will convert the result of the application of [funct] to a day of the year. The aim is for example to give `funct=which.min` and if `is_date=TRUE`, the result will not be the indice of the minimum of the sample but the associated day of the year given by an [integer][base::integer] (1 is the 1st of january). Default `FALSE`.

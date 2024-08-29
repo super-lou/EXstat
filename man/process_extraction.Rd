@@ -70,7 +70,7 @@ Default \code{"year"}.
 }}
 
 \item{sampling_period}{A \link[base:character]{character} or a \link[base:c]{vector} of two \link[base:character]{characters} that will indicate how to sample the data for each time step defined by \link{time_step}. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if \link{time_step} is set to \code{"year"}, \link{sampling_period} needs to be formated as \verb{\%m-\%d} (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if \code{time_step="year"} and \code{sampling_period="03-19"}, \link{funct} will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a \link[base:c]{vector} of two \link[base:character]{characters} as \code{sampling_period=c("02-01", "07-31")} in order to process data only if the date is between the 1st february and the 31th jully of each year.
-\strong{not available for now} For a monthly (or seasonal) extraction, \link{sampling_period} needs to give only day in each month, so for example \code{sampling_period="10"} to extract data from the 10th of each month to the 9th of each following month.
+\emph{not available for now} For a monthly (or seasonal) extraction, \link{sampling_period} needs to give only day in each month, so for example \code{sampling_period="10"} to extract data from the 10th of each month to the 9th of each following month.
 Default \code{NULL}.}
 
 \item{period}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{period=NULL}, which considers all available data for each time serie.}
@@ -131,7 +131,7 @@ e.g.
 A \link[tibble:tibble]{tibble} containing the extracted variable, or a named \link[base:list]{list} of \link[tibble:tibble]{tibble} for each extracted variable if \code{expand} is \code{TRUE}. This output follows the same format as the input data described in \link{data}, making it possible to iterate over this output using \link{process_extraction}.
 }
 \description{
-This process extracts a variable from time series (for example the yearly mean of time series). Extraction can have a specific time step and sampled differently along this time step.
+Extracts a variable from time series (for example the yearly mean of time series). Extraction can have a specific time step and sampled differently along this time step.
 }
 \note{
 \itemize{
