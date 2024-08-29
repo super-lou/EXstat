@@ -84,7 +84,7 @@ More parameters are available, for example, to :
 * use suffixes to simplify expressions, and
 * manage variables related to seasonality.
 
-In this way ...
+In this way
 ``` r
 dataEX = process_extraction(data=data,
                             funct=max,
