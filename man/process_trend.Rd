@@ -28,23 +28,23 @@ process_trend(
 \item{dataEX}{Input data format is a \link[tibble:tibble]{tibble} from the tibble package. It needs to have :
 \itemize{
 \item Only one column of \link[base:Dates]{Date} that are regularly spaced and unique for each time serie.
-\item If there is more than one time serie, at least one column needs to be of \link[base:character]{character} for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
+\item If there is more than one time serie, at least one column needs to be of \link[base:character]{character} string for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
 \item At least one column of \link[base:numeric]{numeric} (or \link[base:logical]{logical}) on which the process of variable extraction will be perform. More numerical column can be leave but if they are useless, they will be suppressed.
 The \link[tibble:tibble]{tibble} output of the \code{\link[=process_extraction]{process_extraction()}} function is the kind of wanted input data.
 }}
 
 \item{MK_level}{\link[base:numeric]{numeric} Mann-Kendall test significance level between \code{0} and \code{1}. Default is \code{0.1}.}
 
-\item{time_dependency_option}{\link[base:character]{character} for handling temporal dependence for the Mann-Kendall test. Possible values are :
+\item{time_dependency_option}{\link[base:character]{character} string for handling temporal dependence for the Mann-Kendall test. Possible values are :
 \itemize{
 \item \code{"INDE"}, assume independence (i.e. the standard MK test)
 \item \code{"AR1"}, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
 \item \code{"LTP"}, assume long-term persistence (i.e. Hamed's version of the MK test)
 }}
 
-\item{suffix}{A \link[base:character]{character} \link[base:c]{vector} representing suffixes to be appended to the column names of the extracted variables. See \code{\link[=process_extraction]{process_extraction()}} for more info. Default \code{NULL}.}
+\item{suffix}{A \link[base:character]{character} string \link[base:c]{vector} representing suffixes to be appended to the column names of the extracted variables. See \code{\link[=process_extraction]{process_extraction()}} for more info. Default \code{NULL}.}
 
-\item{suffix_delimiter}{\link[base:character]{character} specifies the delimiter to use between the variable name and the suffix if not \code{NULL}. The default is \code{"_"}.}
+\item{suffix_delimiter}{\link[base:character]{character} string specifies the delimiter to use between the variable name and the suffix if not \code{NULL}. The default is \code{"_"}.}
 
 \item{to_normalise}{A named \link[base:logical]{logical} \link[base:c]{vector} indicating whether each variable's trend should be normalised. \code{TRUE} performs normalisation, while \code{FALSE} does nothing. This vector must be of length one or have the same length as the number of \link[base:numeric]{numeric} (or \link[base:logical]{logical}) variables in \code{dataEX}, with names specifying which value corresponds to which variable. Default 'FALSE'.}
 
@@ -52,13 +52,13 @@ The \link[tibble:tibble]{tibble} output of the \code{\link[=process_extraction]{
 
 \item{extreme_take_not_signif_into_account}{\link[base:logical]{logical} Whether to consider non-significant trends in the computation of extreme trends. Default is \code{TRUE}.}
 
-\item{extreme_take_only_series}{\link[base:character]{character} A \link[base:c]{vector} of the names of time series to be used for computing extreme trends. Default is \code{NULL}, which includes all available series.}
+\item{extreme_take_only_series}{\link[base:character]{character} string A \link[base:c]{vector} of the names of time series to be used for computing extreme trends. Default is \code{NULL}, which includes all available series.}
 
 \item{extreme_by_suffix}{\link[base:logical]{logical} If \code{TRUE}, extreme trends will be computed across separate sets of trend values of the same variable and the same suffix. If \code{FALSE}, all extreme trends of a variable will be used without considering suffixes. Default is \code{TRUE}.}
 
-\item{period_trend}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{period_trend=NULL}, which considers all available data for each time serie.}
+\item{period_trend}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} strings that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{period_trend=NULL}, which considers all available data for each time serie.}
 
-\item{period_change}{\emph{in developpement} A \link[base:list]{list} of two \link[base:c]{vectors} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict two period for the change analysis. As an example, it can be \code{list(c("1950-01-01", "1999-12-31"), c("2000-01-01", "2020-12-31"))}. The default option is \code{period_change=NULL}, which does not do any analysis.}
+\item{period_change}{\emph{in developpement} A \link[base:list]{list} of two \link[base:c]{vectors} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} strings that can be coerced to \link[base:Dates]{dates}) to restrict two period for the change analysis. As an example, it can be \code{list(c("1950-01-01", "1999-12-31"), c("2000-01-01", "2020-12-31"))}. The default option is \code{period_change=NULL}, which does not do any analysis.}
 
 \item{extreme_prob}{\link[base:numeric]{numeric} The probability for identifying extreme trends using quantiles. Default is \code{0.01}, so the computed extremes will be based on the \link[stats:quantile]{quantile} at \code{0.01} and \code{0.99}.}
 
@@ -78,7 +78,7 @@ More precisely, the returned \code{trendEX} \link[tibble:tibble]{tibble} contain
 \item \code{*} : The idenfiant of time series
 \item \code{variable_en} : The name in english of variables
 \item \code{level} : see \code{MK_level}
-\item \code{H} : The result of the Mann-Kendall trend test. If \code{TRUE} a trend is detected at a risk level of \code{MK_level} (and a confidance of 1-\code{MK_level}). If \code{FALSE}, a trend is NOT detected at a risk level of \code{MK_level}.
+\item \code{H} : The result of the Mann-Kendall trend test. If \code{TRUE} a trend is detected at a type I error of \code{MK_level} (and a trust of 1-\code{MK_level}). If \code{FALSE}, a trend is NOT detected at a type I error of \code{MK_level}.
 \item \code{p}: The p-value indicating the statistical significance of the Mann-Kendall trend test.
 \item \code{a} : The Then-Seil slope estimator that gives an approximation of the trend coefficient. WARNING : A value is always return even if the Mann-Kendall trend test is not significant.
 \item \code{b} : The ordinate at the origin in sort that you can trace `Y = a * X + b

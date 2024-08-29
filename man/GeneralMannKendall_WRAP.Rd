@@ -19,7 +19,7 @@ regularly-spaced.}
 
 \item{level}{\link[base:numeric]{numeric} Mann-Kendall test significance level between \code{0} and \code{1}. Default is \code{0.1}.}
 
-\item{time_dependency_option}{\link[base:character]{character} for handling temporal dependence for the Mann-Kendall test. Possible values are :
+\item{time_dependency_option}{\link[base:character]{character} string for handling temporal dependence for the Mann-Kendall test. Possible values are :
 \itemize{
 \item \code{"INDE"}, assume independence (i.e. the standard MK test)
 \item \code{"AR1"}, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)

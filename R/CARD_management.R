@@ -26,19 +26,21 @@
 #' @description Manage the CARD directory structure by performing automatic file operations to copy and paste CARD parameterization files more efficiently.
 #'
 #' @param CARD_path A [character][base::character] string representing the path to the downloaded CARD directory (it should end with `"CARD"`). In this directory, you can search the CARDs that you want in the `"__all__"` subdirectory that will be use for an analysis (see [layout] to know how to specify which CARD you want).
-#' @param CARD_out A [character][base::character] string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is `NULL` if you want to use a `tmp` subdirectory in the `CARD_path` directory.
+#' @param CARD_tmp A [character][base::character] string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is `NULL` if you want to use a `tmp` subdirectory in the `CARD_path` directory.
+#' @param CARD_dir A [character][base::character] string for the name of a subdirectory in `CARD_path` (or `CARD_tmp`) where the CARD parameterization files are located for an analysis. Default is `"WIP"`.
+#' @param CARD_name A [vector][base::c()] of [character][base::character] strings with the names of the CARDs to be used. Default is `c("QA", "QJXA")`.
 #' @param layout A [character][base::character] string [vector][base::c()] specifying the tree structure of files that you want for your analysis. Each element of the vector represents either:
-#' * the name of an analysis directory (e.g., `"EX"`)
+#' * the name of an analysis directory (e.g., `"WIP"`)
 #' * the beginning and ending of an analysis directory: `"["` for the start and `"]"` for the end
 #' * the CARD name (e.g., `"QA"`)
-#' For example, if you want to create an `"EX"` analysis directory for the CARDs named `"QA"` and `"QJXA"`, you can provide `c("EX", "[", "QA", "QJXA", "]")` (which is the default value).
+#' For example, if you want to create an `"WIP"` analysis directory for the CARDs named `"QA"` and `"QJXA"`, you can provide `c("WIP", "[", "QA", "QJXA", "]")`. Default is `NULL` to use `CARD_dir` and `CARD_name`.
 #' @param underscore_to_white [logical][base::logical]. If `TRUE`, underscores in directory names will be replaced with spaces. Default is `TRUE`.
 #' @param add_id [logical][base::logical]. If `TRUE`, numerical IDs will be added to the start of the copied and pasted CARD names to maintain the input order. Default is `TRUE`.
-#' @param overwrite [logical][base::logical]. If `TRUE`, existing CARD files in the `CARD_out` directory will be overwritten. Default is `TRUE`.
+#' @param overwrite [logical][base::logical]. If `TRUE`, existing CARD files in the `CARD_tmp` directory will be overwritten. Default is `TRUE`.
 #' @param verbose [logical][base::logical]. Should intermediate messages be printed during the execution of the function ? Default `FALSE`.
 #' @param args An intermediate form of arguments that is useful if the argparse package is used. If not provided, it will be automatically created using the other function arguments. Default is `NULL`.
 #'
-#' @return CARD parameterization files will be copied and pasted from `CARD_path` and organized according to the structure given by [layout] into the `CARD_out` directory.
+#' @return CARD parameterization files will be copied and pasted from `CARD_path` and organized according to the structure given by [layout] into the `CARD_tmp` directory.
 #'
 #' @seealso
 #' - [process_extraction()] for extracting variables.
@@ -47,9 +49,16 @@
 #' 
 #' @examples
 #' \dontrun{
-#' CARD_management(CARD="path/to/CARD",
-#'                 tmp="path/to/copy/CARD",
-#'                 layout=c("EX", "[", "QA", "QJXA", "]"),
+#' CARD_management(CARD_path="path/to/CARD",
+#'                 CARD_tmp="path/to/copy/CARD",
+#'                 CARD_dir="WIP",
+#'                 CARD_name=c("QA", "QJXA"),
+#'                 overwrite=TRUE,
+#'                 verbose=TRUE)
+#' # or with layout
+#' CARD_management(CARD_path="path/to/CARD",
+#'                 CARD_tmp="path/to/copy/CARD",
+#'                 layout=c("WIP", "[", "QA", "QJXA", "]"),
 #'                 overwrite=TRUE,
 #'                 verbose=TRUE)
 #' }
@@ -57,23 +66,29 @@
 #' @export
 #' @md
 CARD_management = function (CARD_path,
-                            CARD_out=NULL,
-                            layout=c("EX", "[", "QA", "QJXA", "]"),
+                            CARD_tmp=NULL,
+                            CARD_dir="WIP",
+                            CARD_name=c("QA", "QJXA"),
+                            layout=NULL,
                             underscore_to_white=TRUE,
                             add_id=TRUE,
                             overwrite=TRUE,
                             verbose=FALSE,
                             args=NULL) {
+
+    if (is.null(layout)) {
+        layout = c(CARD_dir, "[", CARD_name, "]")
+    }
     
     if (is.null(args)) {
-        args = list(CARD_path=CARD_path, CARD_out=CARD_out, layout=layout,
+        args = list(CARD_path=CARD_path, CARD_tmp=CARD_tmp, layout=layout,
                     underscore_to_white=underscore_to_white,
                     add_id=add_id, overwrite=overwrite,
                     verbose=verbose)        
     }
 
-    if (is.null(args$CARD_out)) {
-        args$CARD_out = file.path(args$CARD_path, "tmp")
+    if (is.null(args$CARD_tmp)) {
+        args$CARD_tmp = file.path(args$CARD_path, "tmp")
     }
         
     if (args$verbose) {
@@ -181,7 +196,7 @@ CARD_management = function (CARD_path,
     }
 
     DIR = DIR[!duplicated(DIR)]
-    DIR = file.path(args$CARD_out, DIR)
+    DIR = file.path(args$CARD_tmp, DIR)
 
     if (any(dir.exists(DIR)) &
         args$overwrite |
@@ -199,7 +214,7 @@ CARD_management = function (CARD_path,
             names(files) = basename(files)
             
             file.copy(file.path(source_dir, files[IN[i]]),
-                      file.path(args$CARD_out, OUT[i]))
+                      file.path(args$CARD_tmp, OUT[i]))
         }
         
     } else if (any(dir.exists(DIR)) &
