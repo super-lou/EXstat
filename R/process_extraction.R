@@ -1,6 +1,6 @@
-# Copyright 2021-2023 Louis Héraut (louis.heraut@inrae.fr)*1,
-#                     Éric Sauquet (eric.sauquet@inrae.fr)*1,
-#           2023 Jean-Philippe Vidal (jean-philippe.vidal@inrae.fr)*1
+# Copyright 2021-2024 Louis Héraut (louis.heraut@inrae.fr)*1                     
+#           2023      Éric Sauquet (eric.sauquet@inrae.fr)*1
+#                     Jean-Philippe Vidal (jean-philippe.vidal@inrae.fr)*1
 #
 # *1   INRAE, France
 #
@@ -11,8 +11,8 @@
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# EXstat R package is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
+# EXstat R package is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
 #
@@ -22,7 +22,7 @@
 
 
 #' @title process_extraction
-#' @description This process extracts a variable from time series (for example the yearly mean of time series). Extraction can have a specific time step and sampled differently along this time step.
+#' @description Extracts a variable from time series (for example the yearly mean of time series). Extraction can have a specific time step and sampled differently along this time step.
 #'
 #' @param data Input data format is a [tibble][tibble::tibble()] from the tibble package. It needs to have :
 #' * Only one column of [Date][base::Date] that are regularly spaced and unique for each time serie.
@@ -47,8 +47,8 @@
 #'     ...
 #' ```
 #' 
-#' @param funct The function that you want to use for the process of variable extraction. More specificaly, it is possible to give a [list][base::list()] with several functions as element of that [list][base::list()] and the name that will be used for the extracted column as the names element of each function of that previously defined [list][base::list()]. A simple case will be `funct=mean` and a more complicated one `funct=list(QA=mean, QJXA=max)`.  
-#' @param funct_args A [list][base::list()] of [list][base::list()] of named arguments needed for each functions provided through [funct]. This [list][base::list()] can be a simple [list][base::list()] if there is only one function given by [funct]. The argument can relate to a column name in order to specify on which numerical column the extraction will be perfom. For the simple example, `funct_args=list("Q_obs", na.rm=TRUE)` and for the more complex case `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=FALSE))`.
+#' @param funct The function that you want to use for the process of variable extraction. More specificaly, it is possible to give a [list][base::list()] with several functions as element of that [list][base::list()] and the name that will be used for the extracted column as the names element of each function of that previously defined [list][base::list()]. A simple case will be `funct=mean` and a more complicated one `funct=list(QA=mean, QJXA=max)`. Default [max][base::max()].
+#' @param funct_args A [list][base::list()] of [list][base::list()] of named arguments needed for each functions provided through [funct]. This [list][base::list()] can be a simple [list][base::list()] if there is only one function given by [funct]. The argument can relate to a column name in order to specify on which numerical column the extraction will be perfom. For the simple example, `funct_args=list("Q_obs", na.rm=TRUE)` and for the more complex case `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=FALSE))`. Default [list][base::list()].
 #' @param time_step A [character][base::character] specifying the time step of the variable extraction process. Possible values are :
 #' - "year" for a value per year
 #' - "month" for a value for each month of the year (so 12 values if at least a full year is given)
@@ -57,18 +57,21 @@
 #' - "year-season" for a value for each season of each year (so by default 4 times the number of given year values at the end)
 #' - "yearday" for one value per day of the year (so 365 values at the end if at least a full year is given... but more than one year seems obviously more interesting)
 #' "none" if you want to extract a unique value for the whole time serie
+#' Default `"year"`.
 #' @param sampling_period A [character][base::character] or a [vector][base::c()] of two [characters][base::character] that will indicate how to sample the data for each time step defined by [time_step]. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if [time_step] is set to `"year"`, [sampling_period] needs to be formated as `%m-%d` (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if `time_step="year"` and `sampling_period="03-19"`, [funct] will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a [vector][base::c()] of two [characters][base::character] as `sampling_period=c("02-01", "07-31")` in order to process data only if the date is between the 1st february and the 31th jully of each year.
-#' **in developpement** For a monthly (or seasonal) extraction, [sampling_period] needs to give only day in each month, so for example `sampling_period="10"` to extract data from the 10th of each month to the 9th of each following month. 
-#' @param period A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `sampling_period=NULL`, which considers all available data for each time serie.
-#' @param is_date [logical][base::logical]. If TRUE, [process_extration()] will convert the result of the application of [funct] to a day of the year. The aim is for example to give `funct=which.min` and if `is_date=TRUE`, the result will not be the indice of the minimum of the sample but the associated day of the year given by an [integer][base::integer] (1 is the 1st of january).
-#' @param NApct_lim [numeric][base::numeric]. The maximum percentage of missing values in each sample allowed. If this threshold is exceeded, the value associated to the current sample will be convert to NA.
-#' @param NAyear_lim [numeric][base::numeric].The maximum number of continuous missing years allowed. If this threshold is exceeded, the time serie will be split in half around the problematic period and only the longest part will be used for the extraction process.
+#' *not available for now* For a monthly (or seasonal) extraction, [sampling_period] needs to give only day in each month, so for example `sampling_period="10"` to extract data from the 10th of each month to the 9th of each following month.
+#' Default `NULL`.
+#' @param period A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `period=NULL`, which considers all available data for each time serie.
+#' @param is_date [logical][base::logical]. If TRUE, [process_extration()] will convert the result of the application of [funct] to a day of the year. The aim is for example to give `funct=which.min` and if `is_date=TRUE`, the result will not be the indice of the minimum of the sample but the associated day of the year given by an [integer][base::integer] (1 is the 1st of january). Default `FALSE`.
+#' @param NApct_lim [numeric][base::numeric]. The maximum percentage of missing values in each sample allowed. If this threshold is exceeded, the value associated to the current sample will be convert to NA. Default `NULL`.
+#' @param NAyear_lim [numeric][base::numeric].The maximum number of continuous missing years allowed. If this threshold is exceeded, the time serie will be split in half around the problematic period and only the longest part will be used for the extraction process. Default `NULL`.
 #' @param Seasons A [vector][base::c()] of [characters][base::character] that indicates the seasonal pattern of a year. All months of the year needs to be contain in the [Seasons] variable. Give months circulary in a vector in which each element is a character chain of several months identify by the first letter of their names. The default is `Seasons=c("DJF", "MAM", "JJA", "SON")` but it can be set for example to `Seasons=c("MAMJJA", "SONDJF")`.
 #' @param nameEX A [character][base::character] specifying the name of the column of the extracted variable if no name is given in [funct]. Default is `"X"`.
-#' @param suffix A [character][base::character] [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. This parameter allows handling multiple extraction scenarios. For example, a cumbersome case can be to have a unique function to apply to a multiple list of column. It is possible to give `funct=list(QA_obs=mean, QA_sim=mean)` and `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=TRUE))` or simply `funct=list(QA=mean)` and `funct_args=list("Q", na.rm=TRUE)` with `suffix=c("_obs", "_sim")`. The two approach give the same result.
+#' @param suffix A [character][base::character] [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. This parameter allows handling multiple extraction scenarios. For example, a cumbersome case can be to have a unique function to apply to a multiple list of column. It is possible to give `funct=list(QA_obs=mean, QA_sim=mean)` and `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=TRUE))` or simply `funct=list(QA=mean)` and `funct_args=list("Q", na.rm=TRUE)` with `suffix=c("obs", "sim")`. The two approach give the same result. Default `NULL`.
+#' @param suffix_delimiter [character][base::character] specifies the delimiter to use between the variable name and the suffix if not `NULL`. The default is `"_"`.
 #' @param keep *in developpement* A [character][base::character] [vector][base::c()] of column names to keep in the output [tibble][tibble::tibble()]. In the current state, [keep] can only be set to `NULL` if you don't want to keep anythings in the output besides the usefull column, or `"all"` if you want to conserve all the initial column in the output column.
-#' Warning : the number of row of the output with `keep="all"` is by consequences the same as the input. So, for example, the extracted value for a year of a daily time serie will be repeated each day of that year in the output.   
-#' @param compress [logical][base::logical]. If [time_step] is set to `"month"` or `"season"`, should the function return a classical [tibble][tibble::tibble()] or a compressed [tibble][tibble::tibble()] ? Hence for these two [time_step] a small number of time chunk will be present in the output (12 for `time_step="month"` and by default 4 for `time_step="season"`), it is possible to make a [pivot_wider][tidyr::pivot_wider()] in order to have the time chunk indication in column and not anymore in line.
+#' Warning : The number of rows in the output with `keep="all"` will, as a result, be the same as in the input. For example, the extracted value for a year from a daily time series will be assigned to the first day of that year, and `NaN` will be assigned to every other value in the output. Default `NULL`.                     
+#' @param compress [logical][base::logical]. If [time_step] is set to `"month"`, `"year-month"`, `"season"` or `"year-season"` should the function return a standard [tibble][tibble::tibble()] or a compressed one ?  When `compress = TRUE`, the function will perform a [pivot_wider][tidyr::pivot_wider()] operation to display the month or season information in columns instead of rows. Default `FALSE`.
 #'
 #' e.g.
 #' ```
@@ -92,19 +95,27 @@
 #' 1 serie 1  1464  1447   1395   1458
 #' 2 serie 2    11     2      1      4
 #' ```
-#' 
-#' @param expand [logical][base::logical]. If `TRUE`, expand the output [tibble][tibble::tibble()] as a [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable.
-#' @param rmNApct [logical][base::logical]. Should the `NApct` column in the output that show the percentage of missing value should be remove ?
-#' @param verbose [logical][base::logical]. Should intermediate messages be printed during the execution of the function ?
+#' @param expand [logical][base::logical]. If `TRUE`, expand the output [tibble][tibble::tibble()] as a [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable by [suffix]. Default `FALSE`.
+#' @param rmNApct [logical][base::logical]. Should the `NApct` column, which shows the percentage of missing values in the output, be removed ? Default `TRUE`.
+#' @param rm_duplicates [logical][base::logical]. Should duplicate time series values be automatically removed ? Default `FALSE`.
+#' @param dev [logical][base::logical] If `TRUE`, development mode is enabled. Default is `FALSE`.
+#' @param verbose [logical][base::logical]. Should intermediate messages be printed during the execution of the function ? Default `FALSE`.
+#'
+#' @note 
+#' - [compress] and [expand] cannot be both set to TRUE for [time_step] set to `"year-month"` or `"year-season"`.
+#' - `NA` values are considered missing values and are used to compute the percentage of gaps over each time step, potentially removing the results if the percentage exceeds [NApct_lim].
+#' - `NaN` values are considered non-existent values but can also be computation artifacts, for example, when the [keep] option is used. For speed performance reasons, `NaN` values are needed as masked values for input time series that are not daily and are extracted throughout the year.
+#'
+#' @return A [tibble][tibble::tibble()] containing the extracted variable, or a named [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable if `expand` is `TRUE`. This output follows the same format as the input data described in [data], making it possible to iterate over this output using [process_extraction].
 #' 
 #' @examples
-#' # Date
+#' ## Creation of random data set
+#' set.seed(99)
 #' Start = as.Date("2000-02-01")
 #' End = as.Date("2010-04-04")
 #' Date = seq.Date(Start, End, by="day")
 #' 
-#' # Creation of random data set
-#' set.seed(99)
+#' # First time serie
 #' data_1 = dplyr::tibble(time=Date,
 #'                        X_state1=as.numeric(Date) +
 #'                            rnorm(length(Date), 1e4, 1e3),
@@ -113,6 +124,7 @@
 #'                        id="serie 1")
 #' data_1$X_state2[round(runif(500, 1, nrow(data_1)))] = NA
 #' 
+#' # Second time serie
 #' data_2 = dplyr::tibble(time=Date,
 #'                        X_state1=as.numeric(Date) +
 #'                            rnorm(length(Date), 1e4, 1e3),
@@ -121,35 +133,49 @@
 #'                        id="serie 2")
 #' data_2$X_state2[round(runif(1000, 1, nrow(data_2)))] = NA
 #' 
+#' # Final data for testing
 #' data = dplyr::bind_rows(data_1, data_2)
-#'
-#' # Extraction
+#' 
+#' ## Extraction of the yearly average of daily value.
 #' process_extraction(data=data,
 #'                    funct=list(XA_state1=mean),
 #'                    funct_args=list("X_state1", na.rm=TRUE),
 #'                    time_step="year")
-#'
+#' 
+#' ## Extraction of the median of the yearly maximum of the monthly averages of daily values.
+#' # Three steps are needed for this case, the first one is the monthly average over years.
 #' dataEX_tmp =
 #'     process_extraction(data=data,
 #'                        funct=list(X_month_state2=mean),
 #'                        funct_args=list("X_state2", na.rm=TRUE),
 #'                        time_step="year-month",
-#'                        NApct_lim=20)
+#'                        NApct_lim=20,
+#'                        rmNApct=FALSE)
+#' # Missing values represented by NA are handled.
+#' print(dataEX_tmp)
+#' # In this second step, for the yearly maximum, the sampling period for each year is modified to a fixed value.
+#' dataEX_tmp =
+#'     process_extraction(data=dataEX_tmp,
+#'                        funct=list(XX_state2=max),
+#'                        funct_args=list("X_month_state2", na.rm=TRUE),
+#'                        sampling_period=c("05-01", "11-30"),
+#'                        time_step="year")
 #' 
+#' # Finaly, the median is computed and if there is missing value, w
 #' process_extraction(data=dataEX_tmp,
-#'                    funct=list(XX_state2=max),
-#'                    funct_args=list("X_month_state2", na.rm=TRUE),
-#'                    sampling_period=c("05-01", "11-30"),
-#'                    time_step="year",
-#'                    rmNApct=TRUE)
+#'                    funct=list(med_XX_state2=median),
+#'                    funct_args=list("XX_state2", na.rm=TRUE),
+#'                    time_step="none")
 #' 
+#' ## Extraction of the monthly average and the monthly maximum in a single call.
+#' # The output is in long tibble format with 12 values for each time serie.
 #' process_extraction(data=data,
 #'                    funct=list(XA_state1=mean,
 #'                               XX_state2=max),
 #'                    funct_args=list(list("X_state1", na.rm=TRUE),
 #'                                    list("X_state2", na.rm=TRUE)),
 #'                    time_step="month")
-#' 
+#' # In this case, the output tibble is compress to have the date indication in column. This also works for year-month extraction.
 #' process_extraction(data=data,
 #'                    funct=list(XA_state1=mean,
 #'                               XX_state2=max),
@@ -157,18 +183,23 @@
 #'                                    list("X_state2", na.rm=TRUE)),
 #'                    time_step="month",
 #'                    compress=TRUE)
-#' 
+#' # And in this last case, the output tibble is compress and then expand in order to have a list of tibble for each variable.
 #' process_extraction(data=data,
-#'                    funct=list(XA=mean),
-#'                    funct_args=list(list("X", na.rm=TRUE)),
-#'                    suffix=c("_state1", "_state2"),
-#'                    time_step="season",
+#'                    funct=list(XA_state1=mean,
+#'                               XX_state2=max),
+#'                    funct_args=list(list("X_state1", na.rm=TRUE),
+#'                                    list("X_state2", na.rm=TRUE)),
+#'                    time_step="month",
+#'                    compress=TRUE,
 #'                    expand=TRUE)
 #' 
+#' ## Extraction of the seasonal average and season maxium for both columns using suffixes to avoid repetition with compress and expand formating.
 #' process_extraction(data=data,
-#'                    funct=list(XA=mean),
-#'                    funct_args=list(list("X", na.rm=TRUE)),
-#'                    suffix=c("_state1", "_state2"),
+#'                    funct=list(XA=mean,
+#'                               XX=max),
+#'                    funct_args=list(list("X", na.rm=TRUE),
+#'                                    list("X", na.rm=TRUE)),
+#'                    suffix=c("state1", "state2"),
 #'                    time_step="season",
 #'                    compress=TRUE,
 #'                    expand=TRUE)
@@ -180,7 +211,6 @@ process_extraction = function(data,
                               funct=max,
                               funct_args=list(),
                               time_step="year",
-                              # year_without_day=FALSE,
                               sampling_period=NULL,
                               period=NULL,
                               is_date=FALSE,
@@ -193,7 +223,7 @@ process_extraction = function(data,
                               keep=NULL,
                               compress=FALSE,
                               expand=FALSE,
-                              rmNApct=FALSE,
+                              rmNApct=TRUE,
                               rm_duplicates=FALSE,
                               dev=FALSE,
                               verbose=FALSE) {
@@ -264,7 +294,7 @@ process_extraction = function(data,
                 warning (paste0("There is at least one duplicated date in time serie(s) named '",
                              paste0(Date_unicity[[1]][Date_unicity$n > 0],
                                     collapse=", "),
-                             "'. 'rm_duplicates' is set to TRUE, so duplicated time serie(s) will be remove."))
+                             "'. 'rm_duplicates' is set to TRUE, so duplicated time serie(s) values will be remove."))
                 data =
                     dplyr::filter(dplyr::group_by(data,
                                                   !!!rlang::data_syms(names(data)[sapply(data,
@@ -275,24 +305,42 @@ process_extraction = function(data,
                 stop (paste0("There is at least one duplicated date in time serie(s) named '",
                              paste0(Date_unicity[[1]][Date_unicity$n > 0],
                                     collapse=", "),
-                             "'. Set 'rm_duplicates' to TRUE if you automatically want to remove duplicated time serie(s)."))
+                             "'. Set 'rm_duplicates' to TRUE if you automatically want to remove duplicated time serie(s) values."))
             }
         }
     }
+
+
+
     
     # check continuity of Date column for each character identifier
-    # date = names(data)[sapply(data, lubridate::is.Date)]
-    # chr = names(data)[sapply(data, is.character)]
-    # Date_continuity =
-    #     dplyr::summarise(dplyr::group_by(dplyr::arrange(data, get(date)),
-    #                                      get(chr)),
-    #                      n=length(unique(diff(get(date)))))
-    # if (any(Date_continuity$n > 1) & !dev) {
-    #     stop (paste0("There is at least one date discontinuity in time serie(s) named '",
-    #                  paste0(Date_continuity[[1]][Date_continuity$n > 1],
-    #                         collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
-    # }
+    date_col = names(data)[sapply(data, lubridate::is.Date)]
+    chr_col = names(data)[sapply(data, is.character)]
+    Date_continuity =
+        dplyr::summarise(dplyr::group_by(dplyr::arrange(data,
+                                                        get(date_col)),
+                                         !!sym(chr_col)),
+                         n=length(unique(diff(get(date_col)))))
+    
+    if (any(Date_continuity$n > 1) & time_step %in% c("year", "yearday")) {
+        values_col = setdiff(names(data), c(date_col, chr_col))
+        fill = as.list(rep(NaN, length(values_col)))
+        names(fill) = values_col
+        
+        data = data %>%
+            dplyr::group_by(!!sym(chr_col)) %>%
+            tidyr::complete(!!date_col:=seq(min(!!sym(date_col)),
+                                            max(!!sym(date_col)),
+                                            by="day"),
+                            fill=fill)
+        
+        # stop (paste0("There is at least one date discontinuity in time serie(s) named '",
+                     # paste0(Date_continuity[[1]][Date_continuity$n > 1],
+                            # collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
+    }
 
+
+    
 
     # check funct
     if (is.function(funct) | all(sapply(funct, is.function))) {
@@ -489,6 +537,13 @@ process_extraction = function(data,
     # check expand
     if (!is.logical(expand)) {
         stop ("'expand' needs to be an object of class 'logical'.")
+    }
+
+    # check compress and expand
+    if (compress & expand &
+        time_step %in% c("year-month", "year-season")) {
+        warning ("'compress' is coherced to FALSE. 'compress' and 'expand' cannot be both TRUE if 'time_step' is 'year-month' or 'year-season'.")
+        compress = FALSE
     }
 
     # check rmNApct
@@ -939,6 +994,7 @@ process_extraction = function(data,
     # <3
 
 
+### None ___________________________________________________
     if (time_step == "none") {
         tree("None extraction", 1, verbose=verbose)
 
@@ -1033,6 +1089,8 @@ process_extraction = function(data,
                                       spEnd,
                                       dt2add))
 
+        
+### Year ___________________________________________________
     } else if (time_step == "year") {
         tree("Yearly extraction", 1, verbose=verbose)
 
@@ -1075,6 +1133,7 @@ process_extraction = function(data,
                                                "spEnd",
                                                "dt2add")],
                                 by="Code")
+
 
         if (any(sampling_period$interval != 366)) {
             tree("Sampling of the data", 3, inEnd=2, verbose=verbose)
@@ -1255,8 +1314,19 @@ process_extraction = function(data,
         sampleInfoCompress$Year =
             lubridate::year(sampleInfoCompress$Date)
 
+
         tree("Create each group",
              3, end=TRUE, inEnd=2, verbose=verbose)
+
+        
+
+        # print(data)
+        # print(sampling_period, width=Inf)
+        # print(sampleInfoCompress, width=Inf)
+        # print(sampleInfo, width=Inf)
+        # print("")
+        
+
         
         Group = dplyr::reframe(dplyr::group_by(sampleInfo,
                                                Code),
@@ -1275,8 +1345,11 @@ process_extraction = function(data,
                                  dplyr::select(sampleInfo,
                                                Code,
                                                interval,
+                                               dt2add,
                                                isStartAfter29Feb,
-                                               is29FebIn),
+                                               is29FebIn,
+                                               spStart,
+                                               spEnd),
                                  by=c("Code"))
 
         Group = dplyr::mutate(
@@ -1296,15 +1369,37 @@ process_extraction = function(data,
                                   dplyr::if_else(is29FebIn,
                                                  leapYear, 0),
                               size=interval-leapYear-dNA)
-        
+
         Group = dplyr::filter(Group,
                               size > 0)
         Group = dplyr::reframe(Group,
                                group=rep(Year, size))
-        
         data = dplyr::bind_cols(data, Group)
 
+        # Group = Group %>%
+        #     dplyr::group_by(Code) %>%
+        #     dplyr::mutate(start=
+        #                       lubridate::ymd(paste0(
+        #                                      Year,
+        #                                      "-",
+        #                                      spStart), quiet=TRUE),
+        #                   # start=
+        #                   #     dplyr::if_else(
+        #                   #                is.na(start),
+        #                   #                lubridate::ymd(paste0(
+        #                   #                               Year,
+        #                   #                               "-02-08")),
+        #                   #                start),
+                          
+        #                   end=lubridate::ymd(paste0(
+        #                                      Year + dt2add,
+        #                                      "-",
+        #                                      spEnd))) %>%
+        #     dplyr::select(Code, Year, start, end)
+    
+        # print(data)
 
+        
 ### Yearday __________________________________________________________
     } else if (time_step == "yearday") {
         
@@ -2238,6 +2333,18 @@ process_extraction = function(data,
                                    colGroup=colGroup),
                          .f=dplyr::full_join, by=colGroup)
 
+    # print(data)
+
+    # if (!is.null(keep)) {
+    #     data = dplyr::mutate(data,
+    #                          dplyr::across(.cols=dplyr::starts_with(
+    #                                                         "Value"),
+    #                                        .fns=infinite2NA),
+    #                          .keep="all")
+    # }
+
+    
+    
 
     tree("Cleaning extracted tibble", 1, verbose=verbose)
     tree("Manage possible infinite values", 2, verbose=verbose)
@@ -2653,24 +2760,11 @@ process_extraction = function(data,
         shiftRef = startSeasonsMonth
         
     } else if (time_step %in% c("year-month", "month")) {
-        # Ref = format(seq.Date(as.Date("1970-01-01"),
-        #                       as.Date("1970-12-01"),
-        #                       "month"), "%b")
-        # Ref = gsub("û", "u", Ref)
-        # Ref = gsub("é", "e", Ref)
-        # Ref = gsub("[.]", "", Ref)
         Ref = c("jan", "feb", "mar", "apr",
                 "may", "jun", "jul", "aug",
                 "sep", "oct", "nov", "dec")
         shiftRef = 1:12
         names(shiftRef) = Ref
-            # gsub("[.]", "",
-            #      gsub("û", "u",
-            #           gsub("é", "e", format(seq.Date(
-            #                              as.Date("1970-01-01"),
-            #                              as.Date("1970-12-01"),
-            #                              "month"),
-            #                              "%b"))))
     }
 
     if (compress) {
@@ -2707,8 +2801,16 @@ process_extraction = function(data,
                        names_glue="{.value}_{Ref}")
 
         Ref = names(data)
-        Ref = Ref[grepl(valueName, Ref, fixed=TRUE)]
-        Ref = gsub(paste0(valueName, "[_]"), "", Ref)
+        pattern =
+            paste0("(", paste0(valueName,
+                               collapse=")|("), ")")
+        Ref = Ref[grepl(pattern, Ref)]
+
+        pattern =
+            paste0("(", paste0(paste0(valueName, "[_]"),
+                               collapse=")|("), ")")
+        Ref = gsub(pattern, "", Ref)
+        Ref = Ref[!duplicated(Ref)]
     }
 
     
@@ -2790,8 +2892,12 @@ process_extraction = function(data,
                                  is.character_or_date)])
         # data = lapply(dplyr::all_of(valueName_select), dplyr::select,
         # .data=data)
-        data = lapply(valueName_select, dplyr::select,
-                      .data=data)
+        # data = lapply(valueName_select, dplyr::select,
+                      # .data=data)
+        data = lapply(valueName_select, function(name) {
+            dplyr::select(data, all_of(name))
+        })
+        
         names(data) = valueName
 
         if (time_step %in% c("year-month", "year-season")) {
@@ -2830,7 +2936,7 @@ apply_extraction = function (i, data, colArgs, otherArgs,
     f = funct[[i]]
 
     data$isNA =
-        is.na(rowSums(
+        is.na_not_nan(rowSums(
             dplyr::mutate_all(data[unlist(colArg)],
                               as.numeric)))
 
@@ -2839,23 +2945,52 @@ apply_extraction = function (i, data, colArgs, otherArgs,
                                            "yearday"))) {
 
         if (i == 1) {
+            # data = dplyr::mutate(
+            #                   data,
+            #                   !!!rlang::data_syms(keepDate),
+            #                   !!paste0("ValueEX", i) :=
+            #                       f(!!!rlang::data_syms(colArg),
+            #                         !!!otherArg),
+            #                   !!paste0("nNA", i) :=
+            #                       sum(isNA),
+            #                   n=dplyr::n(),
+            #                   id=1:max(c(length(get(paste0("ValueEX",
+            #                                                i))), 1)))
             data = dplyr::mutate(
                               data,
                               !!!rlang::data_syms(keepDate),
+                              dplyr::across(.cols=dplyr::matches("Value[[:digit:]]+"),
+                                            .fns=~dplyr::if_else(dplyr::row_number() == 1,
+                                                                 .x, NaN)),
                               !!paste0("ValueEX", i) :=
-                                  f(!!!rlang::data_syms(colArg),
-                                    !!!otherArg),
+                                  dplyr::if_else(dplyr::row_number() == 1,
+                                                 f(!!!rlang::data_syms(colArg),
+                                                   !!!otherArg),
+                                                 NaN),
                               !!paste0("nNA", i) :=
                                   sum(isNA),
                               n=dplyr::n(),
                               id=1:max(c(length(get(paste0("ValueEX",
                                                            i))), 1)))
         } else {
+            # data = dplyr::mutate(
+            #                   data,
+            #                   !!paste0("ValueEX", i) :=
+            #                       f(!!!rlang::data_syms(colArg),
+            #                         !!!otherArg),
+            #                   !!paste0("nNA", i) :=
+            #                       sum(isNA),
+            #                   id=1:max(c(length(get(paste0("ValueEX",
+            #                                                i))), 1)),
+            #                   .keep="none"
+            #               )
             data = dplyr::mutate(
                               data,
                               !!paste0("ValueEX", i) :=
-                                  f(!!!rlang::data_syms(colArg),
-                                    !!!otherArg),
+                                  dplyr::if_else(dplyr::row_number() == 1,
+                                                f(!!!rlang::data_syms(colArg),
+                                                  !!!otherArg),
+                                                NaN),
                               !!paste0("nNA", i) :=
                                   sum(isNA),
                               id=1:max(c(length(get(paste0("ValueEX",
@@ -2901,10 +3036,12 @@ apply_extraction = function (i, data, colArgs, otherArgs,
 
 
 
-fix_sampling_period = function (sampling_period, data_code=NULL, args=NA,
-                             suffix=NULL,
-                             refDate="1972", sampleFormat="%m-%d",
-                             verbose=FALSE) {
+fix_sampling_period = function (sampling_period, data_code=NULL,
+                                args=NA,
+                                suffix=NULL,
+                                refDate="1972",
+                                sampleFormat="%m-%d",
+                                verbose=FALSE) {
 
     if (is.function(sampling_period[[1]]) & sampleFormat == "%m-%d") {
         data_code = process_extraction(data=data_code,
@@ -3042,20 +3179,10 @@ convert_data_hide = function (Value, Date) {
     return (Value)
 }
 
-#' @title convert_dateEX
-#' @description Convert the index to date format for the extracted variables specified in the is_date argument. The date format is based on the date column of the input tibble and the function "convert_data_hide" is used for the conversion.
-#' @param data A tibble containing a column named "Date" which corresponds to the index of each sample and one or several columns named "ValueEXx" (x being a number) that correspond to the extracted variables.
-#' @param is_date A logical vector indicating whether the columns named "ValueEXx" should be converted to date format or not
-#' @param nValue Number of columns named "ValueEXx"
-#' @param isColArgs A logical vector indicating whether the columns named "ValueEXx" corresponds to column arguments of function used in the extraction process
-#' @param verbose A logical, if TRUE output to the console will be provided
-#' @return A tibble containing a column named "Date" which corresponds to the date of each sample and one or several columns named "ValueEXx" (x being a number) that correspond to the extracted variables.
-#' @note documentation generated by chatGPT
-#' @export
+
 convert_dateEX = function(data, sampleInfo, is_date, nValue,
                           keep=keep,
                           verbose=TRUE) {
-
     # print(data, n=Inf)
     
     data = dplyr::full_join(data,
@@ -3090,18 +3217,6 @@ convert_dateEX = function(data, sampleInfo, is_date, nValue,
 
 
 ## 3. NA FILTER AFTER EXTRACTION _____________________________________
-#' @title NA filter
-#' @description Filters the rows with a NA percentage above the threshold given in parameter.
-#' @param data Data after extraction that should be filtered.
-#' @param time_step Character string indicating the time step of the extraction, could be 'none' if the time step doesn't matter, 'year' or 'year-month'.
-#' @param nValue Number of values extracted.
-#' @param NApct_lim Percentage limit of NA above which rows will be removed. Default is 1.
-#' @param mod A list of modification to store comments of filtering applied.
-#' @param verbose Logical, when true prints print indicating the removal of data due to high NA percentage
-#' @return data filtered by the percentage of NA allowed in input.
-#' @importFrom lubridate is.Date
-#' @note documentation generated by chatGPT
-#' @export
 NA_filter = function (data, time_step, nValue, NApct_lim=1,
                       mod=NULL, verbose=TRUE) {
 
@@ -3223,18 +3338,7 @@ missing_year_hide = function (Value, Date, NAyear_lim) {
     return (Value)
 }
 
-#' @title Missing year
-#' @description This function will check for any continuous missing period longer than a specified threshold of years in each time series and assign them as missing values.
-#' @param data A data.frame containing at least a date column, a numeric column and a column indicating a name of time series, in order to identify them.
-#' @param nValue number of numeric column
-#' @param NAyear_lim threshold of year duration for missing period.
-#' @param mod An object of class modification, it will store all modification made to the data
-#' @param verbose logical for print prints
-#' @return return the dataframe with identified missing period as NA
-#' @note documentation generated by chatGPT
-#' @export
-#' @note documentation generated by chatGPT
-#' @export
+
 missing_year = function (data, nValue, NAyear_lim=10,
                          mod=NULL, verbose=TRUE) {
 

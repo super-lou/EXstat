@@ -1,5 +1,6 @@
-# Copyright 2021-2023 Louis Héraut (louis.heraut@inrae.fr)*1,
-#                     Éric Sauquet (eric.sauquet@inrae.fr)*1
+# Copyright 2021-2024 Louis Héraut (louis.heraut@inrae.fr)*1
+#           2023      Éric Sauquet (eric.sauquet@inrae.fr)*1
+#                     Jean-Philippe Vidal (jean-philippe.vidal@inrae.fr)*1
 #
 # *1   INRAE, France
 #
@@ -10,8 +11,8 @@
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 #
-# EXstat R package is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
+# EXstat R package is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # General Public License for more details.
 #
@@ -21,66 +22,113 @@
 
 
 #' @title process_trend
-#' @description Analyzes the trend in data using statistical tests and estimation methods.
+#' @description Process a trend analyze on time series data. The Mann-Kendall statistical test is applied to detect trends and some additional statistics are computed like the Sen-Theil slope estimator.
 #'
-#' @param dataEX A data frame containing the data to be analyzed.
-#' @param metaEX A data frame containing metadata information (optional).
-#' @param MK_level The significance level for the Mann-Kendall statistical test.
-#' @param time_dependency_option The time dependency option to use in the Mann-Kendall test.
-#' @param extreme_take_not_signif_into_account Flag indicating whether to take into account non-significant trends.
-#' @param period_trend A list of periods to consider for trend analysis (optional).
-#' @param period_change A list of periods to consider for change analysis (optional).
-#' @param extreme_prob The extreme probability threshold for identifying extreme values (optional).
-#' @param verbose Flag indicating whether to display verbose output during the analysis.
-#' @param ... Additional parameters to be passed to the statistical test and estimation methods.
+#' @param dataEX Input data format is a [tibble][tibble::tibble()] from the tibble package. It needs to have :
+#' * Only one column of [Date][base::Date] that are regularly spaced and unique for each time serie.
+#' * If there is more than one time serie, at least one column needs to be of [character][base::character] for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
+#' * At least one column of [numeric][base::numeric] (or [logical][base::logical]) on which the process of variable extraction will be perform. More numerical column can be leave but if they are useless, they will be suppressed.
+#' The [tibble][tibble::tibble()] output of the [process_extraction] function is the kind of wanted input data.
+#' @param MK_level [numeric][base::numeric] Mann-Kendall test significance level between `0` and `1`. Default is `0.1`.
+#' @param time_dependency_option [character][base::character] for handling temporal dependence for the Mann-Kendall test. Possible values are :
+#' * `"INDE"`, assume independence (i.e. the standard MK test)
+#' * `"AR1"`, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
+#' * `"LTP"`, assume long-term persistence (i.e. Hamed's version of the MK test)
+#' @param suffix A [character][base::character] [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. See [process_extraction] for more info. Default `NULL`.
+#' @param suffix_delimiter [character][base::character] specifies the delimiter to use between the variable name and the suffix if not `NULL`. The default is `"_"`.
+#' @param to_normalise A named [logical][base::logical] [vector][base::c()] indicating whether each variable's trend should be normalised. `TRUE` performs normalisation, while `FALSE` does nothing. This vector must be of length one or have the same length as the number of [numeric][base::numeric] (or [logical][base::logical]) variables in [dataEX], with names specifying which value corresponds to which variable. Default 'FALSE'.
+#' @param metaEX One of the outputs of the [CARD_extraction] function that contains metadata for the normalisation process. Default is `NULL`. If supplied, this normalisation information will be used instead of the settings provided in the [to_normalise] variable.
+#' @param extreme_take_not_signif_into_account [logical][base::logical] Whether to consider non-significant trends in the computation of extreme trends. Default is `TRUE`.
+#' @param extreme_take_only_series [character][base::character] A [vector][base::c()] of the names of time series to be used for computing extreme trends. Default is `NULL`, which includes all available series.
+#' @param extreme_by_suffix [logical][base::logical] If `TRUE`, extreme trends will be computed across separate sets of trend values of the same variable and the same suffix. If `FALSE`, all extreme trends of a variable will be used without considering suffixes. Default is `TRUE`.
+#' @param period_trend A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `period_trend=NULL`, which considers all available data for each time serie.
+#' @param period_change *in developpement* A [list][base::list()] of two [vectors][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict two period for the change analysis. As an example, it can be `list(c("1950-01-01", "1999-12-31"), c("2000-01-01", "2020-12-31"))`. The default option is `period_change=NULL`, which does not do any analysis.
+#' @param extreme_prob [numeric][base::numeric] The probability for identifying extreme trends using quantiles. Default is `0.01`, so the computed extremes will be based on the [quantile][stats::quantile()] at `0.01` and `0.99`.
+#' @param show_advance_stat [logical][base::logical] Whether to display advanced statistical details. Default is `FALSE`.
+#' @param dev [logical][base::logical] If `TRUE`, development mode is enabled. Default is `FALSE`.
+#' @param verbose [logical][base::logical] Whether to print intermediate messages. Default is `FALSE`.
+#' @param verbose_stat [logical][base::logical] Whether to print detailed statistical messages. Default is `FALSE`.
 #'
-#' @return A data frame containing the results of the trend analysis.
+#' @return A [tibble][tibble::tibble()] with trend analysis results, including trend coefficients and statistical significance for each variables.
+#' More precisly :
+#' - 
 #'
-#' @details The function analyzes the trend in the provided data using statistical tests, such as the Mann-Kendall test, and estimation methods. It computes the trend for each specified period, detects significant trends, estimates other variables related to the trend, and identifies extreme values if metadata information is provided.
-#' 
-#' @note documentation generated by chatGPT
-#' 
 #' @examples
-#' # Date
-#' Start = as.Date("1972-01-01")
-#' End = as.Date("2020-12-31")
+#' ## Creation of random data set
+#' set.seed(99)
+#' Start = as.Date("2000-02-01")
+#' End = as.Date("2010-04-04")
 #' Date = seq.Date(Start, End, by="day")
 #' 
-#' # Variable to analyse
-#' set.seed(100)
-#' X = seq(1, length(Date))/1e4 + runif(length(Date), -100, 100)
-#' X[as.Date("2000-03-01") <= Date & Date <= as.Date("2000-09-30")] = NA
-#'
-#' # Creation of tibble
-#' data = dplyr::tibble(date=Date, ID="serie A", X=X)
-#'
-#' # Extraction
-#' dataEX = process_extraction(data=data,
-#'                             sampling_period=c("05-01",
-#'                                            "11-30"),
-#'                             funct=max,
-#'                             na.rm=TRUE,
-#'                             period=c(as.Date("1990-01-01"),
-#'                                      as.Date("2020-12-31")),
-#'                             time_step="year")
-#'
-#' trendEX = process_trend(data=dataEX)
-#' trendEX
+#' # First time serie
+#' data_1 = dplyr::tibble(time=Date,
+#'                        X_state1=as.numeric(Date) +
+#'                            rnorm(length(Date), 1e4, 1e3),
+#'                        X_state2=seq(1, length(Date))/1e2 +
+#'                            rnorm(length(Date), 0, 1),
+#'                        id="serie 1")
+#' data_1$X_state2[round(runif(500, 1, nrow(data_1)))] = NA
 #' 
-#' @importFrom lubridate is.Date
-#' @importFrom dplyr tibble group_by filter summarise bind_rows bind_cols
-#'
+#' # Second time serie
+#' data_2 = dplyr::tibble(time=Date,
+#'                        X_state1=as.numeric(Date) +
+#'                            rnorm(length(Date), 1e4, 1e3),
+#'                        X_state2=seq(1, length(Date))/1e2 +
+#'                            rnorm(length(Date), 0, 1),
+#'                        id="serie 2")
+#' data_2$X_state2[round(runif(1000, 1, nrow(data_2)))] = NA
+#' 
+#' # Final data for testing
+#' data = dplyr::bind_rows(data_1, data_2)
+#' 
+#' ## Extraction of the yearly average of daily value.
+#' dataEX = process_extraction(data=data,
+#'                    funct=list(XA_state1=mean),
+#'                    funct_args=list("X_state1", na.rm=TRUE),
+#'                    time_step="year")
+#' 
+#' dataEX = process_extraction(data=data,
+#'                             funct=list(XA=mean,
+#'                                        XX=max),
+#'                             funct_args=list(list("X", na.rm=TRUE),
+#'                                             list("X", na.rm=TRUE)),
+#'                             suffix=c("state1", "state2"),
+#'                             time_step="year")
+#' 
+#' ## Trend test
+#' # The direct application does not take care of possible grouped variables by suffix for extremes trends values.
+#' trendEX1 = process_trend(dataEX,
+#'                          to_normalise=TRUE)
+#' print(trendEX1, width=Inf)
+#' 
+#' # More complicated case with the use of 'period_change' and customs normalisation info
+#' trendEX2 =
+#'     process_trend(dataEX,
+#'                   suffix=c("state1", "state2"),
+#'                   suffix_delimiter="_",
+#'                   to_normalise=c("XA_state1"=FALSE,
+#'                                  "XA_state2"=FALSE,
+#'                                  "XX_state1"=TRUE,
+#'                                  "XX_state2"=TRUE),
+#'                   extreme_take_only_series=NULL,
+#'                   extreme_by_suffix=FALSE,
+#'                   period_change=list(c(as.Date("2000-01-01"),
+#'                                        as.Date("2005-01-01")),
+#'                                      c(as.Date("2006-01-01"),
+#'                                        as.Date("2010-01-01"))))
+#' print(trendEX2, width=Inf)
+#' 
 #' @export
+#' @md
 process_trend = function (dataEX,
-                          metaEX=NULL,
                           MK_level=0.1,
                           time_dependency_option="INDE",
-                          # isFDR=FALSE,
-                          # FDR_level=0.1,
                           suffix=NULL,
                           suffix_delimiter="_",
+                          to_normalise=FALSE,
+                          metaEX=NULL,
                           extreme_take_not_signif_into_account=TRUE,
-                          extreme_take_only_id=NULL,
+                          extreme_take_only_series=NULL,
                           extreme_by_suffix=TRUE,
                           period_trend=NULL,
                           period_change=NULL,
@@ -142,22 +190,6 @@ process_trend = function (dataEX,
                                 collapse=", "), "'."))
         }
     }
-    
-    # # check continuity of Date column for each character identifier
-    # Date_continuity =
-    #     dplyr::summarise(dplyr::group_by(dplyr::arrange(dataEX, get(names(dataEX)[sapply(dataEX, lubridate::is.Date)])),
-    #                                      get(names(dataEX)[sapply(dataEX, is.character)])),
-    #                      n=length(unique(diff(get(names(dataEX)[sapply(dataEX, lubridate::is.Date)])))))
-
-    # print(Date_continuity)
-    # print(dataEX)
-    
-    # if (any(Date_continuity$n > 1)) {
-    #     stop (paste0("There is at least one date discontinuity in time serie(s) named '",
-    #                  paste0(Date_continuity[[1]][Date_continuity$n > 1],
-    #                         collapse=", "), "'. Please, make time serie(s) continuous by adding NA value in numerical column(s) where there is a missing value."))
-    # }
-
 
     # check suffix
     if (!is.null(suffix)) {
@@ -203,7 +235,6 @@ process_trend = function (dataEX,
     }
 
     
-
     if (!is.null(period_change)) {
         if (!is.list(period_change)) {
             period_change = list(period_change)
@@ -253,37 +284,28 @@ process_trend = function (dataEX,
             idVariable = c(idVariable, id)
         }
     }
-    
-    # dataEX = dplyr::relocate(dataEX,
-    #                          names_save[idDate_save],
-    #                          .before=dplyr::everything())
-    # dataEX = dplyr::relocate(dataEX,
-    #                          names_save[idCode_save],
-    #                          .before=dplyr::everything())
-
-    # names_save = names(dataEX)
-    # idVariable = c()
-    # for (id in 1:ncol(dataEX)) {
-    #     x = dataEX[[id]]
-
-    #     if (is.character(x)) {
-    #         idCode_save = id
-    #     } else if (lubridate::is.Date(x)) {
-    #         idDate_save = id
-    #     } else if (is.numeric(x) | is.logical(x)) {
-    #         idVariable_save = c(idVariable_save, id)
-    #     }
-    # }
 
     nVariable = length(idVariable)
     Variable = names(dataEX)[idVariable]
-    # colName = paste0("Variable", 1:nVariable)
-    
-    # names(dataEX)[c(idCode_save, idDate_save, idVariable_save)] =
-    # c("code", "date", unlist(colName))
     names(dataEX)[c(idCode_save, idDate_save)] =
         c("code", "date")
-    
+
+
+    if (is.null(metaEX)) {
+        if (length(to_normalise) == 1 & nVariable == 1) {
+            names(to_normalise) = Variable
+        } else if (length(to_normalise) == 1 & nVariable >= 1) {
+            warning (paste0("'to_normalise' is a unique value so it will be repeated for all the variables : ",
+                            paste0(Variable, collapse=", ")))
+            to_normalise = rep(to_normalise, nVariable)
+            names(to_normalise) = Variable   
+        } else if (!all(names(to_normalise) %in% Variable)) {
+            stop (paste0("'to_normalise' does not contain normalisation info for all the variables : ",
+                         paste0(Variable, collapse=", ")))       
+        }
+    } else {
+        message ("'metaEX' normalisation's info will be used instead of 'to_normalise' setting.")
+    }
     
     trendEX = dplyr::tibble()
     
@@ -319,9 +341,9 @@ process_trend = function (dataEX,
             variable = Variable[k]
 
             tree(paste0("For variable ", variable),
-                 2, end=k==nVariable&is.null(metaEX),
+                 2, end=k==nVariable,
                  inEnd=inEnd_period, verbose=verbose)
-            if (k == nVariable & is.null(metaEX)) {
+            if (k == nVariable) {
                 inEnd = c(inEnd_period, 2)
             } else {
                 inEnd = inEnd_period
@@ -364,7 +386,13 @@ process_trend = function (dataEX,
                 trendEX_period_Variable = dplyr::relocate(trendEX_period_Variable,
                                                           variable_no_suffix_en,
                                                           .after=variable_en)
+            } else {
+                variable_no_suffix = variable
             }
+            
+            to_normalise_variable =
+                to_normalise[names(to_normalise) == variable]
+
             
             tree(paste0("Estimation of other variable"),
                  3, end=TRUE, inEnd=inEnd, verbose=verbose)
@@ -376,30 +404,30 @@ process_trend = function (dataEX,
                                                     verbose=verbose)
 
             tree("Computing of the optimal period",
-                 4, end=is.null(metaEX), inEnd=c(inEnd, 3), verbose=verbose)
+                 4, inEnd=c(inEnd, 3), verbose=verbose)
             trendEX_period_Variable = get_period(dataEX_period_Variable,
                                                  trendEX_period_Variable,
                                                  verbose=verbose)
             
-            if (!is.null(metaEX)) {
-                tree("Normalise trend value",
-                     4, end=is.null(period_change), inEnd=c(inEnd, 3), verbose=verbose)
-                trendEX_period_Variable =
-                    get_normalise(dataEX_period_Variable,
-                                  trendEX_period_Variable,
-                                  metaEX,
-                                  suffix=suffix,
-                                  verbose=verbose)
-            }
+            tree("Normalise trend value",
+                 4, end=is.null(period_change), inEnd=c(inEnd, 3), verbose=verbose)
+            trendEX_period_Variable =
+                get_normalise(dataEX_period_Variable,
+                              trendEX_period_Variable,
+                              to_normalise=to_normalise_variable,
+                              metaEX=metaEX,
+                              suffix=suffix,
+                              verbose=verbose)
 
-            if (!is.null(period_change) & !is.null(metaEX)) {
+            if (!is.null(period_change)) {
                 tree("Get period change",
                      4, end=TRUE, inEnd=c(inEnd, 3), verbose=verbose)
                 trendEX_period_Variable =
                     get_change(dataEX_period_Variable, 
                                trendEX_period_Variable,
-                               metaEX,
-                               period_change,
+                               period_change=period_change,
+                               to_normalise=to_normalise_variable,
+                               metaEX=metaEX,
                                suffix=suffix,
                                verbose=verbose)
             }
@@ -408,27 +436,25 @@ process_trend = function (dataEX,
                                               trendEX_period_Variable)
         }
         
-        if (!is.null(metaEX)) {
-            tree(paste0("Computing extreme trend values"),
-                 2, end=is.null(period_change), inEnd=inEnd_period, verbose=verbose)
-            trendEX_period =
-                get_extreme_trend(trendEX_period,
-                                  suffix=suffix,
-                                  extreme_take_not_signif_into_account=
-                                      extreme_take_not_signif_into_account,
-                                  extreme_take_only_id=extreme_take_only_id,
-                                  extreme_by_suffix=extreme_by_suffix, 
-                                  extreme_prob=extreme_prob,
-                                  verbose=verbose)
-        }
+        tree(paste0("Computing extreme trend values"),
+             2, end=is.null(period_change), inEnd=inEnd_period, verbose=verbose)
+        trendEX_period =
+            get_extreme_trend(trendEX_period,
+                              suffix=suffix,
+                              extreme_take_not_signif_into_account=
+                                  extreme_take_not_signif_into_account,
+                              extreme_take_only_series=extreme_take_only_series,
+                              extreme_by_suffix=extreme_by_suffix, 
+                              extreme_prob=extreme_prob,
+                              verbose=verbose)
         
-        if (!is.null(period_change) & !is.null(metaEX)) {
+        if (!is.null(period_change)) {
             tree(paste0("Computing extreme change values"),
                  2, end=TRUE, inEnd=inEnd_period, verbose=verbose)
             trendEX_period =
                 get_extreme_change(trendEX_period,
                                    suffix=suffix,
-                                   extreme_take_only_id=extreme_take_only_id,
+                                   extreme_take_only_series=extreme_take_only_series,
                                    extreme_by_suffix=extreme_by_suffix, 
                                    extreme_prob=extreme_prob,
                                    verbose=verbose)
@@ -442,6 +468,8 @@ process_trend = function (dataEX,
     #         fieldSignificance_FDR(dataEX.final$p,
     #                               level=FDR_level)
     # }
+
+    trendEX = dplyr::arrange(trendEX, code, variable_en)
 
     idCode = which(names(trendEX) == "code")
 
@@ -459,22 +487,6 @@ process_trend = function (dataEX,
 
 
 #### 2.3.2. Period of trend analysis _________________________________
-#' @title get_period
-#' @description Computes the optimal periods for trend analysis based on the data.
-#'
-#' @param dataEX A data frame containing the data.
-#' @param trendEX A data frame containing the results of the trend analysis.
-#' @param verbose A logical value indicating whether to display verbose output (default is TRUE).
-#'
-#' @return A modified data frame with an additional column indicating the optimal periods for trend analysis.
-#'
-#' @details The function computes the optimal periods for trend analysis based on the data. It calculates the minimum and maximum dates (start and end) for each code group in the data. Then, it creates a new column called "period" that contains a list of the start and end dates for each code group. The function then joins this information with the trend analysis results using the "code" column.
-#'
-#' @note documentation generated by chatGPT
-#'
-#' @importFrom dplyr group_by summarise full_join select
-#'
-#' @export
 get_period = function (dataEX, trendEX, verbose=TRUE) {
 
     Period = dplyr::summarise(dplyr::group_by(dataEX, code),
@@ -491,22 +503,6 @@ get_period = function (dataEX, trendEX, verbose=TRUE) {
 }
 
 #### 2.3.3. Intercept of trend _______________________________________
-#' @title get_intercept
-#' @description Computes the intercept of the trend in the data.
-#'
-#' @param dataEX A data frame containing the data.
-#' @param trendEX A data frame containing the results of the trend analysis.
-#' @param verbose A logical value indicating whether to display verbose output (default is TRUE).
-#'
-#' @return A modified data frame with an additional column indicating the intercept of the trend.
-#'
-#' @details The function computes the intercept of the trend in the data based on the results of the trend analysis. It calculates the mean value of the dependent variable (Variable) and the mean time variable (date) for each code group. Then, it computes the intercept using the formula: b = mu_X - mu_t * a, where mu_X is the mean value, mu_t is the mean time, and a is the slope of the trend.
-#'
-#' @note documentation generated by chatGPT
-#'
-#' @importFrom dplyr group_by summarise full_join
-#'
-#' @export
 get_intercept = function (dataEX, trendEX,
                           verbose=TRUE) {
 
@@ -537,7 +533,10 @@ get_intercept = function (dataEX, trendEX,
 }
 
 
-get_normalise = function (dataEX, trendEX, metaEX,
+get_normalise = function (dataEX,
+                          trendEX,
+                          to_normalise,
+                          metaEX=NULL,
                           suffix=NULL,
                           verbose=FALSE) {
     
@@ -550,9 +549,13 @@ get_normalise = function (dataEX, trendEX, metaEX,
                                       variable_no_suffix,
                                       fixed=TRUE)
         }
-        to_normalise = metaEX$to_normalise[metaEX$variable_en == variable_no_suffix]
+        if (!is.null(metaEX)) {
+            to_normalise = metaEX$to_normalise[metaEX$variable_en == variable_no_suffix]
+        }
     } else {
-        to_normalise = metaEX$to_normalise[metaEX$variable_en == variable]
+        if (!is.null(metaEX)) {
+            to_normalise = metaEX$to_normalise[metaEX$variable_en == variable]
+        }
     }
 
     if (to_normalise) {
@@ -575,8 +578,10 @@ get_normalise = function (dataEX, trendEX, metaEX,
 }
 
 
-get_change = function (dataEX, trendEX, metaEX,
+get_change = function (dataEX, trendEX,
                        period_change,
+                       to_normalise,
+                       metaEX=NULL,
                        suffix=NULL,
                        verbose=FALSE) {
     
@@ -589,14 +594,18 @@ get_change = function (dataEX, trendEX, metaEX,
                                       variable_no_suffix,
                                       fixed=TRUE)
         }
-        to_normalise = metaEX$to_normalise[metaEX$variable_en == variable_no_suffix]
+        if (!is.null(metaEX)) {
+            to_normalise = metaEX$to_normalise[metaEX$variable_en == variable_no_suffix]
+        }
     } else {
-        to_normalise = metaEX$to_normalise[metaEX$variable_en == variable]
+        if (!is.null(metaEX)) {
+            to_normalise = metaEX$to_normalise[metaEX$variable_en == variable]
+        }
     }
     
     nPeriod_change = length(period_change)
     if (nPeriod_change != 2) {
-        break
+        return (trendEX)
     }
 
     dataEX_change = 
@@ -672,7 +681,7 @@ get_change = function (dataEX, trendEX, metaEX,
 get_extreme_trend = function (trendEX,
                               suffix=NULL,
                               extreme_take_not_signif_into_account=TRUE,
-                              extreme_take_only_id=NULL,
+                              extreme_take_only_series=NULL,
                               extreme_by_suffix=TRUE,
                               extreme_prob=0.01,
                               verbose=FALSE) {
@@ -682,8 +691,8 @@ get_extreme_trend = function (trendEX,
         trendEX$a_normalise[!trendEX$H] = NA
     }
 
-    if (is.null(extreme_take_only_id)) {
-        extreme_take_only_id = trendEX$code
+    if (is.null(extreme_take_only_series)) {
+        extreme_take_only_series = trendEX$code
     }
 
     if (extreme_by_suffix | is.null(suffix)) {
@@ -695,11 +704,11 @@ get_extreme_trend = function (trendEX,
     trendEX = dplyr::mutate(dplyr::group_by(trendEX,
                                             !!!rlang::data_syms(variable_tmp)),
                             a_normalise_min=
-                                quantile(a_normalise[code %in% extreme_take_only_id],
+                                quantile(a_normalise[code %in% extreme_take_only_series],
                                          extreme_prob,
                                          na.rm=TRUE),
                             a_normalise_max=
-                                quantile(a_normalise[code %in% extreme_take_only_id],
+                                quantile(a_normalise[code %in% extreme_take_only_series],
                                          1-extreme_prob,
                                          na.rm=TRUE),
                             .keep="all")
@@ -716,16 +725,16 @@ get_extreme_trend = function (trendEX,
 
 get_extreme_change = function (trendEX,
                                suffix=NULL,
-                               extreme_take_only_id=NULL,
+                               extreme_take_only_series=NULL,
                                extreme_by_suffix=TRUE,
                                extreme_prob=0.01,
                                verbose=FALSE) {
 
-    if (is.null(extreme_take_only_id)) {
-        extreme_take_only_id = trendEX$code
+    if (is.null(extreme_take_only_series)) {
+        extreme_take_only_series = trendEX$code
     }
 
-    if (extreme_by_suffix) {
+    if (extreme_by_suffix | is.null(suffix)) {
         variable_tmp = "variable_en" 
     } else {
         variable_tmp = "variable_no_suffix_en" 
@@ -734,11 +743,11 @@ get_extreme_change = function (trendEX,
     trendEX = dplyr::mutate(dplyr::group_by(trendEX,
                                             !!!rlang::data_syms(variable_tmp)),
                             change_min=
-                                quantile(change[code %in% extreme_take_only_id],
+                                quantile(change[code %in% extreme_take_only_series],
                                          extreme_prob,
                                          na.rm=TRUE),
                             change_max=
-                                quantile(change[code %in% extreme_take_only_id],
+                                quantile(change[code %in% extreme_take_only_series],
                                          1-extreme_prob,
                                          na.rm=TRUE),
                             .keep="all")
