@@ -27,7 +27,7 @@
 #'
 #' @param CARD_path A [character][base::character] string representing the path to the downloaded CARD directory (it should end with `"CARD"`). In this directory, you can search the CARDs that you want in the `"__all__"` subdirectory that will be use for an analysis (see [layout] to know how to specify which CARD you want).
 #' @param CARD_out A [character][base::character] string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is `NULL` if you want to use a `tmp` subdirectory in the `CARD_path` directory.
-#' @param layout A [character][base::character] [vector][base::c()] specifying the tree structure of files that you want for your analysis. Each element of the vector represents either:
+#' @param layout A [character][base::character] string [vector][base::c()] specifying the tree structure of files that you want for your analysis. Each element of the vector represents either:
 #' * the name of an analysis directory (e.g., `"EX"`)
 #' * the beginning and ending of an analysis directory: `"["` for the start and `"]"` for the end
 #' * the CARD name (e.g., `"QA"`)

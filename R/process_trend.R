@@ -26,23 +26,23 @@
 #'
 #' @param dataEX Input data format is a [tibble][tibble::tibble()] from the tibble package. It needs to have :
 #' * Only one column of [Date][base::Date] that are regularly spaced and unique for each time serie.
-#' * If there is more than one time serie, at least one column needs to be of [character][base::character] for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
+#' * If there is more than one time serie, at least one column needs to be of [character][base::character] string for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
 #' * At least one column of [numeric][base::numeric] (or [logical][base::logical]) on which the process of variable extraction will be perform. More numerical column can be leave but if they are useless, they will be suppressed.
 #' The [tibble][tibble::tibble()] output of the [process_extraction()] function is the kind of wanted input data.
 #' @param MK_level [numeric][base::numeric] Mann-Kendall test significance level between `0` and `1`. Default is `0.1`.
-#' @param time_dependency_option [character][base::character] for handling temporal dependence for the Mann-Kendall test. Possible values are :
+#' @param time_dependency_option [character][base::character] string for handling temporal dependence for the Mann-Kendall test. Possible values are :
 #' * `"INDE"`, assume independence (i.e. the standard MK test)
 #' * `"AR1"`, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
 #' * `"LTP"`, assume long-term persistence (i.e. Hamed's version of the MK test)
-#' @param suffix A [character][base::character] [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. See [process_extraction()] for more info. Default `NULL`.
-#' @param suffix_delimiter [character][base::character] specifies the delimiter to use between the variable name and the suffix if not `NULL`. The default is `"_"`.
+#' @param suffix A [character][base::character] string [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. See [process_extraction()] for more info. Default `NULL`.
+#' @param suffix_delimiter [character][base::character] string specifies the delimiter to use between the variable name and the suffix if not `NULL`. The default is `"_"`.
 #' @param to_normalise A named [logical][base::logical] [vector][base::c()] indicating whether each variable's trend should be normalised. `TRUE` performs normalisation, while `FALSE` does nothing. This vector must be of length one or have the same length as the number of [numeric][base::numeric] (or [logical][base::logical]) variables in `dataEX`, with names specifying which value corresponds to which variable. Default 'FALSE'.
 #' @param metaEX One of the outputs of the [CARD_extraction] function that contains metadata for the normalisation process. Default is `NULL`. If supplied, this normalisation information will be used instead of the settings provided in the `to_normalise` variable.
 #' @param extreme_take_not_signif_into_account [logical][base::logical] Whether to consider non-significant trends in the computation of extreme trends. Default is `TRUE`.
-#' @param extreme_take_only_series [character][base::character] A [vector][base::c()] of the names of time series to be used for computing extreme trends. Default is `NULL`, which includes all available series.
+#' @param extreme_take_only_series [character][base::character] string A [vector][base::c()] of the names of time series to be used for computing extreme trends. Default is `NULL`, which includes all available series.
 #' @param extreme_by_suffix [logical][base::logical] If `TRUE`, extreme trends will be computed across separate sets of trend values of the same variable and the same suffix. If `FALSE`, all extreme trends of a variable will be used without considering suffixes. Default is `TRUE`.
-#' @param period_trend A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `period_trend=NULL`, which considers all available data for each time serie.
-#' @param period_change *in developpement* A [list][base::list()] of two [vectors][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict two period for the change analysis. As an example, it can be `list(c("1950-01-01", "1999-12-31"), c("2000-01-01", "2020-12-31"))`. The default option is `period_change=NULL`, which does not do any analysis.
+#' @param period_trend A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] strings that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `period_trend=NULL`, which considers all available data for each time serie.
+#' @param period_change *in developpement* A [list][base::list()] of two [vectors][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] strings that can be coerced to [dates][base::Date]) to restrict two period for the change analysis. As an example, it can be `list(c("1950-01-01", "1999-12-31"), c("2000-01-01", "2020-12-31"))`. The default option is `period_change=NULL`, which does not do any analysis.
 #' @param extreme_prob [numeric][base::numeric] The probability for identifying extreme trends using quantiles. Default is `0.01`, so the computed extremes will be based on the [quantile][stats::quantile()] at `0.01` and `0.99`.
 #' @param show_advance_stat [logical][base::logical] Whether to display advanced statistical details. Default is `FALSE`.
 #' @param dev [logical][base::logical] If `TRUE`, development mode is enabled. Default is `FALSE`.
@@ -55,7 +55,7 @@
 #' * `*` : The idenfiant of time series
 #' * `variable_en` : The name in english of variables
 #' * `level` : see `MK_level`
-#' * `H` : The result of the Mann-Kendall trend test. If `TRUE` a trend is detected at a risk level of `MK_level` (and a confidance of 1-`MK_level`). If `FALSE`, a trend is NOT detected at a risk level of `MK_level`.
+#' * `H` : The result of the Mann-Kendall trend test. If `TRUE` a trend is detected at a type I error of `MK_level` (and a trust of 1-`MK_level`). If `FALSE`, a trend is NOT detected at a type I error of `MK_level`.
 #' * `p`: The p-value indicating the statistical significance of the Mann-Kendall trend test.
 #' * `a` : The Then-Seil slope estimator that gives an approximation of the trend coefficient. WARNING : A value is always return even if the Mann-Kendall trend test is not significant.
 #' * `b` : The ordinate at the origin in sort that you can trace `Y = a * X + b

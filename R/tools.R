@@ -214,7 +214,7 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
 #' @param X data (vector). IMPORTANT: it assumes that X is
 #' regularly-spaced.
 #' @param level [numeric][base::numeric] Mann-Kendall test significance level between `0` and `1`. Default is `0.1`.
-#' @param time_dependency_option [character][base::character] for handling temporal dependence for the Mann-Kendall test. Possible values are :
+#' @param time_dependency_option [character][base::character] string for handling temporal dependence for the Mann-Kendall test. Possible values are :
 #' * `"INDE"`, assume independence (i.e. the standard MK test)
 #' * `"AR1"`, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
 #' * `"LTP"`, assume long-term persistence (i.e. Hamed's version of the MK test)

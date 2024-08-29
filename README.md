@@ -1,4 +1,4 @@
-# EXstat [<img src="figures/flower_hex.png" align="right" width=160 height=160 alt=""/>](https://makaho.sk8.inrae.fr/)
+# EXstat [<img src="figures/flower_hex.png" align="right" width=160 height=160 alt=""/>](https://github.com/super-lou/CARD/)
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/super-lou/EXstat/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/super-lou/EXstat/actions/workflows/R-CMD-check.yaml)
@@ -21,7 +21,7 @@ remotes::install_github('super-lou/EXstat')
 
 ## Documentation
 ### Extraction process
-Based on [dplyr](https://dplyr.tidyverse.org/), **input data** format is a `tibble` of at least a column of **date**, a column of **numeric value** and a **character** column for names of time series in order to identify them. Thus it is possible to have a `tibble` with multiple time series which can be grouped by their names.
+Based on [dplyr](https://dplyr.tidyverse.org/), **input data** format is a `tibble` of at least a column of **date**, some columns of **numeric value** and one or more **character** columns for names of time series in order to identify them uniquely. Thus it is possible to have a `tibble` with multiple time series which can be grouped by their names.
 
 For example, we can use the following `tibble` : 
 
@@ -42,89 +42,131 @@ X[as.Date("2000-03-01") <= Date & Date <= as.Date("2000-09-30")] = NA
 data = tibble(Date=Date, ID="serie A", X=X)
 ```
 
+Which looks like that :
+``` r
+> data
+# A tibble: 17,898 × 3
+   Date       ID           X
+   <date>     <chr>    <dbl>
+ 1 1972-01-01 serie A -38.4 
+ 2 1972-01-02 serie A -48.5 
+ 3 1972-01-03 serie A  10.5 
+ 4 1972-01-04 serie A -88.7 
+ 5 1972-01-05 serie A  -6.29
+ 6 1972-01-06 serie A  -3.25
+ 7 1972-01-07 serie A  62.5 
+ 8 1972-01-08 serie A -25.9 
+ 9 1972-01-09 serie A   9.31
+10 1972-01-10 serie A -65.9 
+# ℹ 17,888 more rows
+# ℹ Use `print(n = ...)` to see more rows
+```
+
 The process of **variable extraction** (for example the yearly mean of time series) is realised with the `process_extraction()` function.
 Minimum arguments are :
 * Input `data` described above
 * The function `funct` (for example `mean`) you want to use. Arguments of the chosen function can be passed to this extraction process and the function can be previously defined.
 
-Optional arguments are :
-* `period` A vector of two date to restrict the period of analysis
-* `timeStep` A character chain which can be `"year"` for yearly extraction and `"year-month"` for monthly extraction along years
-* `samplePeriod` A vector of two character chains to precise the sampling of the extraction (for example, in a yearly extraction, `c("05-01", "11-30")` will use only the data from the 1st of may to the 30th of november). It can also just be a simple character chain (as `"02-01"` in a yearly extraction) to start the sampling the 1st of february and to end it the 31th of january (hence it is similar to `c("02-01", "01-31")`).
+Some of the optional arguments are :
+* `period` A vector of two dates (or two unambiguous character strings that can be coerced to dates) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `period=NULL`, which considers all available data for each time serie.
+* `time_step` A character string specifying the time step of the variable extraction process. Possible values are :
+  - "year" for a value per year
+  - "month" for a value for each month of the year (so 12 values if at least a full year is given)
+  - "year-month" for a value for each month of each year (so 12 times the number of given year values at the end)
+  - "season" for a value for each season of th year (so by default 4 values)
+  - "year-season" for a value for each season of each year (so by default 4 times the number of given year values at the end)
+  - "yearday" for one value per day of the year (so 365 values at the end if at least a full year is given... but more than one year seems obviously more interesting)
+  - "none" if you want to extract a unique value for the whole time serie
+* `sampling_period` A character string or a vector of two character strings that will indicate how to sample the data for each time step defined by `time_step`. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if `time_step` is set to `"year"`, `sampling_period` needs to be formated as `%m-%d` (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if `time_step="year"` and `sampling_period="03-19"`, `funct` will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a vector of two character strings as `sampling_period=c("02-01", "07-31")` in order to process data only if the date is between the 1st february and the 31th jully of each year.
+
+More parameters are available, for example, to :
+* handle missing values,
+* use suffixes to simplify expressions, and
+* manage variables related to seasonality.
 
 In this way ...
 ``` r
 dataEX = process_extraction(data=data,
-                            samplePeriod=c("05-01",
-                                           "11-30"),
                             funct=max,
                             funct_args=list("X", na.rm=TRUE),
+                            time_step="year",
+                            sampling_period=c("05-01",
+                                              "11-30"),
                             period=c(as.Date("1990-01-01"),
-                                     as.Date("2020-12-31")),
-                            timeStep="year")
+                                     as.Date("2020-12-31")))
 ```
 
 will perform a yearly extraction of the maximum value between may and november, from the 1th march of 1990 to the 31th october of 2020, ignoring `NA` values.
 
 The output is also a `tibble` with a column of **date**, of **character** for the name of time series and a **numerical** column with the extracted variable from the time series.
 
-```
+``` r
 > dataEX
-# A tibble: 31 × 4
-   ID      Date           X NA_pct
-   <chr>   <date>     <dbl>  <dbl>
- 1 serie A 1990-05-01 100.       0
- 2 serie A 1991-05-01 101.       0
- 3 serie A 1992-05-01 100.       0
- 4 serie A 1993-05-01  99.9      0
- 5 serie A 1994-05-01  99.0      0
- 6 serie A 1995-05-01 100.       0
- 7 serie A 1996-05-01 100.       0
- 8 serie A 1997-05-01 101.       0
- 9 serie A 1998-05-01  99.6      0
-10 serie A 1999-05-01 101.       0
-# … with 21 more rows
+# A tibble: 31 × 3
+   ID      Date           X
+   <chr>   <date>     <dbl>
+ 1 serie A 1990-05-01 100. 
+ 2 serie A 1991-05-01 101. 
+ 3 serie A 1992-05-01 100. 
+ 4 serie A 1993-05-01  99.9
+ 5 serie A 1994-05-01  99.0
+ 6 serie A 1995-05-01 100. 
+ 7 serie A 1996-05-01 100. 
+ 8 serie A 1997-05-01 101. 
+ 9 serie A 1998-05-01  99.6
+10 serie A 1999-05-01 101. 
+# ℹ 21 more rows
 # ℹ Use `print(n = ...)` to see more rows
+```
+
+Other examples of more complex cases are available in the package documentation. Try starting with 
+``` r
+library(EXstat)
+?EXstat
 ```
 
 
 ### Extraction process with [CARD](https://github.com/super-lou/CARD/)
-For a more user-friendly interaction, this package has been developed in symbiosis with predefined parameter sheets called [CARD](https://github.com/super-lou/CARD/).
+For a more user-friendly interaction, this package has been developed in symbiosis with predefined parameterisation files called [CARD](https://github.com/super-lou/CARD/).
 
-So you don't have to define complex parameters yourself to extract hydrological variables. What's more, if the [CARD](https://github.com/super-lou/CARD/) you want doesn't exist, it's easy to create one based on the others.
+So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the [CARD](https://github.com/super-lou/CARD/) you want doesn't exist, it's easy to create one based on the others.
 
-To do this, you need to download the [CARD archive](https://github.com/super-lou/CARD/archive/refs/heads/main.zip), extract it and place it wherever you like (as if it were data). Then you can create a new sub-directory within this main CARD directory, which you can call for example "analyse_1", and copy and paste the CARD "__all__/Hautes_Eaux/QJXA.R" into it.
+To do this, you need to download the [CARD archive](https://github.com/super-lou/CARD/archive/refs/heads/main.zip), extract it and place it wherever you like (as if it were data). Then you can create a new subdirectory within this main CARD directory, which you can call for example "analyse_1", and copy and paste the CARD "__all__/Hautes_Eaux/QJXA.R" into it.
 
 In this way, you can carry out "analyse_1" by doing,
 
 ```
 CARD_extraction(data %>% rename(Q = X),
                 CARD_path = 'path_to_CARD_directory',
-                CARD_dir = 'sub-directory_for_analyse_in_CARD')
+                CARD_dir = 'subdirectory_for_analyse_in_CARD')
 ```
 
 In this way, you can place several [CARDs](https://github.com/super-lou/CARD/) in your "analyse_1" sub-directory for multiple analyses.
 
 
 ### Trend analyse
-The stationarity analyse is computed with the `process_trend()` function on the extracted data `dataEx`. The **statistical test** used here is the **Mann-Kendall test**[^mann][^kendall].
+The stationarity analyse is computed with the `process_trend()` function on the extracted data `dataEX`. The **statistical test** used here is the **Mann-Kendall test**[^mann][^kendall].
 
-Hence, the following expression ...
+Hence, the following expression
 
 ``` r
 trendEX = process_trend(data=dataEX)
 ```
 
-produces the result below ...
+produces the result below
 
 ```
-# A tibble: 1 × 4
-  ID           p  stat      a
-  <chr>    <dbl> <dbl>  <dbl>
-1 serie A 0.0958  1.67 0.0260
+# A tibble: 1 × 12
+  ID      variable_en level H          p      a     b period_trend
+  <chr>   <chr>       <dbl> <lgl>  <dbl>  <dbl> <dbl> <list>      
+1 serie A X             0.1 TRUE  0.0958 0.0260  99.3 <date [2]>
+
+  mean_period_trend a_normalise a_normalise_min a_normalise_max
+  <lgl>                   <dbl>           <dbl>           <dbl>
+1 NA                     0.0260          0.0260          0.0260
 ```
 
-It is a `tibble` which precises by line the name of the time serie the **p value**, the **stat value** and `a` the **Theil-Sen's slope**[^theil][^sen].
+It is a `tibble` which precises, among other information, the name of the time serie the **p value** and `a` the **Theil-Sen's slope**[^theil][^sen], for each row.
 
 Finaly, as the **p value** is below 0.1, the previous time serie shows an **increasing linear trend** which can be represented by the equation `Y = 0.0260*X + b` with a **type I error** of 10 % or a **trust** of 90 %. 
 
