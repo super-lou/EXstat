@@ -7,9 +7,9 @@
 Provides an efficient and simple solution to aggregate and analyze the stationarity of time series.
 }
 \details{
-See \href{https://github.com/super-lou/EXstat}{EXstat github documentation} for an easier approach.
+See \href{https://github.com/super-lou/EXstat}{EXstat github documentation} \url{https://github.com/super-lou/EXstat} for an easier approach.
 
-For a more user-friendly interaction, this package has been developed in symbiosis with predefined parameter files called \href{https://github.com/super-lou/CARD/}{CARD}.
+For a more user-friendly interaction, this package has been developed in symbiosis with predefined parameter files called \href{https://github.com/super-lou/CARD/}{CARD} \url{https://github.com/super-lou/CARD/}.
 So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 }
 \seealso{
