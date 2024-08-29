@@ -13,21 +13,29 @@ For a more user-friendly interaction, this package has been developed in symbios
 So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 }
 \seealso{
-\code{\link[=process_extraction]{process_extraction()}} for extracting variables.
-\code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
-\code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
-\code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+\itemize{
+\item \code{\link[=process_extraction]{process_extraction()}} for extracting variables.
+\item \code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
+\item \code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
+\item \code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+}
 }
 \author{
 Main Developer and Maintainer
-Louis Héraut \href{mailto:louis.heraut@inrae.fr}{louis.heraut@inrae.fr} INRAE
+\itemize{
+\item Louis Héraut \href{mailto:louis.heraut@inrae.fr}{louis.heraut@inrae.fr} INRAE
+}
 
 Other Developer
-Benjamin Renard \href{mailto:benjamin.renard@inrae.fr}{benjamin.renard@inrae.fr} INRAE
-Valentin Mansanarez
+\itemize{
+\item Benjamin Renard \href{mailto:benjamin.renard@inrae.fr}{benjamin.renard@inrae.fr} INRAE
+\item Valentin Mansanarez
+}
 
 Other Contributors
-Éric Sauquet \href{mailto:eric.sauquet@inrae.fr}{eric.sauquet@inrae.fr} INRAE
-Jean-Philippe Vidal \href{mailto:jean-philippe.vidal@inrae.fr}{jean-philippe.vidal@inrae.fr} INRAE
-Nathan Pellerin
+\itemize{
+\item Éric Sauquet \href{mailto:eric.sauquet@inrae.fr}{eric.sauquet@inrae.fr} INRAE
+\item Jean-Philippe Vidal \href{mailto:jean-philippe.vidal@inrae.fr}{jean-philippe.vidal@inrae.fr} INRAE
+\item Nathan Pellerin
+}
 }

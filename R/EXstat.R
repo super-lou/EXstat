@@ -9,20 +9,20 @@
 #'
 #' @author
 #' Main Developer and Maintainer
-#' Louis Héraut <louis.heraut@inrae.fr> INRAE
+#' * Louis Héraut <louis.heraut@inrae.fr> INRAE
 #' 
 #' Other Developer
-#' Benjamin Renard <benjamin.renard@inrae.fr> INRAE
-#' Valentin Mansanarez
+#' * Benjamin Renard <benjamin.renard@inrae.fr> INRAE
+#' * Valentin Mansanarez
 #' 
 #' Other Contributors
-#' Éric Sauquet <eric.sauquet@inrae.fr> INRAE
-#' Jean-Philippe Vidal <jean-philippe.vidal@inrae.fr> INRAE
-#' Nathan Pellerin
+#' * Éric Sauquet <eric.sauquet@inrae.fr> INRAE
+#' * Jean-Philippe Vidal <jean-philippe.vidal@inrae.fr> INRAE
+#' * Nathan Pellerin
 #' 
 #' @seealso
-#' [process_extraction()] for extracting variables.
-#' [process_trend()] for performing trend analysis on extracted variables.
-#' [CARD_extraction()] for extracting variables using CARD parameterization files.
-#' [CARD_management()] for managing CARD parameterization files.
+#' * [process_extraction()] for extracting variables.
+#' * [process_trend()] for performing trend analysis on extracted variables.
+#' * [CARD_extraction()] for extracting variables using CARD parameterization files.
+#' * [CARD_management()] for managing CARD parameterization files.
 NULL
