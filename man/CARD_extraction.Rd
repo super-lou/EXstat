@@ -137,7 +137,9 @@ CARD_extraction(data,
 
 }
 \seealso{
-\code{\link[=process_extraction]{process_extraction()}} for extracting variables.
-\code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
-\code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+\itemize{
+\item \code{\link[=process_extraction]{process_extraction()}} for extracting variables.
+\item \code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
+\item \code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+}
 }

@@ -41,9 +41,9 @@
 #' @return CARD parameterization files will be copied and pasted from `CARD_path` and organized according to the structure given by [layout] into the `CARD_out` directory.
 #'
 #' @seealso
-#' [process_extraction()] for extracting variables.
-#' [process_trend()] for performing trend analysis on extracted variables.
-#' [CARD_extraction()] for extracting variables using CARD parameterization files.
+#' - [process_extraction()] for extracting variables.
+#' - [process_trend()] for performing trend analysis on extracted variables.
+#' - [CARD_extraction()] for extracting variables using CARD parameterization files.
 #' 
 #' @examples
 #' \dontrun{

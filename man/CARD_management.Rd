@@ -55,7 +55,9 @@ CARD_management(CARD="path/to/CARD",
 
 }
 \seealso{
-\code{\link[=process_extraction]{process_extraction()}} for extracting variables.
-\code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
-\code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
+\itemize{
+\item \code{\link[=process_extraction]{process_extraction()}} for extracting variables.
+\item \code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
+\item \code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
+}
 }

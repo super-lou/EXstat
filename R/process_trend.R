@@ -76,9 +76,9 @@
 #' * `change_max` :
 #'
 #' @seealso
-#' [process_extraction()] for extracting variables.
-#' [CARD_extraction()] for extracting variables using CARD parameterization files.
-#' [CARD_management()] for managing CARD parameterization files.
+#' - [process_extraction()] for extracting variables.
+#' - [CARD_extraction()] for extracting variables using CARD parameterization files.
+#' - [CARD_management()] for managing CARD parameterization files.
 #'
 #' @examples
 #' ## Creation of random data set

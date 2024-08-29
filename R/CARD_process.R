@@ -162,9 +162,9 @@ get_last_Process = function (Process) {
 #' - The `metaEX` [tibble][tibble::tibble()], which contains the metadata of the extraction from CARDs.
 #'
 #' @seealso
-#' [process_extraction()] for extracting variables.
-#' [process_trend()] for performing trend analysis on extracted variables.
-#' [CARD_management()] for managing CARD parameterization files.
+#' - [process_extraction()] for extracting variables.
+#' - [process_trend()] for performing trend analysis on extracted variables.
+#' - [CARD_management()] for managing CARD parameterization files.
 #' 
 #' @examples
 #' ## Creation of random data set

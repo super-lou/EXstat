@@ -175,7 +175,9 @@ print(trendEX2, width=Inf)
 
 }
 \seealso{
-\code{\link[=process_extraction]{process_extraction()}} for extracting variables.
-\code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
-\code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+\itemize{
+\item \code{\link[=process_extraction]{process_extraction()}} for extracting variables.
+\item \code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
+\item \code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+}
 }
