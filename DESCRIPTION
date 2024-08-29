@@ -1,6 +1,6 @@
 Package: EXstat
-Version: 2.1.0
-Date: 2024-08-28
+Version: 2.2.0
+Date: 2024-08-29
 Title: EXstat
 Description: Provides an efficient and simple solution to aggregate and analyze the stationarity of time series.
 Authors@R: c(
