@@ -34,10 +34,12 @@ Imports:
     dplyr,
     tibble,
     tidyr,
+    magrittr,
     data.table,
     lubridate,
     stats,
     rlang,
+    utils,
     CircStats,
     stringr,
     purrr

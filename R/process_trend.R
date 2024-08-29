@@ -50,8 +50,30 @@
 #' @param verbose_stat [logical][base::logical] Whether to print detailed statistical messages. Default is `FALSE`.
 #'
 #' @return A [tibble][tibble::tibble()] with trend analysis results, including trend coefficients and statistical significance for each variables.
-#' More precisly :
-#' - 
+#'
+#' More precisely, the returned `trendEX` [tibble][tibble::tibble()] contains the following columns :
+#' * `*` : The idenfiant of time series
+#' * `variable_en` : The name in english of variables
+#' * `level` : see [MK_level]
+#' * `H` : The result of the Mann-Kendall trend test. If `TRUE` a trend is detected at a risk level of [MK_level] (and a confidance of 1-[MK_level]). If `FALSE`, a trend is NOT detected at a risk level of [MK_level].
+#' * `p`: The p-value indicating the statistical significance of the Mann-Kendall trend test.
+#' * `a` : The Then-Seil slope estimator that gives an approximation of the trend coefficient. WARNING : A value is always return even if the Mann-Kendall trend test is not significant.
+#' * `b` : The ordinate at the origin in sort that you can trace `Y = a * X + b
+#' * `period_trend` : An information about the period of analyse for the trend
+#' * `mean_period_trend` : The average value of the variable along the [period_trend] that is usefull for normalisation (it is `NA` if [to_normalise] is `FALSE` for this variable).
+#' * `a_normalise` : The `a` value normalised with `mean_period_trend`.
+#' * `a_normalise_min` : The minimum of `a_normalise` values according to the selection made with [extreme_take_not_signif_into_account], [extreme_take_only_series] and [extreme_by_suffix].
+#' * `a_normalise_max` : Same as `a_normalise_min` but for maximum values.
+#' 
+#' If the the [suffix] argument is used, a column is added :
+#' * `variable_no_suffix_en` :  The name in english of variables without suffixes
+#'
+#' And also, if the [period_change] argument is filled up, more columns are added :
+#' * `period_change` : An information about the period of analyse for the change break
+#' * `mean_period_change` :
+#' * `change` :
+#' * `change_min` :
+#' * `change_max` :
 #'
 #' @examples
 #' ## Creation of random data set
@@ -563,7 +585,7 @@ get_normalise = function (dataEX,
             dplyr::summarise(group_by(dataEX, code),
                              mean=mean(get(variable),
                                        na.rm=TRUE))
-        trendEX = full_join(trendEX,
+        trendEX = dplyr::full_join(trendEX,
                             dataEX_mean,
                             by="code")
         trendEX$a_normalise = trendEX$a / trendEX$mean * 100
@@ -665,14 +687,13 @@ get_change = function (dataEX, trendEX,
 
     dataEX_change$change[!is.finite(dataEX_change$change)] = NA
     
-    trendEX = full_join(trendEX,
+    trendEX = dplyr::full_join(trendEX,
                         select(dataEX_change,
                                c("code",
                                  "period_change",
                                  "mean_period_change",
                                  "change")),
                         by="code")
-
     return (trendEX)
 }
 
@@ -704,11 +725,11 @@ get_extreme_trend = function (trendEX,
     trendEX = dplyr::mutate(dplyr::group_by(trendEX,
                                             !!!rlang::data_syms(variable_tmp)),
                             a_normalise_min=
-                                quantile(a_normalise[code %in% extreme_take_only_series],
+                                stats::quantile(a_normalise[code %in% extreme_take_only_series],
                                          extreme_prob,
                                          na.rm=TRUE),
                             a_normalise_max=
-                                quantile(a_normalise[code %in% extreme_take_only_series],
+                                stats::quantile(a_normalise[code %in% extreme_take_only_series],
                                          1-extreme_prob,
                                          na.rm=TRUE),
                             .keep="all")
@@ -743,14 +764,19 @@ get_extreme_change = function (trendEX,
     trendEX = dplyr::mutate(dplyr::group_by(trendEX,
                                             !!!rlang::data_syms(variable_tmp)),
                             change_min=
-                                quantile(change[code %in% extreme_take_only_series],
+                                stats::quantile(change[code %in% extreme_take_only_series],
                                          extreme_prob,
                                          na.rm=TRUE),
                             change_max=
-                                quantile(change[code %in% extreme_take_only_series],
+                                stats::quantile(change[code %in% extreme_take_only_series],
                                          1-extreme_prob,
                                          na.rm=TRUE),
                             .keep="all")
+
+    trendEX = dplyr::relocate(trendEX,
+                              a_normalise_min,
+                              a_normalise_max,
+                              .after=a_normalise)
     
     return (trendEX)
 }

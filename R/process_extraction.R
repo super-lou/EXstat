@@ -205,6 +205,8 @@
 #'                    expand=TRUE)
 #' 
 #' @importFrom rlang .data
+#' @importFrom data.table :=
+#' @importFrom magrittr %>%
 #' @export
 #' @md
 process_extraction = function(data,
@@ -319,7 +321,7 @@ process_extraction = function(data,
     Date_continuity =
         dplyr::summarise(dplyr::group_by(dplyr::arrange(data,
                                                         get(date_col)),
-                                         !!sym(chr_col)),
+                                         !!rlang::sym(chr_col)),
                          n=length(unique(diff(get(date_col)))))
     
     if (any(Date_continuity$n > 1) & time_step %in% c("year", "yearday")) {
@@ -328,9 +330,9 @@ process_extraction = function(data,
         names(fill) = values_col
         
         data = data %>%
-            dplyr::group_by(!!sym(chr_col)) %>%
-            tidyr::complete(!!date_col:=seq(min(!!sym(date_col)),
-                                            max(!!sym(date_col)),
+            dplyr::group_by(!!rlang::sym(chr_col)) %>%
+            tidyr::complete(!!date_col:=seq(min(!!rlang::sym(date_col)),
+                                            max(!!rlang::sym(date_col)),
                                             by="day"),
                             fill=fill)
         
@@ -481,8 +483,8 @@ process_extraction = function(data,
     if ("D" %in% Seasons_split) {
         n = which(Seasons_split == "D") - 1
         if (n > 0) {
-            Seasons_split = c(tail(Seasons_split, -n),
-                              head(Seasons_split, n))
+            Seasons_split = c(utils::tail(Seasons_split, -n),
+                              utils::head(Seasons_split, n))
         }
         if (paste0(Seasons_split, collapse="") != "DJFMAMJJASON") {
             stop ("All months are not correctly specified in the seasonal patern contain in the 'Season' variable. Please use all the month circulary without missing month in a vector which each element is a character chain of several month identify by the first letter of their names - ex. Seasons=c('DJF', 'MAM', 'JJA', 'SON').")
@@ -2628,7 +2630,7 @@ process_extraction = function(data,
     tree("Compute NA percentage", 2, verbose=verbose)
     
     if (time_step == "none") {
-        compute_NApct = function (nNA, n) {
+        compute_NApct_none = function (nNA, n) {
             NApct = round(nNA/n * 100, 1)
             return (NApct)
         }
@@ -2637,7 +2639,7 @@ process_extraction = function(data,
                                                dplyr::starts_with(
                                                           paste0("nNA",
                                                                  1:nValue)),
-                                           .fns=~compute_NApct(.x, n=n),
+                                           .fns=~compute_NApct_none(.x, n=n),
                                            .names=paste0("NApct{1:",
                                                          nValue, "}")),
                              .keep="all")
@@ -2895,7 +2897,7 @@ process_extraction = function(data,
         # data = lapply(valueName_select, dplyr::select,
                       # .data=data)
         data = lapply(valueName_select, function(name) {
-            dplyr::select(data, all_of(name))
+            dplyr::select(data, dplyr::all_of(name))
         })
         
         names(data) = valueName

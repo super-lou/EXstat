@@ -479,43 +479,8 @@ fieldSignificance_FDR = function (pvals, level=0.1) {
 
 
 ## 3. OTHER __________________________________________________________
-compute_NApct = function(Value, Date,
-                         minDate, maxDate,
-                         sampleStart, sampleEnd) {
-
-    dStart = as.numeric(minDate[1] - min(sampleStart))
-    dEnd = as.numeric(max(sampleEnd) - maxDate[1])
-    dNA = max(0, dStart) + max(0, dEnd)
-    nNA = sum(is.na(Value))
-
-    sampleStart = sampleStart[!duplicated(sampleStart)]
-    sampleEnd = sampleEnd[!duplicated(sampleEnd)]
-    nDayAll = as.numeric(sampleEnd - sampleStart) + 1
-    nDay = sum(nDayAll)
-
-    NApct = (nNA + dNA)/nDay * 100
-    return (NApct)
-}
 
 
-
-add_mod = function (df_mod, Code, type, fun_name, comment, df_meta=NULL) {
-    
-    if (Code == 'all' & is.null(df_meta)) {
-        Code = NA # erreur
-    } else if (Code == 'all' & !is.null(df_meta)) {
-        # Get all different stations code
-        Code = rle(df_data$Code)$value
-    }
-    
-    for (code in Code) {
-        df_modtmp = dplyr::tibble(Code=code, type=type,
-                                  fun_name=fun_name,
-                                  comment=comment)
-        df_mod = dplyr::bind_rows(df_mod, df_modtmp)
-    }
-    return (df_mod)
-}
 
 
 tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {   
@@ -553,7 +518,7 @@ tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {
             if (all(!ok)) {
                 posNewline = lim - (nh + nd)
             } else {
-                posNewline = tail(posSpace[ok], 1)
+                posNewline = utils::tail(posSpace[ok], 1)
             }
             line = substring(nextLine, 1, posNewline-1)
             nextLine = substring(nextLine, posNewline+1, nchar(nextLine))
