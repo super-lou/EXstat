@@ -1,4 +1,3 @@
-#' @docType EXstat
 #' @name EXstat
 #' @title EXstat
 #' @description Provides an efficient and simple solution to aggregate and analyze the stationarity of time series.
