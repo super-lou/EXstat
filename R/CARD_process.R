@@ -138,19 +138,19 @@ get_last_Process = function (Process) {
 #'     ...
 #' ```
 #' 
-#' @param CARD_path A [character][base::character] string representing the path to the downloaded CARD directory (it should end with `"CARD"`). In this directory, you can copy and paste (and later modify) CARDs from the `"__all__"` subdirectory that you want to use for an analysis represented by a subdirectory named [CARD_dir] (see [CARD_tmp] if you want to locate your [CARD_dir] directory elsewhere). In your CARDs, you can specify functions available in the scripts of the `"__tools__"` subdirectory.
-#' @param CARD_tmp If you want to locate the [CARD_dir] directory somewhere other than in the [CARD_path] directory, you can specify a [character][base::character] string in [CARD_tmp] for a path where the [CARD_dir] subdirectory of CARDs will be searched. Default is `"NULL"` if you want to locate the [CARD_dir] subdirectory of CARDs in [CARD_path].
-#' @param CARD_dir A [character][base::character] string for the name of a subdirectory in [CARD_path] (or [CARD_tmp]) where the CARD parameterization files are located for an analysis. Default is `"WIP"`.
-#' @param CARD_name By default, all CARDs in the [CARD_dir] directory will be used for the analysis. However, you can specify a [vector][base::c()] of [character][base::character] strings with the names of the CARDs to be used. Default is `"NULL"` for using all the CARDs.
+#' @param CARD_path A [character][base::character] string representing the path to the downloaded CARD directory (it should end with `"CARD"`). In this directory, you can copy and paste (and later modify) CARDs from the `"__all__"` subdirectory that you want to use for an analysis represented by a subdirectory named `CARD_dir` (see `CARD_tmp` if you want to locate your `CARD_dir` directory elsewhere). In your CARDs, you can specify functions available in the scripts of the `"__tools__"` subdirectory.
+#' @param CARD_tmp If you want to locate the `CARD_dir` directory somewhere other than in the `CARD_path` directory, you can specify a [character][base::character] string in `CARD_tmp` for a path where the `CARD_dir` subdirectory of CARDs will be searched. Default is `"NULL"` if you want to locate the `CARD_dir` subdirectory of CARDs in `CARD_path`.
+#' @param CARD_dir A [character][base::character] string for the name of a subdirectory in `CARD_path` (or `CARD_tmp`) where the CARD parameterization files are located for an analysis. Default is `"WIP"`.
+#' @param CARD_name By default, all CARDs in the `CARD_dir` directory will be used for the analysis. However, you can specify a [vector][base::c()] of [character][base::character] strings with the names of the CARDs to be used. Default is `"NULL"` for using all the CARDs.
 #' @param period_default A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `period=NULL`, which considers all available data for each time serie.
 #' @param suffix A [character][base::character] [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. This parameter allows handling multiple extraction scenarios. For example, a cumbersome case can be to have a unique function to apply to a multiple list of column. It is possible to give `funct=list(QA_obs=mean, QA_sim=mean)` and `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=TRUE))` or simply `funct=list(QA=mean)` and `funct_args=list("Q", na.rm=TRUE)` with `suffix=c("obs", "sim")`. The two approach give the same result. Default `NULL`.
 #' @param suffix_delimiter [character][base::character] specifies the delimiter to use between the variable name and the suffix if not `NULL`. The default is `"_"`.
 #' @param cancel_lim A [logical][base::logical] to specify whether to cancel the NA percentage limits in the CARDs. Default is `FALSE`.
 #' @param simplify A [logical][base::logical] to specify whether to simplify the extracted data by joining each [tibble][tibble::tibble()] extracted from each CARDs. Usefull when the extracted variable has no temporal extension. Default `"FALSE"`.
-#' @param expand_overwrite [logical][base::logical] or `NULL`. If `TRUE`, expand the output [tibble][tibble::tibble()] as a [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable by [suffix].
+#' @param expand_overwrite [logical][base::logical] or `NULL`. If `TRUE`, expand the output [tibble][tibble::tibble()] as a [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable by `suffix`.
 #' Default `NULL` to conserve the value specified in the CARDs used.
-#' @param sampling_period_overwrite A [character][base::character] or a [vector][base::c()] of two [characters][base::character] that will indicate how to sample the data for each time step defined by [time_step]. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if [time_step] is set to `"year"`, [sampling_period] needs to be formated as `%m-%d` (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if `time_step="year"` and `sampling_period="03-19"`, [funct] will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a [vector][base::c()] of two [characters][base::character] as `sampling_period=c("02-01", "07-31")` in order to process data only if the date is between the 1st february and the 31th jully of each year.
-#' *not available for now* For a monthly (or seasonal) extraction, [sampling_period] needs to give only day in each month, so for example `sampling_period="10"` to extract data from the 10th of each month to the 9th of each following month.
+#' @param sampling_period_overwrite A [character][base::character] or a [vector][base::c()] of two [characters][base::character] that will indicate how to sample the data for each time step defined by `time_step`. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if `time_step` is set to `"year"`, `sampling_period` needs to be formated as `%m-%d` (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if `time_step="year"` and `sampling_period="03-19"`, `funct` will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a [vector][base::c()] of two [characters][base::character] as `sampling_period=c("02-01", "07-31")` in order to process data only if the date is between the 1st february and the 31th jully of each year.
+#' *not available for now* For a monthly (or seasonal) extraction, `sampling_period` needs to give only day in each month, so for example `sampling_period="10"` to extract data from the 10th of each month to the 9th of each following month.
 #' Default `NULL` to conserve the value specified in the CARDs used.
 #' @param rmNApct [logical][base::logical]. Should the `NApct` column, which shows the percentage of missing values in the output, be removed ? Default `TRUE`.
 #' @param rm_duplicates [logical][base::logical]. Should duplicate time series values be automatically removed ? Default `FALSE`.
@@ -158,9 +158,14 @@ get_last_Process = function (Process) {
 #' @param verbose [logical][base::logical]. Should intermediate messages be printed during the execution of the function ? Default `FALSE`.
 #'
 #' @return A [list][base::list()] of two [tibbles][tibble::tibble()].
-#' - The `dataEX` [tibble][tibble::tibble()], which contains the extracted variable, or a named [list][base::list()] of [tibbles][tibble::tibble()] for each extracted variable if [expand_overwrite] is `TRUE`.
+#' - The `dataEX` [tibble][tibble::tibble()], which contains the extracted variable, or a named [list][base::list()] of [tibbles][tibble::tibble()] for each extracted variable if `expand_overwrite` is `TRUE`.
 #' - The `metaEX` [tibble][tibble::tibble()], which contains the metadata of the extraction from CARDs.
 #'
+#' @seealso
+#' [process_extraction()] for extracting variables.
+#' [process_trend()] for performing trend analysis on extracted variables.
+#' [CARD_management()] for managing CARD parameterization files.
+#' 
 #' @examples
 #' ## Creation of random data set
 #' set.seed(99)
@@ -190,7 +195,9 @@ get_last_Process = function (Process) {
 #' data = dplyr::bind_rows(data_1, data_2)
 #' 
 #' ## Extraction with CARD
-#' # Copy and paste CARD from __all__ to the CARD_dir directory (or use CARD_tmp with CARD_management function) and then process the extraction
+#' # Copy and paste CARD from __all__ to the CARD_dir directory (or
+#' # use CARD_tmp with CARD_management function) and then process the
+#' # extraction
 #' \dontrun{
 #' CARD_extraction(data,
 #'                 CARD_path="path/to/CARD",

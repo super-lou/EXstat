@@ -32,6 +32,8 @@ of the MK test)
 \item{DoDetrending, }{logical, only used for dep.option == LTP:
 do detrending before estimating Hurst coefficient (default=TRUE as
 recommended in Hamed's paper)}
+
+\item{verbose}{\link[base:logical]{logical} Whether to print intermediate messages. Default is \code{FALSE}.}
 }
 \value{
 A list with the following fields :
@@ -70,8 +72,10 @@ and AR1 are very fast.
 }
 }
 \examples{
+\dontrun{
 data(nhtemp) #Average Yearly Temperatures in New Haven
 generalMannKendall(X=nhtemp, dep.option='AR1')
+}
 }
 \references{
 \enumerate{

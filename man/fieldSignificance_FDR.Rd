@@ -21,6 +21,7 @@ Field significance using the false detection rate
 approach
 }
 \examples{
+\dontrun{
 set.seed(123456) # Make example reproducible
 level = 0.1 # Level of the test
 data(nhtemp) # Average Yearly Temperatures in New Haven
@@ -36,6 +37,7 @@ for (i in 1:30) {
 pFDR = fieldSignificance_FDR(pvals, level)
 which(pvals <= level) # Locally-significant sites
 which(pvals <= pFDR) # FDR-significant sites
+}
 }
 \references{
 Benjamini, Y., and Y. Hochberg (1995), Controlling the

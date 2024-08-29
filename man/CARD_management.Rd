@@ -18,7 +18,7 @@ CARD_management(
 \arguments{
 \item{CARD_path}{A \link[base:character]{character} string representing the path to the downloaded CARD directory (it should end with \code{"CARD"}). In this directory, you can search the CARDs that you want in the \code{"__all__"} subdirectory that will be use for an analysis (see \link{layout} to know how to specify which CARD you want).}
 
-\item{CARD_out}{A \link[base:character]{character} string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is \code{NULL} if you want to use a \code{tmp} subdirectory in the \link{CARD_path} directory.}
+\item{CARD_out}{A \link[base:character]{character} string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is \code{NULL} if you want to use a \code{tmp} subdirectory in the \code{CARD_path} directory.}
 
 \item{layout}{A \link[base:character]{character} \link[base:c]{vector} specifying the tree structure of files that you want for your analysis. Each element of the vector represents either:
 \itemize{
@@ -32,14 +32,14 @@ For example, if you want to create an \code{"EX"} analysis directory for the CAR
 
 \item{add_id}{\link[base:logical]{logical}. If \code{TRUE}, numerical IDs will be added to the start of the copied and pasted CARD names to maintain the input order. Default is \code{TRUE}.}
 
-\item{overwrite}{\link[base:logical]{logical}. If \code{TRUE}, existing CARD files in the \link{CARD_out} directory will be overwritten. Default is \code{TRUE}.}
+\item{overwrite}{\link[base:logical]{logical}. If \code{TRUE}, existing CARD files in the \code{CARD_out} directory will be overwritten. Default is \code{TRUE}.}
 
 \item{verbose}{\link[base:logical]{logical}. Should intermediate messages be printed during the execution of the function ? Default \code{FALSE}.}
 
 \item{args}{An intermediate form of arguments that is useful if the argparse package is used. If not provided, it will be automatically created using the other function arguments. Default is \code{NULL}.}
 }
 \value{
-CARD parameterization files will be copied and pasted from \link{CARD_path} and organized according to the structure given by \link{layout} into the \link{CARD_out} directory.
+CARD parameterization files will be copied and pasted from \code{CARD_path} and organized according to the structure given by \link{layout} into the \code{CARD_out} directory.
 }
 \description{
 Manage the CARD directory structure by performing automatic file operations to copy and paste CARD parameterization files more efficiently.
@@ -53,4 +53,9 @@ CARD_management(CARD="path/to/CARD",
                 verbose=TRUE)
 }
 
+}
+\seealso{
+\code{\link[=process_extraction]{process_extraction()}} for extracting variables.
+\code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
+\code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
 }

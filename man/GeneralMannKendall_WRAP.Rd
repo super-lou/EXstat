@@ -17,15 +17,22 @@ GeneralMannKendall_WRAP(
 \item{X}{data (vector). IMPORTANT: it assumes that X is
 regularly-spaced.}
 
-\item{level}{numeric, between 0 and 1, level of the test (default :
-0.1).}
+\item{level}{\link[base:numeric]{numeric} Mann-Kendall test significance level between \code{0} and \code{1}. Default is \code{0.1}.}
 
-\item{DoDetrending}{logical, only used for when dep.option == 'LTP'
-(default: TRUE).}
+\item{time_dependency_option}{\link[base:character]{character} for handling temporal dependence for the Mann-Kendall test. Possible values are :
+\itemize{
+\item \code{"INDE"}, assume independence (i.e. the standard MK test)
+\item \code{"AR1"}, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
+\item \code{"LTP"}, assume long-term persistence (i.e. Hamed's version of the MK test)
+}}
 
-\item{option}{dependency option, option for handling temporal
-dependence
-(default 'INDE' for independence).}
+\item{DoDetrending, }{logical, only used for dep.option == LTP:
+do detrending before estimating Hurst coefficient (default=TRUE as
+recommended in Hamed's paper)}
+
+\item{show_advance_stat}{\link[base:logical]{logical} Whether to display advanced statistical details. Default is \code{FALSE}.}
+
+\item{verbose}{\link[base:logical]{logical} Whether to print intermediate messages. Default is \code{FALSE}.}
 }
 \value{
 a dataframe, with the different statistics and values of
@@ -35,6 +42,8 @@ interest of the test.
 Apply the generalMannKendall function to the serie X.
 }
 \examples{
+\dontrun{
 GeneralMannKendall_WRAP(X=1:100)
 GeneralMannKendall_WRAP(X=rep(1, 100))
+}
 }

@@ -48,7 +48,7 @@
 #' ```
 #' 
 #' @param funct The function that you want to use for the process of variable extraction. More specificaly, it is possible to give a [list][base::list()] with several functions as element of that [list][base::list()] and the name that will be used for the extracted column as the names element of each function of that previously defined [list][base::list()]. A simple case will be `funct=mean` and a more complicated one `funct=list(QA=mean, QJXA=max)`. Default [max][base::max()].
-#' @param funct_args A [list][base::list()] of [list][base::list()] of named arguments needed for each functions provided through [funct]. This [list][base::list()] can be a simple [list][base::list()] if there is only one function given by [funct]. The argument can relate to a column name in order to specify on which numerical column the extraction will be perfom. For the simple example, `funct_args=list("Q_obs", na.rm=TRUE)` and for the more complex case `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=FALSE))`. Default [list][base::list()].
+#' @param funct_args A [list][base::list()] of [list][base::list()] of named arguments needed for each functions provided through `funct`. This [list][base::list()] can be a simple [list][base::list()] if there is only one function given by `funct`. The argument can relate to a column name in order to specify on which numerical column the extraction will be perfom. For the simple example, `funct_args=list("Q_obs", na.rm=TRUE)` and for the more complex case `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=FALSE))`. Default [list][base::list()].
 #' @param time_step A [character][base::character] specifying the time step of the variable extraction process. Possible values are :
 #' - "year" for a value per year
 #' - "month" for a value for each month of the year (so 12 values if at least a full year is given)
@@ -58,20 +58,20 @@
 #' - "yearday" for one value per day of the year (so 365 values at the end if at least a full year is given... but more than one year seems obviously more interesting)
 #' "none" if you want to extract a unique value for the whole time serie
 #' Default `"year"`.
-#' @param sampling_period A [character][base::character] or a [vector][base::c()] of two [characters][base::character] that will indicate how to sample the data for each time step defined by [time_step]. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if [time_step] is set to `"year"`, [sampling_period] needs to be formated as `%m-%d` (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if `time_step="year"` and `sampling_period="03-19"`, [funct] will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a [vector][base::c()] of two [characters][base::character] as `sampling_period=c("02-01", "07-31")` in order to process data only if the date is between the 1st february and the 31th jully of each year.
-#' *not available for now* For a monthly (or seasonal) extraction, [sampling_period] needs to give only day in each month, so for example `sampling_period="10"` to extract data from the 10th of each month to the 9th of each following month.
+#' @param sampling_period A [character][base::character] or a [vector][base::c()] of two [characters][base::character] that will indicate how to sample the data for each time step defined by `time_step`. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if `time_step` is set to `"year"`, `sampling_period` needs to be formated as `%m-%d` (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if `time_step="year"` and `sampling_period="03-19"`, `funct` will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a [vector][base::c()] of two [characters][base::character] as `sampling_period=c("02-01", "07-31")` in order to process data only if the date is between the 1st february and the 31th jully of each year.
+#' *not available for now* For a monthly (or seasonal) extraction, `sampling_period` needs to give only day in each month, so for example `sampling_period="10"` to extract data from the 10th of each month to the 9th of each following month.
 #' Default `NULL`.
 #' @param period A [vector][base::c()] of two [dates][base::Date] (or two unambiguous [character][base::character] that can be coerced to [dates][base::Date]) to restrict the period of analysis. As an example, it can be `c("1950-01-01", "2020-12-31")` to select data from the 1st January of 1950 to the end of December of 2020. The default option is `period=NULL`, which considers all available data for each time serie.
-#' @param is_date [logical][base::logical]. If TRUE, [process_extration()] will convert the result of the application of [funct] to a day of the year. The aim is for example to give `funct=which.min` and if `is_date=TRUE`, the result will not be the indice of the minimum of the sample but the associated day of the year given by an [integer][base::integer] (1 is the 1st of january). Default `FALSE`.
+#' @param is_date [logical][base::logical]. If TRUE, `process_extration()` will convert the result of the application of `funct` to a day of the year. The aim is for example to give `funct=which.min` and if `is_date=TRUE`, the result will not be the indice of the minimum of the sample but the associated day of the year given by an [integer][base::integer] (1 is the 1st of january). Default `FALSE`.
 #' @param NApct_lim [numeric][base::numeric]. The maximum percentage of missing values in each sample allowed. If this threshold is exceeded, the value associated to the current sample will be convert to NA. Default `NULL`.
 #' @param NAyear_lim [numeric][base::numeric].The maximum number of continuous missing years allowed. If this threshold is exceeded, the time serie will be split in half around the problematic period and only the longest part will be used for the extraction process. Default `NULL`.
-#' @param Seasons A [vector][base::c()] of [characters][base::character] that indicates the seasonal pattern of a year. All months of the year needs to be contain in the [Seasons] variable. Give months circulary in a vector in which each element is a character chain of several months identify by the first letter of their names. The default is `Seasons=c("DJF", "MAM", "JJA", "SON")` but it can be set for example to `Seasons=c("MAMJJA", "SONDJF")`.
-#' @param nameEX A [character][base::character] specifying the name of the column of the extracted variable if no name is given in [funct]. Default is `"X"`.
+#' @param Seasons A [vector][base::c()] of [characters][base::character] that indicates the seasonal pattern of a year. All months of the year needs to be contain in the `Seasons` variable. Give months circulary in a vector in which each element is a character chain of several months identify by the first letter of their names. The default is `Seasons=c("DJF", "MAM", "JJA", "SON")` but it can be set for example to `Seasons=c("MAMJJA", "SONDJF")`.
+#' @param nameEX A [character][base::character] specifying the name of the column of the extracted variable if no name is given in `funct`. Default is `"X"`.
 #' @param suffix A [character][base::character] [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. This parameter allows handling multiple extraction scenarios. For example, a cumbersome case can be to have a unique function to apply to a multiple list of column. It is possible to give `funct=list(QA_obs=mean, QA_sim=mean)` and `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=TRUE))` or simply `funct=list(QA=mean)` and `funct_args=list("Q", na.rm=TRUE)` with `suffix=c("obs", "sim")`. The two approach give the same result. Default `NULL`.
 #' @param suffix_delimiter [character][base::character] specifies the delimiter to use between the variable name and the suffix if not `NULL`. The default is `"_"`.
-#' @param keep *in developpement* A [character][base::character] [vector][base::c()] of column names to keep in the output [tibble][tibble::tibble()]. In the current state, [keep] can only be set to `NULL` if you don't want to keep anythings in the output besides the usefull column, or `"all"` if you want to conserve all the initial column in the output column.
+#' @param keep *in developpement* A [character][base::character] [vector][base::c()] of column names to keep in the output [tibble][tibble::tibble()]. In the current state, `keep` can only be set to `NULL` if you don't want to keep anythings in the output besides the usefull column, or `"all"` if you want to conserve all the initial column in the output column.
 #' Warning : The number of rows in the output with `keep="all"` will, as a result, be the same as in the input. For example, the extracted value for a year from a daily time series will be assigned to the first day of that year, and `NaN` will be assigned to every other value in the output. Default `NULL`.                     
-#' @param compress [logical][base::logical]. If [time_step] is set to `"month"`, `"year-month"`, `"season"` or `"year-season"` should the function return a standard [tibble][tibble::tibble()] or a compressed one ?  When `compress = TRUE`, the function will perform a [pivot_wider][tidyr::pivot_wider()] operation to display the month or season information in columns instead of rows. Default `FALSE`.
+#' @param compress [logical][base::logical]. If `time_step` is set to `"month"`, `"year-month"`, `"season"` or `"year-season"` should the function return a standard [tibble][tibble::tibble()] or a compressed one ?  When `compress = TRUE`, the function will perform a [pivot_wider][tidyr::pivot_wider()] operation to display the month or season information in columns instead of rows. Default `FALSE`.
 #'
 #' e.g.
 #' ```
@@ -95,18 +95,23 @@
 #' 1 serie 1  1464  1447   1395   1458
 #' 2 serie 2    11     2      1      4
 #' ```
-#' @param expand [logical][base::logical]. If `TRUE`, expand the output [tibble][tibble::tibble()] as a [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable by [suffix]. Default `FALSE`.
+#' @param expand [logical][base::logical]. If `TRUE`, expand the output [tibble][tibble::tibble()] as a [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable by `suffix`. Default `FALSE`.
 #' @param rmNApct [logical][base::logical]. Should the `NApct` column, which shows the percentage of missing values in the output, be removed ? Default `TRUE`.
 #' @param rm_duplicates [logical][base::logical]. Should duplicate time series values be automatically removed ? Default `FALSE`.
 #' @param dev [logical][base::logical] If `TRUE`, development mode is enabled. Default is `FALSE`.
 #' @param verbose [logical][base::logical]. Should intermediate messages be printed during the execution of the function ? Default `FALSE`.
 #'
 #' @note 
-#' - [compress] and [expand] cannot be both set to TRUE for [time_step] set to `"year-month"` or `"year-season"`.
-#' - `NA` values are considered missing values and are used to compute the percentage of gaps over each time step, potentially removing the results if the percentage exceeds [NApct_lim].
-#' - `NaN` values are considered non-existent values but can also be computation artifacts, for example, when the [keep] option is used. For speed performance reasons, `NaN` values are needed as masked values for input time series that are not daily and are extracted throughout the year.
+#' - `compress` and `expand` cannot be both set to TRUE for `time_step` set to `"year-month"` or `"year-season"`.
+#' - `NA` values are considered missing values and are used to compute the percentage of gaps over each time step, potentially removing the results if the percentage exceeds `NApct_lim`.
+#' - `NaN` values are considered non-existent values but can also be computation artifacts, for example, when the `keep` option is used. For speed performance reasons, `NaN` values are needed as masked values for input time series that are not daily and are extracted throughout the year.
 #'
-#' @return A [tibble][tibble::tibble()] containing the extracted variable, or a named [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable if `expand` is `TRUE`. This output follows the same format as the input data described in [data], making it possible to iterate over this output using [process_extraction].
+#' @return A [tibble][tibble::tibble()] containing the extracted variable, or a named [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable if `expand` is `TRUE`. This output follows the same format as the input data described in `data`, making it possible to iterate over this output using [process_extraction()].
+#'
+#' @seealso
+#' [process_trend()] for performing trend analysis on extracted variables.
+#' [CARD_extraction()] for extracting variables using CARD parameterization files.
+#' [CARD_management()] for managing CARD parameterization files.
 #' 
 #' @examples
 #' ## Creation of random data set
@@ -142,8 +147,10 @@
 #'                    funct_args=list("X_state1", na.rm=TRUE),
 #'                    time_step="year")
 #' 
-#' ## Extraction of the median of the yearly maximum of the monthly averages of daily values.
-#' # Three steps are needed for this case, the first one is the monthly average over years.
+#' ## Extraction of the median of the yearly maximum of the monthly
+#' # averages of daily values.
+#' # Three steps are needed for this case, the first one is the
+#' # monthly average over years.
 #' dataEX_tmp =
 #'     process_extraction(data=data,
 #'                        funct=list(X_month_state2=mean),
@@ -153,7 +160,8 @@
 #'                        rmNApct=FALSE)
 #' # Missing values represented by NA are handled.
 #' print(dataEX_tmp)
-#' # In this second step, for the yearly maximum, the sampling period for each year is modified to a fixed value.
+#' # In this second step, for the yearly maximum, the sampling period
+#' # for each year is modified to a fixed value.
 #' dataEX_tmp =
 #'     process_extraction(data=dataEX_tmp,
 #'                        funct=list(XX_state2=max),
@@ -161,21 +169,24 @@
 #'                        sampling_period=c("05-01", "11-30"),
 #'                        time_step="year")
 #' 
-#' # Finaly, the median is computed and if there is missing value, w
+#' # Finaly, the median is computed
 #' process_extraction(data=dataEX_tmp,
 #'                    funct=list(med_XX_state2=median),
 #'                    funct_args=list("XX_state2", na.rm=TRUE),
 #'                    time_step="none")
 #' 
-#' ## Extraction of the monthly average and the monthly maximum in a single call.
-#' # The output is in long tibble format with 12 values for each time serie.
+#' ## Extraction of the monthly average and the monthly maximum in a
+#' # single call.
+#' # The output is in long tibble format with 12 values for each time
+#' # serie.
 #' process_extraction(data=data,
 #'                    funct=list(XA_state1=mean,
 #'                               XX_state2=max),
 #'                    funct_args=list(list("X_state1", na.rm=TRUE),
 #'                                    list("X_state2", na.rm=TRUE)),
 #'                    time_step="month")
-#' # In this case, the output tibble is compress to have the date indication in column. This also works for year-month extraction.
+#' # In this case, the output tibble is compress to have the date
+#' # indication in column. This also works for year-month extraction.
 #' process_extraction(data=data,
 #'                    funct=list(XA_state1=mean,
 #'                               XX_state2=max),
@@ -183,7 +194,8 @@
 #'                                    list("X_state2", na.rm=TRUE)),
 #'                    time_step="month",
 #'                    compress=TRUE)
-#' # And in this last case, the output tibble is compress and then expand in order to have a list of tibble for each variable.
+#' # And in this last case, the output tibble is compress and then
+#' # expand in order to have a list of tibble for each variable.
 #' process_extraction(data=data,
 #'                    funct=list(XA_state1=mean,
 #'                               XX_state2=max),
@@ -193,7 +205,9 @@
 #'                    compress=TRUE,
 #'                    expand=TRUE)
 #' 
-#' ## Extraction of the seasonal average and season maxium for both columns using suffixes to avoid repetition with compress and expand formating.
+#' ## Extraction of the seasonal average and season maxium for both
+#' # columns using suffixes to avoid repetition with compress and
+#' # expand formating.
 #' process_extraction(data=data,
 #'                    funct=list(XA=mean,
 #'                               XX=max),

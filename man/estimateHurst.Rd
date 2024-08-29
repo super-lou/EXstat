@@ -21,6 +21,8 @@ The estimated value of the hurst coefficient
 Estimate the Hurst coefficient of a series
 }
 \examples{
+\dontrun{
 data(nhtemp) #Average Yearly Temperatures in New Haven
 estimateHurst(Z=nhtemp)
+}
 }

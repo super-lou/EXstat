@@ -17,6 +17,8 @@ Sen's estimate.
 Compute MK stat and Sen's trend estimate
 }
 \examples{
+\dontrun{
 data(nhtemp) #Average Yearly Temperatures in New Haven
 getMKStat(X = nhtemp)
+}
 }

@@ -42,6 +42,7 @@
 #' @param DoDetrending, logical, only used for dep.option == LTP:
 #' do detrending before estimating Hurst coefficient (default=TRUE as
 #' recommended in Hamed's paper)
+#' @param verbose [logical][base::logical] Whether to print intermediate messages. Default is `FALSE`.
 #' @return A list with the following fields :
 #' \enumerate{
 #'     \item H: logical, reject (true) or do not reject (false) H0
@@ -72,8 +73,10 @@
 #' and AR1 are very fast.
 #' }
 #' @examples
+#' \dontrun{
 #' data(nhtemp) #Average Yearly Temperatures in New Haven
 #' generalMannKendall(X=nhtemp, dep.option='AR1')
+#' }
 #' @references
 #' \enumerate{
 #'     \item Hamed, Rao, 1998. A modified Mann-Kendall trend test for
@@ -210,18 +213,23 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
 #' @description Apply the generalMannKendall function to the serie X.
 #' @param X data (vector). IMPORTANT: it assumes that X is
 #' regularly-spaced.
-#' @param level numeric, between 0 and 1, level of the test (default :
-#' 0.1).
-#' @param option dependency option, option for handling temporal
-#' dependence
-#' (default 'INDE' for independence).
-#' @param DoDetrending logical, only used for when dep.option == 'LTP'
-#' (default: TRUE).
+#' @param level [numeric][base::numeric] Mann-Kendall test significance level between `0` and `1`. Default is `0.1`.
+#' @param time_dependency_option [character][base::character] for handling temporal dependence for the Mann-Kendall test. Possible values are :
+#' * `"INDE"`, assume independence (i.e. the standard MK test)
+#' * `"AR1"`, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
+#' * `"LTP"`, assume long-term persistence (i.e. Hamed's version of the MK test)
+#' @param DoDetrending, logical, only used for dep.option == LTP:
+#' do detrending before estimating Hurst coefficient (default=TRUE as
+#' recommended in Hamed's paper)
+#' @param show_advance_stat [logical][base::logical] Whether to display advanced statistical details. Default is `FALSE`.
+#' @param verbose [logical][base::logical] Whether to print intermediate messages. Default is `FALSE`.
 #' @return a dataframe, with the different statistics and values of
 #' interest of the test.
 #' @examples
+#' \dontrun{
 #' GeneralMannKendall_WRAP(X=1:100)
 #' GeneralMannKendall_WRAP(X=rep(1, 100))
+#' }
 GeneralMannKendall_WRAP = function(X,
                                    level=0.1,
                                    time_dependency_option='INDE',
@@ -261,8 +269,10 @@ GeneralMannKendall_WRAP = function(X,
 #' @return A list, with components: $stat, MK statistics; $trend,
 #' Sen's estimate.
 #' @examples
+#' \dontrun{
 #' data(nhtemp) #Average Yearly Temperatures in New Haven
 #' getMKStat(X = nhtemp)
+#' }
 #' @export
 getMKStat = function(X) {
     n = length(X);count.p = 0;count.m = 0;k = 0
@@ -293,8 +303,10 @@ getMKStat = function(X) {
 #' required)
 #' @return The estimated value of the hurst coefficient
 #' @examples
+#' \dontrun{
 #' data(nhtemp) #Average Yearly Temperatures in New Haven
 #' estimateHurst(Z=nhtemp)
+#' }
 #' @export
 estimateHurst = function(Z, DoDetrending=TRUE,
                          trend=getMKStat(Z)$trend) {
@@ -328,10 +340,12 @@ estimateHurst = function(Z, DoDetrending=TRUE,
 #' @param x numeric, data
 #' @return the normal-score-transformed series
 #' @examples
+#' \dontrun{
 #' data(nhtemp) # Average Yearly Temperatures in New Haven
 #' z = randomizedNormalScore(x=nhtemp)
 #' par(mfrow = c(1, 2))
 #' plot(nhtemp, type='b');plot(z, type='b')
+#' }
 #' @export
 randomizedNormalScore = function(x) {
     # empirical frequencies
@@ -445,6 +459,7 @@ HurstLkh = function(H, x) {
 #' @return pFDR, the FDR p-value, interpreted as follows: local
 #' p-values smaller than pFDR are field-significant.
 #' @examples
+#' \dontrun{
 #' set.seed(123456) # Make example reproducible
 #' level = 0.1 # Level of the test
 #' data(nhtemp) # Average Yearly Temperatures in New Haven
@@ -460,6 +475,7 @@ HurstLkh = function(H, x) {
 #' pFDR = fieldSignificance_FDR(pvals, level)
 #' which(pvals <= level) # Locally-significant sites
 #' which(pvals <= pFDR) # FDR-significant sites
+#' }
 #' @references Benjamini, Y., and Y. Hochberg (1995), Controlling the
 #' false discovery rate: A practical and powerful approach to multiple
 #' testing, J. R. Stat. Soc., Ser. B., 57, 289–300.
@@ -491,12 +507,13 @@ tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {
             
         } else {
             if (!end) {
-                h = "├── "
+                h = "\u251C\u2500\u2500 " # "├── "
             } else {
-                h = "└── "
+                h = "\u2514\u2500\u2500 " # "└── "
             }
 
-            d = strrep("│   ", n-1)
+            # d = strrep("│   ", n-1)
+            d = strrep("\u2502   ", n-1)
             if (!is.null(inEnd)) {
                 for (ie in inEnd) {
                     id = (ie-1)*4 + 1
@@ -532,7 +549,8 @@ tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {
             line = Lines[i]
             if (i > 1) {
                 if (!end) {
-                    h = "│   "
+                    # h = "│   "
+                    h = "\u2502   "
                 } else {
                     h = "    "
                 }
@@ -540,7 +558,6 @@ tree = function (x, n, end=FALSE, inEnd=NULL, lim=50, verbose=TRUE) {
             X = paste0(d, h, line)
             space = lim - nchar(X)            
             X = paste0(X, strrep(" ", space))
-            # print(X)
             print(X)
         }
     }

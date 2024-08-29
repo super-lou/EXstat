@@ -16,8 +16,10 @@ the normal-score-transformed series
 Randomized Normal Score transformation
 }
 \examples{
+\dontrun{
 data(nhtemp) # Average Yearly Temperatures in New Haven
 z = randomizedNormalScore(x=nhtemp)
 par(mfrow = c(1, 2))
 plot(nhtemp, type='b');plot(z, type='b')
+}
 }

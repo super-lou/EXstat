@@ -26,7 +26,7 @@
 #' @description Manage the CARD directory structure by performing automatic file operations to copy and paste CARD parameterization files more efficiently.
 #'
 #' @param CARD_path A [character][base::character] string representing the path to the downloaded CARD directory (it should end with `"CARD"`). In this directory, you can search the CARDs that you want in the `"__all__"` subdirectory that will be use for an analysis (see [layout] to know how to specify which CARD you want).
-#' @param CARD_out A [character][base::character] string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is `NULL` if you want to use a `tmp` subdirectory in the [CARD_path] directory.
+#' @param CARD_out A [character][base::character] string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is `NULL` if you want to use a `tmp` subdirectory in the `CARD_path` directory.
 #' @param layout A [character][base::character] [vector][base::c()] specifying the tree structure of files that you want for your analysis. Each element of the vector represents either:
 #' * the name of an analysis directory (e.g., `"EX"`)
 #' * the beginning and ending of an analysis directory: `"["` for the start and `"]"` for the end
@@ -34,11 +34,16 @@
 #' For example, if you want to create an `"EX"` analysis directory for the CARDs named `"QA"` and `"QJXA"`, you can provide `c("EX", "[", "QA", "QJXA", "]")` (which is the default value).
 #' @param underscore_to_white [logical][base::logical]. If `TRUE`, underscores in directory names will be replaced with spaces. Default is `TRUE`.
 #' @param add_id [logical][base::logical]. If `TRUE`, numerical IDs will be added to the start of the copied and pasted CARD names to maintain the input order. Default is `TRUE`.
-#' @param overwrite [logical][base::logical]. If `TRUE`, existing CARD files in the [CARD_out] directory will be overwritten. Default is `TRUE`.
+#' @param overwrite [logical][base::logical]. If `TRUE`, existing CARD files in the `CARD_out` directory will be overwritten. Default is `TRUE`.
 #' @param verbose [logical][base::logical]. Should intermediate messages be printed during the execution of the function ? Default `FALSE`.
 #' @param args An intermediate form of arguments that is useful if the argparse package is used. If not provided, it will be automatically created using the other function arguments. Default is `NULL`.
 #'
-#' @return CARD parameterization files will be copied and pasted from [CARD_path] and organized according to the structure given by [layout] into the [CARD_out] directory.
+#' @return CARD parameterization files will be copied and pasted from `CARD_path` and organized according to the structure given by [layout] into the `CARD_out` directory.
+#'
+#' @seealso
+#' [process_extraction()] for extracting variables.
+#' [process_trend()] for performing trend analysis on extracted variables.
+#' [CARD_extraction()] for extracting variables using CARD parameterization files.
 #' 
 #' @examples
 #' \dontrun{

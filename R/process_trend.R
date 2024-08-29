@@ -28,16 +28,16 @@
 #' * Only one column of [Date][base::Date] that are regularly spaced and unique for each time serie.
 #' * If there is more than one time serie, at least one column needs to be of [character][base::character] for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
 #' * At least one column of [numeric][base::numeric] (or [logical][base::logical]) on which the process of variable extraction will be perform. More numerical column can be leave but if they are useless, they will be suppressed.
-#' The [tibble][tibble::tibble()] output of the [process_extraction] function is the kind of wanted input data.
+#' The [tibble][tibble::tibble()] output of the [process_extraction()] function is the kind of wanted input data.
 #' @param MK_level [numeric][base::numeric] Mann-Kendall test significance level between `0` and `1`. Default is `0.1`.
 #' @param time_dependency_option [character][base::character] for handling temporal dependence for the Mann-Kendall test. Possible values are :
 #' * `"INDE"`, assume independence (i.e. the standard MK test)
 #' * `"AR1"`, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
 #' * `"LTP"`, assume long-term persistence (i.e. Hamed's version of the MK test)
-#' @param suffix A [character][base::character] [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. See [process_extraction] for more info. Default `NULL`.
+#' @param suffix A [character][base::character] [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. See [process_extraction()] for more info. Default `NULL`.
 #' @param suffix_delimiter [character][base::character] specifies the delimiter to use between the variable name and the suffix if not `NULL`. The default is `"_"`.
-#' @param to_normalise A named [logical][base::logical] [vector][base::c()] indicating whether each variable's trend should be normalised. `TRUE` performs normalisation, while `FALSE` does nothing. This vector must be of length one or have the same length as the number of [numeric][base::numeric] (or [logical][base::logical]) variables in [dataEX], with names specifying which value corresponds to which variable. Default 'FALSE'.
-#' @param metaEX One of the outputs of the [CARD_extraction] function that contains metadata for the normalisation process. Default is `NULL`. If supplied, this normalisation information will be used instead of the settings provided in the [to_normalise] variable.
+#' @param to_normalise A named [logical][base::logical] [vector][base::c()] indicating whether each variable's trend should be normalised. `TRUE` performs normalisation, while `FALSE` does nothing. This vector must be of length one or have the same length as the number of [numeric][base::numeric] (or [logical][base::logical]) variables in `dataEX`, with names specifying which value corresponds to which variable. Default 'FALSE'.
+#' @param metaEX One of the outputs of the [CARD_extraction] function that contains metadata for the normalisation process. Default is `NULL`. If supplied, this normalisation information will be used instead of the settings provided in the `to_normalise` variable.
 #' @param extreme_take_not_signif_into_account [logical][base::logical] Whether to consider non-significant trends in the computation of extreme trends. Default is `TRUE`.
 #' @param extreme_take_only_series [character][base::character] A [vector][base::c()] of the names of time series to be used for computing extreme trends. Default is `NULL`, which includes all available series.
 #' @param extreme_by_suffix [logical][base::logical] If `TRUE`, extreme trends will be computed across separate sets of trend values of the same variable and the same suffix. If `FALSE`, all extreme trends of a variable will be used without considering suffixes. Default is `TRUE`.
@@ -54,26 +54,31 @@
 #' More precisely, the returned `trendEX` [tibble][tibble::tibble()] contains the following columns :
 #' * `*` : The idenfiant of time series
 #' * `variable_en` : The name in english of variables
-#' * `level` : see [MK_level]
-#' * `H` : The result of the Mann-Kendall trend test. If `TRUE` a trend is detected at a risk level of [MK_level] (and a confidance of 1-[MK_level]). If `FALSE`, a trend is NOT detected at a risk level of [MK_level].
+#' * `level` : see `MK_level`
+#' * `H` : The result of the Mann-Kendall trend test. If `TRUE` a trend is detected at a risk level of `MK_level` (and a confidance of 1-`MK_level`). If `FALSE`, a trend is NOT detected at a risk level of `MK_level`.
 #' * `p`: The p-value indicating the statistical significance of the Mann-Kendall trend test.
 #' * `a` : The Then-Seil slope estimator that gives an approximation of the trend coefficient. WARNING : A value is always return even if the Mann-Kendall trend test is not significant.
 #' * `b` : The ordinate at the origin in sort that you can trace `Y = a * X + b
 #' * `period_trend` : An information about the period of analyse for the trend
-#' * `mean_period_trend` : The average value of the variable along the [period_trend] that is usefull for normalisation (it is `NA` if [to_normalise] is `FALSE` for this variable).
+#' * `mean_period_trend` : The average value of the variable along the `period_trend` that is usefull for normalisation (it is `NA` if `to_normalise` is `FALSE` for this variable).
 #' * `a_normalise` : The `a` value normalised with `mean_period_trend`.
-#' * `a_normalise_min` : The minimum of `a_normalise` values according to the selection made with [extreme_take_not_signif_into_account], [extreme_take_only_series] and [extreme_by_suffix].
+#' * `a_normalise_min` : The minimum of `a_normalise` values according to the selection made with `extreme_take_not_signif_into_account`, `extreme_take_only_series` and `extreme_by_suffix`.
 #' * `a_normalise_max` : Same as `a_normalise_min` but for maximum values.
 #' 
-#' If the the [suffix] argument is used, a column is added :
+#' If the the `suffix` argument is used, a column is added :
 #' * `variable_no_suffix_en` :  The name in english of variables without suffixes
 #'
-#' And also, if the [period_change] argument is filled up, more columns are added :
+#' And also, if the `period_change` argument is filled up, more columns are added :
 #' * `period_change` : An information about the period of analyse for the change break
 #' * `mean_period_change` :
 #' * `change` :
 #' * `change_min` :
 #' * `change_max` :
+#'
+#' @seealso
+#' [process_extraction()] for extracting variables.
+#' [CARD_extraction()] for extracting variables using CARD parameterization files.
+#' [CARD_management()] for managing CARD parameterization files.
 #'
 #' @examples
 #' ## Creation of random data set
@@ -118,12 +123,14 @@
 #'                             time_step="year")
 #' 
 #' ## Trend test
-#' # The direct application does not take care of possible grouped variables by suffix for extremes trends values.
+#' # The direct application does not take care of possible grouped
+#' # variables by suffix for extremes trends values.
 #' trendEX1 = process_trend(dataEX,
 #'                          to_normalise=TRUE)
 #' print(trendEX1, width=Inf)
 #' 
-#' # More complicated case with the use of 'period_change' and customs normalisation info
+#' # More complicated case with the use of 'period_change' and customs
+#' # normalisation info
 #' trendEX2 =
 #'     process_trend(dataEX,
 #'                   suffix=c("state1", "state2"),
@@ -582,7 +589,7 @@ get_normalise = function (dataEX,
 
     if (to_normalise) {
         dataEX_mean =
-            dplyr::summarise(group_by(dataEX, code),
+            dplyr::summarise(dplyr::group_by(dataEX, code),
                              mean=mean(get(variable),
                                        na.rm=TRUE))
         trendEX = dplyr::full_join(trendEX,
@@ -688,7 +695,7 @@ get_change = function (dataEX, trendEX,
     dataEX_change$change[!is.finite(dataEX_change$change)] = NA
     
     trendEX = dplyr::full_join(trendEX,
-                        select(dataEX_change,
+                        dplyr::select(dataEX_change,
                                c("code",
                                  "period_change",
                                  "mean_period_change",

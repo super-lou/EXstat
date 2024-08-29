@@ -49,13 +49,13 @@ A tibble: 201 × 4
     ...
 }\if{html}{\out{</div>}}}
 
-\item{CARD_path}{A \link[base:character]{character} string representing the path to the downloaded CARD directory (it should end with \code{"CARD"}). In this directory, you can copy and paste (and later modify) CARDs from the \code{"__all__"} subdirectory that you want to use for an analysis represented by a subdirectory named \link{CARD_dir} (see \link{CARD_tmp} if you want to locate your \link{CARD_dir} directory elsewhere). In your CARDs, you can specify functions available in the scripts of the \code{"__tools__"} subdirectory.}
+\item{CARD_path}{A \link[base:character]{character} string representing the path to the downloaded CARD directory (it should end with \code{"CARD"}). In this directory, you can copy and paste (and later modify) CARDs from the \code{"__all__"} subdirectory that you want to use for an analysis represented by a subdirectory named \code{CARD_dir} (see \code{CARD_tmp} if you want to locate your \code{CARD_dir} directory elsewhere). In your CARDs, you can specify functions available in the scripts of the \code{"__tools__"} subdirectory.}
 
-\item{CARD_tmp}{If you want to locate the \link{CARD_dir} directory somewhere other than in the \link{CARD_path} directory, you can specify a \link[base:character]{character} string in \link{CARD_tmp} for a path where the \link{CARD_dir} subdirectory of CARDs will be searched. Default is \code{"NULL"} if you want to locate the \link{CARD_dir} subdirectory of CARDs in \link{CARD_path}.}
+\item{CARD_tmp}{If you want to locate the \code{CARD_dir} directory somewhere other than in the \code{CARD_path} directory, you can specify a \link[base:character]{character} string in \code{CARD_tmp} for a path where the \code{CARD_dir} subdirectory of CARDs will be searched. Default is \code{"NULL"} if you want to locate the \code{CARD_dir} subdirectory of CARDs in \code{CARD_path}.}
 
-\item{CARD_dir}{A \link[base:character]{character} string for the name of a subdirectory in \link{CARD_path} (or \link{CARD_tmp}) where the CARD parameterization files are located for an analysis. Default is \code{"WIP"}.}
+\item{CARD_dir}{A \link[base:character]{character} string for the name of a subdirectory in \code{CARD_path} (or \code{CARD_tmp}) where the CARD parameterization files are located for an analysis. Default is \code{"WIP"}.}
 
-\item{CARD_name}{By default, all CARDs in the \link{CARD_dir} directory will be used for the analysis. However, you can specify a \link[base:c]{vector} of \link[base:character]{character} strings with the names of the CARDs to be used. Default is \code{"NULL"} for using all the CARDs.}
+\item{CARD_name}{By default, all CARDs in the \code{CARD_dir} directory will be used for the analysis. However, you can specify a \link[base:c]{vector} of \link[base:character]{character} strings with the names of the CARDs to be used. Default is \code{"NULL"} for using all the CARDs.}
 
 \item{period_default}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{period=NULL}, which considers all available data for each time serie.}
 
@@ -67,11 +67,11 @@ A tibble: 201 × 4
 
 \item{simplify}{A \link[base:logical]{logical} to specify whether to simplify the extracted data by joining each \link[tibble:tibble]{tibble} extracted from each CARDs. Usefull when the extracted variable has no temporal extension. Default \code{"FALSE"}.}
 
-\item{expand_overwrite}{\link[base:logical]{logical} or \code{NULL}. If \code{TRUE}, expand the output \link[tibble:tibble]{tibble} as a \link[base:list]{list} of \link[tibble:tibble]{tibble} for each extracted variable by \link{suffix}.
+\item{expand_overwrite}{\link[base:logical]{logical} or \code{NULL}. If \code{TRUE}, expand the output \link[tibble:tibble]{tibble} as a \link[base:list]{list} of \link[tibble:tibble]{tibble} for each extracted variable by \code{suffix}.
 Default \code{NULL} to conserve the value specified in the CARDs used.}
 
-\item{sampling_period_overwrite}{A \link[base:character]{character} or a \link[base:c]{vector} of two \link[base:character]{characters} that will indicate how to sample the data for each time step defined by \link{time_step}. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if \link{time_step} is set to \code{"year"}, \link{sampling_period} needs to be formated as \verb{\%m-\%d} (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if \code{time_step="year"} and \code{sampling_period="03-19"}, \link{funct} will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a \link[base:c]{vector} of two \link[base:character]{characters} as \code{sampling_period=c("02-01", "07-31")} in order to process data only if the date is between the 1st february and the 31th jully of each year.
-\emph{not available for now} For a monthly (or seasonal) extraction, \link{sampling_period} needs to give only day in each month, so for example \code{sampling_period="10"} to extract data from the 10th of each month to the 9th of each following month.
+\item{sampling_period_overwrite}{A \link[base:character]{character} or a \link[base:c]{vector} of two \link[base:character]{characters} that will indicate how to sample the data for each time step defined by \code{time_step}. Hence, the choice of this argument needs to be link with the choice of the time step. For example, for a yearly extraction so if \code{time_step} is set to \code{"year"}, \code{sampling_period} needs to be formated as \verb{\%m-\%d} (a month - a day of the year) in order to indicate the start of the sampling of data for the current year. More precisly, if \code{time_step="year"} and \code{sampling_period="03-19"}, \code{funct} will be apply on every data from the 3rd march of each year to the 2nd march of the following one. In this way, it is possible to create a sub-year sampling with a \link[base:c]{vector} of two \link[base:character]{characters} as \code{sampling_period=c("02-01", "07-31")} in order to process data only if the date is between the 1st february and the 31th jully of each year.
+\emph{not available for now} For a monthly (or seasonal) extraction, \code{sampling_period} needs to give only day in each month, so for example \code{sampling_period="10"} to extract data from the 10th of each month to the 9th of each following month.
 Default \code{NULL} to conserve the value specified in the CARDs used.}
 
 \item{rmNApct}{\link[base:logical]{logical}. Should the \code{NApct} column, which shows the percentage of missing values in the output, be removed ? Default \code{TRUE}.}
@@ -85,7 +85,7 @@ Default \code{NULL} to conserve the value specified in the CARDs used.}
 \value{
 A \link[base:list]{list} of two \link[tibble:tibble]{tibbles}.
 \itemize{
-\item The \code{dataEX} \link[tibble:tibble]{tibble}, which contains the extracted variable, or a named \link[base:list]{list} of \link[tibble:tibble]{tibbles} for each extracted variable if \link{expand_overwrite} is \code{TRUE}.
+\item The \code{dataEX} \link[tibble:tibble]{tibble}, which contains the extracted variable, or a named \link[base:list]{list} of \link[tibble:tibble]{tibbles} for each extracted variable if \code{expand_overwrite} is \code{TRUE}.
 \item The \code{metaEX} \link[tibble:tibble]{tibble}, which contains the metadata of the extraction from CARDs.
 }
 }
@@ -121,7 +121,9 @@ data_2$X_state2[round(runif(1000, 1, nrow(data_2)))] = NA
 data = dplyr::bind_rows(data_1, data_2)
 
 ## Extraction with CARD
-# Copy and paste CARD from __all__ to the CARD_dir directory (or use CARD_tmp with CARD_management function) and then process the extraction
+# Copy and paste CARD from __all__ to the CARD_dir directory (or
+# use CARD_tmp with CARD_management function) and then process the
+# extraction
 \dontrun{
 CARD_extraction(data,
                 CARD_path="path/to/CARD",
@@ -133,4 +135,9 @@ CARD_extraction(data,
                 verbose=TRUE)
 }
 
+}
+\seealso{
+\code{\link[=process_extraction]{process_extraction()}} for extracting variables.
+\code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
+\code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
 }

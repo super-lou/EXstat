@@ -30,7 +30,7 @@ process_trend(
 \item Only one column of \link[base:Dates]{Date} that are regularly spaced and unique for each time serie.
 \item If there is more than one time serie, at least one column needs to be of \link[base:character]{character} for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
 \item At least one column of \link[base:numeric]{numeric} (or \link[base:logical]{logical}) on which the process of variable extraction will be perform. More numerical column can be leave but if they are useless, they will be suppressed.
-The \link[tibble:tibble]{tibble} output of the \link{process_extraction} function is the kind of wanted input data.
+The \link[tibble:tibble]{tibble} output of the \code{\link[=process_extraction]{process_extraction()}} function is the kind of wanted input data.
 }}
 
 \item{MK_level}{\link[base:numeric]{numeric} Mann-Kendall test significance level between \code{0} and \code{1}. Default is \code{0.1}.}
@@ -42,13 +42,13 @@ The \link[tibble:tibble]{tibble} output of the \link{process_extraction} functio
 \item \code{"LTP"}, assume long-term persistence (i.e. Hamed's version of the MK test)
 }}
 
-\item{suffix}{A \link[base:character]{character} \link[base:c]{vector} representing suffixes to be appended to the column names of the extracted variables. See \link{process_extraction} for more info. Default \code{NULL}.}
+\item{suffix}{A \link[base:character]{character} \link[base:c]{vector} representing suffixes to be appended to the column names of the extracted variables. See \code{\link[=process_extraction]{process_extraction()}} for more info. Default \code{NULL}.}
 
 \item{suffix_delimiter}{\link[base:character]{character} specifies the delimiter to use between the variable name and the suffix if not \code{NULL}. The default is \code{"_"}.}
 
-\item{to_normalise}{A named \link[base:logical]{logical} \link[base:c]{vector} indicating whether each variable's trend should be normalised. \code{TRUE} performs normalisation, while \code{FALSE} does nothing. This vector must be of length one or have the same length as the number of \link[base:numeric]{numeric} (or \link[base:logical]{logical}) variables in \link{dataEX}, with names specifying which value corresponds to which variable. Default 'FALSE'.}
+\item{to_normalise}{A named \link[base:logical]{logical} \link[base:c]{vector} indicating whether each variable's trend should be normalised. \code{TRUE} performs normalisation, while \code{FALSE} does nothing. This vector must be of length one or have the same length as the number of \link[base:numeric]{numeric} (or \link[base:logical]{logical}) variables in \code{dataEX}, with names specifying which value corresponds to which variable. Default 'FALSE'.}
 
-\item{metaEX}{One of the outputs of the \link{CARD_extraction} function that contains metadata for the normalisation process. Default is \code{NULL}. If supplied, this normalisation information will be used instead of the settings provided in the \link{to_normalise} variable.}
+\item{metaEX}{One of the outputs of the \link{CARD_extraction} function that contains metadata for the normalisation process. Default is \code{NULL}. If supplied, this normalisation information will be used instead of the settings provided in the \code{to_normalise} variable.}
 
 \item{extreme_take_not_signif_into_account}{\link[base:logical]{logical} Whether to consider non-significant trends in the computation of extreme trends. Default is \code{TRUE}.}
 
@@ -71,8 +71,36 @@ The \link[tibble:tibble]{tibble} output of the \link{process_extraction} functio
 \item{verbose_stat}{\link[base:logical]{logical} Whether to print detailed statistical messages. Default is \code{FALSE}.}
 }
 \value{
-\subsection{A \link[tibble:tibble]{tibble} with trend analysis results, including trend coefficients and statistical significance for each variables.
-More precisly :}{
+A \link[tibble:tibble]{tibble} with trend analysis results, including trend coefficients and statistical significance for each variables.
+
+More precisely, the returned \code{trendEX} \link[tibble:tibble]{tibble} contains the following columns :
+\itemize{
+\item \code{*} : The idenfiant of time series
+\item \code{variable_en} : The name in english of variables
+\item \code{level} : see \code{MK_level}
+\item \code{H} : The result of the Mann-Kendall trend test. If \code{TRUE} a trend is detected at a risk level of \code{MK_level} (and a confidance of 1-\code{MK_level}). If \code{FALSE}, a trend is NOT detected at a risk level of \code{MK_level}.
+\item \code{p}: The p-value indicating the statistical significance of the Mann-Kendall trend test.
+\item \code{a} : The Then-Seil slope estimator that gives an approximation of the trend coefficient. WARNING : A value is always return even if the Mann-Kendall trend test is not significant.
+\item \code{b} : The ordinate at the origin in sort that you can trace `Y = a * X + b
+\item \code{period_trend} : An information about the period of analyse for the trend
+\item \code{mean_period_trend} : The average value of the variable along the \code{period_trend} that is usefull for normalisation (it is \code{NA} if \code{to_normalise} is \code{FALSE} for this variable).
+\item \code{a_normalise} : The \code{a} value normalised with \code{mean_period_trend}.
+\item \code{a_normalise_min} : The minimum of \code{a_normalise} values according to the selection made with \code{extreme_take_not_signif_into_account}, \code{extreme_take_only_series} and \code{extreme_by_suffix}.
+\item \code{a_normalise_max} : Same as \code{a_normalise_min} but for maximum values.
+}
+
+If the the \code{suffix} argument is used, a column is added :
+\itemize{
+\item \code{variable_no_suffix_en} :  The name in english of variables without suffixes
+}
+
+And also, if the \code{period_change} argument is filled up, more columns are added :
+\itemize{
+\item \code{period_change} : An information about the period of analyse for the change break
+\item \code{mean_period_change} :
+\item \code{change} :
+\item \code{change_min} :
+\item \code{change_max} :
 }
 }
 \description{
@@ -121,12 +149,14 @@ dataEX = process_extraction(data=data,
                             time_step="year")
 
 ## Trend test
-# The direct application does not take care of possible grouped variables by suffix for extremes trends values.
+# The direct application does not take care of possible grouped
+# variables by suffix for extremes trends values.
 trendEX1 = process_trend(dataEX,
                          to_normalise=TRUE)
 print(trendEX1, width=Inf)
 
-# More complicated case with the use of 'period_change' and customs normalisation info
+# More complicated case with the use of 'period_change' and customs
+# normalisation info
 trendEX2 =
     process_trend(dataEX,
                   suffix=c("state1", "state2"),
@@ -143,4 +173,9 @@ trendEX2 =
                                        as.Date("2010-01-01"))))
 print(trendEX2, width=Inf)
 
+}
+\seealso{
+\code{\link[=process_extraction]{process_extraction()}} for extracting variables.
+\code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
+\code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
 }
