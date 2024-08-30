@@ -131,7 +131,7 @@ For a more user-friendly interaction, this package has been developed in symbios
 
 So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 
-To do this, you need to download the [CARD archive](https://github.com/super-lou/CARD/archive/refs/heads/main.zip), extract it and place it wherever you like (as if it were data). Then you can create a new subdirectory within this main CARD directory, which you can call for example "analyse_1", and copy and paste the CARD "__all__/Hautes_Eaux/QJXA.R" into it.
+To do this, you need to download the [CARD archive](https://github.com/super-lou/CARD/archive/refs/heads/main.zip), extract it and place it wherever you like (as if it were data). Then you can create a new subdirectory within this main CARD directory, which you can call for example `"analyse_1"`, and copy and paste the CARD `"__all__/Hautes_Eaux/QJXA.R"` into it.
 
 In this way, you can carry out "analyse_1" by running:
 
@@ -141,7 +141,7 @@ CARD_extraction(data %>% rename(Q=X),
                 CARD_dir="analyse_1")
 ```
 
-Thus, you can place several CARDs in your "analyse_1" sub-directory for multiple analyses.
+Thus, you can place several CARDs in your `"analyse_1"` sub-directory for multiple analyses.
 
 However, this copy/pasting action can be quite cumbersome and repetitive for large analyses. Therefore, with `CARD_management`, it is possible to automate the CARD copy/pasting from the CARD directory to an external temporary directory, like this:   
 
