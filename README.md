@@ -143,7 +143,7 @@ CARD_extraction(data %>% rename(Q=X),
 
 Thus, you can place several CARDs in your `"analyse_1"` sub-directory for multiple analyses.
 
-However, this copy/pasting action can be quite cumbersome and repetitive for large analyses. Therefore, with `CARD_management`, it is possible to automate the CARD copy/pasting from the CARD directory to an external temporary directory, like this:   
+However, this copy/pasting action can be quite cumbersome and repetitive for large analyses. Therefore, with `CARD_management()`, it is possible to automate the CARD copy/pasting from the CARD directory to an external temporary directory, like this:   
 
 ``` r
 CARD_management(CARD_path="path/to/CARD",
