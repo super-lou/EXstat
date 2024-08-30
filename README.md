@@ -15,7 +15,7 @@ This project was carried out for National Research Institute for Agriculture, Fo
 ## Installation
 For latest development version
 ``` r
-remotes::install_github('super-lou/EXstat')
+remotes::install_github("super-lou/EXstat")
 ```
 
 
@@ -136,9 +136,9 @@ To do this, you need to download the [CARD archive](https://github.com/super-lou
 In this way, you can carry out "analyse_1" by running:
 
 ``` r
-CARD_extraction(data %>% rename(Q = X),
-                CARD_path = 'path/to/CARD',
-                CARD_dir = 'analyse_1')
+CARD_extraction(data %>% rename(Q=X),
+                CARD_path="path/to/CARD",
+                CARD_dir="analyse_1")
 ```
 
 Thus, you can place several CARDs in your "analyse_1" sub-directory for multiple analyses.
@@ -146,21 +146,21 @@ Thus, you can place several CARDs in your "analyse_1" sub-directory for multiple
 However, this copy/pasting action can be quite cumbersome and repetitive for large analyses. Therefore, with `CARD_management`, it is possible to automate the CARD copy/pasting from the CARD directory to an external temporary directory, like this:   
 
 ``` r
-CARD_management(CARD_path = "path/to/CARD",
-                CARD_tmp = "path/to/copy/CARD",
-                CARD_dir = "analyse_1",
-                CARD_name = c("QA", "QJXA"),
-                overwrite = TRUE,
-                verbose = TRUE)
+CARD_management(CARD_path="path/to/CARD",
+                CARD_tmp="path/to/copy/CARD",
+                CARD_dir="analyse_1",
+                CARD_name=c("QA", "QJXA"),
+                overwrite=TRUE,
+                verbose=TRUE)
 ```
 
 As a result, to run the analysis, use:
 
 ``` r
-CARD_extraction(data %>% rename(Q = X),
-                CARD_path = "path/to/CARD",
-                CARD_tmp = "path/to/copy/CARD",
-                CARD_dir = "analyse_1")
+CARD_extraction(data %>% rename(Q=X),
+                CARD_path="path/to/CARD",
+                CARD_tmp="path/to/copy/CARD",
+                CARD_dir="analyse_1")
 ```
 
 Take a look at the [CARD](https://github.com/super-lou/CARD/?tab=readme-ov-file#documentation) repository to better understand the CARD formatting.
