@@ -2975,10 +2975,10 @@ apply_extraction = function (i, data, colArgs, otherArgs,
             data = dplyr::mutate(
                               data,
                               !!!rlang::data_syms(keepDate),
-                              dplyr::across(.cols=dplyr::matches("Value[[:digit:]]+"),
-                                            .fns=~dplyr::if_else(dplyr::row_number() == 1 |
-                                                                 time_step == "none",
-                                                                 .x, NaN)),
+                              # dplyr::across(.cols=dplyr::matches("Value[[:digit:]]+"),
+                              #               .fns=~dplyr::if_else(dplyr::row_number() == 1 |
+                              #                                    time_step == "none",
+                              #                                    .x, NaN)),
                               !!paste0("ValueEX", i) :=
                                   dplyr::if_else(dplyr::row_number() == 1 |
                                                  time_step == "none",
