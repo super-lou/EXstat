@@ -400,7 +400,26 @@ CARD_extraction = function (data,
 }
 
 
-
+#' @title sourceProcess
+#' @description Allows read CARD with is formatism and convert it to a `Process` variable that explain all the step necessary for the extraction of [process_extraction()].
+#'
+#' @param path  A [character][base::character] string as a path to the CARD file.
+#' @param default The default process loaded by `Process_default = sourceProcess(file.path(CARD_path, "__default__.R"))` to load the default parameters of every extraction process. Default `NULL`.
+#' @return A `Process` variable which is a list of general parameters, and sub list for each extraction process parameters.
+#' @seealso
+#' - [process_extraction()] for extracting variables.
+#' - [process_trend()] for performing trend analysis on extracted variables.
+#' - [CARD_management()] for managing CARD parameterization files.
+#' - [CARD_extraction()] for extracting variables using CARD parameterization files.
+#' 
+#' @examples
+#' \dontrun{
+#' Process_default = sourceProcess(path="path/to/CARD/__default__.R")
+#' Process = sourceProcess(path="path/to/CARD/script.R",
+#'                         default=Process_default)
+#' }
+#' @export
+#' @md
 sourceProcess = function (path, default=NULL) {
     CARD = new.env()
     source(path, local=CARD, encoding='UTF-8')
