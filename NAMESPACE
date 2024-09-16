@@ -2,7 +2,6 @@
 
 export(CARD_extraction)
 export(CARD_management)
-export(EXstat)
 export(estimateHurst)
 export(fieldSignificance_FDR)
 export(generalMannKendall)

@@ -25,7 +25,6 @@
 #' - [process_trend()] for performing trend analysis on extracted variables.
 #' - [CARD_extraction()] for extracting variables using CARD parameterization files.
 #' - [CARD_management()] for managing CARD parameterization files.
-#' 
-#' @export
+#'
 #' @md
 NULL
