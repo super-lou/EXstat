@@ -250,7 +250,8 @@ process_extraction = function(data,
     
     # check data
     if (!tibble::is_tibble(data)) {
-        stop ("'data' is not a tibble from the tibble package. This tibble needs a unique column of objects of class 'Date'")
+        # stop ("'data' is not a tibble from the tibble package. This tibble needs a unique column of objects of class 'Date'")
+        data = tibble::as_tibble(data)
     }
     
     # check Date column
