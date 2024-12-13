@@ -78,7 +78,7 @@
                 "name": "RiverLy, INRAE, France"
             },
             "email": "jean-philippe.vidal@inrae.fr",
-            "familyName": "jean-philippe.vidal@inrae.fr",
+            "familyName": "Vidal",
             "givenName": "Jean-Philippe"
         },
         {
@@ -101,10 +101,28 @@
             "type": "Role",
             "contributor": "https://orcid.org/0000-0001-9539-7730",
             "roleName": "Management"
+        },
+	{
+            "id": "_:contributor_4",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "RiverLy, INRAE, France"
+            },
+            "email": "nathan.pellerin@inrae.fr",
+            "familyName": "Pellerin",
+            "givenName": "Nathan"
+        },
+        {
+            "type": "Role",
+            "contributor": "_:contributor_4",
+            "roleName": "Support"
         }
     ],
     "dateCreated": "2022-04-07",
-    "description": "<a href=\"https://github.com/super-lou/EXstat\" target=\"_blank\">EXstat</a> is a R package which provide an efficient and simple solution to aggregate and analyze the stationarity of time series.",
+    "dateModified": "2022-04-07",
+    "datePublished": "2022-04-07",
+    "description": "<a href=\"https://github.com/super-lou/EXstat\" target=\"_blank\">EXstat</a> is a R package which provide an efficient and simple solution to aggregate and analyze the stationarity of time series.\n\n<a href=\"https://github.com/super-lou/EXstat\">EXstat</a> est un package R qui offre une solution simple et efficace pour agréger et analyser la stationnarité de séries temporelles.",
     "keywords": [
         "data analysis",
         "data aggregation",
