@@ -1,0 +1,120 @@
+{
+    "@context": "https://w3id.org/codemeta/3.0",
+    "type": "SoftwareSourceCode",
+    "applicationCategory": "Hydrology",
+    "author": [
+        {
+            "id": "https://orcid.org/0009-0006-4372-0923",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "RiverLy, INRAE, France"
+            },
+            "email": "louis.heraut@inrae.fr",
+            "familyName": "Heraut",
+            "givenName": "Louis"
+        },
+        {
+            "type": "Role",
+            "schema:author": "https://orcid.org/0009-0006-4372-0923",
+            "roleName": "Developper"
+        },
+        {
+            "type": "Role",
+            "schema:author": "https://orcid.org/0009-0006-4372-0923",
+            "roleName": "Maintainer"
+        },
+        {
+            "id": "https://orcid.org/0000-0001-8447-5430",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "RECOVER, INRAE, France"
+            },
+            "email": "benjamin.renard@inrae.fr",
+            "familyName": "Renard",
+            "givenName": "Benjamin"
+        },
+        {
+            "type": "Role",
+            "schema:author": "https://orcid.org/0000-0001-8447-5430",
+            "roleName": "Developper"
+        },
+        {
+            "id": "_:author_3",
+            "type": "Person",
+            "familyName": "Mansanarez",
+            "givenName": "Valentin"
+        },
+        {
+            "type": "Role",
+            "schema:author": "_:author_3",
+            "roleName": "Developer"
+        }
+    ],
+    "codeRepository": "https://github.com/super-lou/EXstat",
+    "contributor": [
+        {
+            "id": "https://orcid.org/0000-0003-1417-1495",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "RiverLy, INRAE, France"
+            },
+            "email": "michel.lang@inrae.fr",
+            "familyName": "Lang",
+            "givenName": "Michel"
+        },
+        {
+            "type": "Role",
+            "contributor": "https://orcid.org/0000-0003-1417-1495",
+            "roleName": "Management"
+        },
+        {
+            "id": "https://orcid.org/0000-0002-3748-6150",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "RiverLy, INRAE, France"
+            },
+            "email": "jean-philippe.vidal@inrae.fr",
+            "familyName": "jean-philippe.vidal@inrae.fr",
+            "givenName": "Jean-Philippe"
+        },
+        {
+            "type": "Role",
+            "contributor": "https://orcid.org/0000-0002-3748-6150",
+            "roleName": "Management"
+        },
+        {
+            "id": "https://orcid.org/0000-0001-9539-7730",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "RiverLy, INRAE, France"
+            },
+            "email": "eric.sauquet@inrae.fr",
+            "familyName": "Sauquet",
+            "givenName": "Eric"
+        },
+        {
+            "type": "Role",
+            "contributor": "https://orcid.org/0000-0001-9539-7730",
+            "roleName": "Management"
+        }
+    ],
+    "dateCreated": "2022-04-07",
+    "description": "<a href=\"https://github.com/super-lou/EXstat\" target=\"_blank\">EXstat</a> is a R package which provide an efficient and simple solution to aggregate and analyze the stationarity of time series.",
+    "keywords": [
+        "data analysis",
+        "data aggregation",
+        "stationnarity test",
+        "Mann-Kendall trend test",
+        "Sen-Theil estimator"
+    ],
+    "license": "https://spdx.org/licenses/AGPL-3.0-or-later",
+    "name": "EXstat",
+    "programmingLanguage": "R 4.x.x",
+    "softwareRequirements": "https://github.com/super-lou/CARD",
+    "developmentStatus": "inactive"
+}
