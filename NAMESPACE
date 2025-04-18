@@ -2,6 +2,7 @@
 
 export(CARD_download)
 export(CARD_extraction)
+export(CARD_list_all)
 export(CARD_management)
 export(estimateHurst)
 export(fieldSignificance_FDR)

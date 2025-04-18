@@ -31,14 +31,14 @@
 #' @md
 CARD_download = function(overwrite=FALSE) {
   inst_dir = system.file(package="EXstat")
-  card_path = file.path(inst_dir, "CARD")
+  CARD_path = file.path(inst_dir, "CARD")
   
-  if (dir.exists(card_path)) {
+  if (dir.exists(CARD_path)) {
     if (!overwrite) {
       message("CARD directory already exists. Use overwrite = TRUE to refresh.")
-      return(invisible(card_path))
+      return(invisible(CARD_path))
     } else {
-      unlink(card_path, recursive=TRUE)
+      unlink(CARD_path, recursive=TRUE)
     }
   }
 
@@ -51,14 +51,30 @@ CARD_download = function(overwrite=FALSE) {
   
   repo_dir = file.path(temp_dir, "CARD-main")
   
-  dir.create(card_path, recursive = TRUE, showWarnings = FALSE)
+  dir.create(CARD_path, recursive = TRUE, showWarnings = FALSE)
   file.copy(from = list.files(repo_dir, full.names = TRUE),
-            to = card_path,
+            to = CARD_path,
             recursive = TRUE)
 
-  message("CARD has been downloaded to: ", card_path)
-  invisible(card_path)
+  message("CARD has been downloaded to: ", CARD_path)
+  invisible(CARD_path)
 }
+
+
+#' @title CARD_list_all
+#' @description List all the CARD variable.
+#' @seealso
+#' - [CARD_management()] for managing CARD parameterization files.
+#' @export
+#' @md
+CARD_list_all = function () {
+    inst_dir = system.file(package="EXstat")
+    CARD_path = file.path(inst_dir, "CARD")
+    CARD_path_all = file.path(CARD_path, "metaEX_all.csv")
+    metaEX = read.csv(CARD_path_all)
+    return (metaEX)
+}
+
 
 
 #' @title CARD_management
