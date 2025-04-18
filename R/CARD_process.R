@@ -383,7 +383,8 @@ CARD_extraction = function (data,
                                   source=source,
                                   is_date=is_date, 
                                   to_normalise=to_normalise,
-                                  palette=palette))
+                                  palette=palette,
+                                  script_path=script_path))
     }
     rm ("data")
     gc()
