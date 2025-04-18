@@ -211,7 +211,7 @@ get_last_Process = function (Process) {
 #' @export
 #' @md
 CARD_extraction = function (data,
-                            CARD_path,
+                            CARD_path=NULL,
                             CARD_tmp=NULL,
                             CARD_dir="WIP",
                             CARD_name=NULL,
@@ -227,6 +227,11 @@ CARD_extraction = function (data,
                             extract_only_metadata=FALSE,
                             dev=FALSE,
                             verbose=FALSE) {
+
+    if (is.null(CARD_path)) {
+        inst_dir = system.file(package="EXstat")
+        CARD_path = file.path(inst_dir, "CARD")
+    }
     
     if (is.null(CARD_tmp)) {
         CARD_tmp = CARD_path

@@ -71,7 +71,7 @@ CARD_list_all = function () {
     inst_dir = system.file(package="EXstat")
     CARD_path = file.path(inst_dir, "CARD")
     CARD_path_all = file.path(CARD_path, "metaEX_all.csv")
-    metaEX = read.csv(CARD_path_all)
+    metaEX = dplyr::tibble(read.csv(CARD_path_all))
     return (metaEX)
 }
 
@@ -120,7 +120,7 @@ CARD_list_all = function () {
 #' 
 #' @export
 #' @md
-CARD_management = function (CARD_path,
+CARD_management = function (CARD_path=NULL,
                             CARD_tmp=NULL,
                             CARD_dir="WIP",
                             CARD_name=c("QA", "QJXA"),
@@ -131,6 +131,11 @@ CARD_management = function (CARD_path,
                             verbose=FALSE,
                             args=NULL) {
 
+    if (is.null(CARD_path)) {
+        inst_dir = system.file(package="EXstat")
+        CARD_path = file.path(inst_dir, "CARD")
+    }
+    
     if (is.null(layout)) {
         layout = c(CARD_dir, "[", CARD_name, "]")
     }
