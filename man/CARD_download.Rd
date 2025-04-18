@@ -12,3 +12,8 @@ CARD_download(overwrite = FALSE)
 \description{
 Download the CARD repository in order to use last version of CARD available.
 }
+\seealso{
+\itemize{
+\item \code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+}
+}

@@ -111,6 +111,50 @@ get_last_Process = function (Process) {
 }
 
 
+#' @title get_CARD_metadata
+#' @description Get all the CARD metadata in a [tibble][tibble::tibble()].
+#' @param CARD_path A [character][base::character] string representing the path to the downloaded CARD directory (it should end with `"CARD"`). In this directory, you can copy and paste (and later modify) CARDs from the `"__all__"` subdirectory that you want to use for an analysis represented by a subdirectory named `CARD_dir` (see `CARD_tmp` if you want to locate your `CARD_dir` directory elsewhere). In your CARDs, you can specify functions available in the scripts of the `"__tools__"` subdirectory.
+#' @export
+#' @md
+get_CARD_metadata = function (CARD_path) {
+    Process_default = sourceProcess(
+        file.path(CARD_path, "__default__.R"))
+    
+    Process = sourceProcess(
+        file.path(CARD_dirpath, script),
+        default=Process_default)
+
+    principal = Process$P
+    principal_names = names(principal)
+    for (pp in 1:length(principal)) {
+        assign(principal_names[pp], principal[[pp]])
+    }
+    
+    metaEX = dplyr::tibble(
+                        ### English ___
+                        variable_en=variable_en,
+                        unit_en=unit_en,
+                        name_en=name_en,
+                        description_en=description_en,
+                        method_en=method_en,
+                        sampling_period_en=sampling_period_en,
+                        topic_en=topic_en,
+                        ### French ___
+                        variable_fr=variable_fr,
+                        unit_fr=unit_fr,
+                        name_fr=name_fr,
+                        description_fr=description_fr,
+                        method_fr=method_fr,
+                        sampling_period_fr=sampling_period_fr,
+                        topic_fr=topic_fr,
+                        ### Global ___
+                        source=source,
+                        is_date=is_date, 
+                        to_normalise=to_normalise,
+                        palette=palette)
+    return (metaEX)
+}
+
 
 #' @title CARD_extraction
 #' @description Extracts variables from time series (for example, the yearly mean of a time series) using CARD parameterization files.
