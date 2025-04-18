@@ -111,51 +111,6 @@ get_last_Process = function (Process) {
 }
 
 
-#' @title get_CARD_metadata
-#' @description Get all the CARD metadata in a [tibble][tibble::tibble()].
-#' @param CARD_path A [character][base::character] string representing the path to the downloaded CARD directory (it should end with `"CARD"`). In this directory, you can copy and paste (and later modify) CARDs from the `"__all__"` subdirectory that you want to use for an analysis represented by a subdirectory named `CARD_dir` (see `CARD_tmp` if you want to locate your `CARD_dir` directory elsewhere). In your CARDs, you can specify functions available in the scripts of the `"__tools__"` subdirectory.
-#' @export
-#' @md
-get_CARD_metadata = function (CARD_path) {
-    Process_default = sourceProcess(
-        file.path(CARD_path, "__default__.R"))
-    
-    Process = sourceProcess(
-        file.path(CARD_path, script),
-        default=Process_default)
-
-    principal = Process$P
-    principal_names = names(principal)
-    for (pp in 1:length(principal)) {
-        assign(principal_names[pp], principal[[pp]])
-    }
-    
-    metaEX = dplyr::tibble(
-                        ### English ___
-                        variable_en=variable_en,
-                        unit_en=unit_en,
-                        name_en=name_en,
-                        description_en=description_en,
-                        method_en=method_en,
-                        sampling_period_en=sampling_period_en,
-                        topic_en=topic_en,
-                        ### French ___
-                        variable_fr=variable_fr,
-                        unit_fr=unit_fr,
-                        name_fr=name_fr,
-                        description_fr=description_fr,
-                        method_fr=method_fr,
-                        sampling_period_fr=sampling_period_fr,
-                        topic_fr=topic_fr,
-                        ### Global ___
-                        source=source,
-                        is_date=is_date, 
-                        to_normalise=to_normalise,
-                        palette=palette)
-    return (metaEX)
-}
-
-
 #' @title CARD_extraction
 #' @description Extracts variables from time series (for example, the yearly mean of a time series) using CARD parameterization files.
 #'
@@ -269,6 +224,7 @@ CARD_extraction = function (data,
                             sampling_period_overwrite=NULL,
                             rmNApct=TRUE,
                             rm_duplicates=FALSE,
+                            extract_only_metadata=FALSE,
                             dev=FALSE,
                             verbose=FALSE) {
     
@@ -358,29 +314,31 @@ CARD_extraction = function (data,
         }
 
         nProcess = length(Process) - 1
-        
-        dataEX[[ss]] =
-            purrr::reduce(1:nProcess,
-                          reduce_process,
-                          Process=Process,
-                          period_default=period_default,
-                          suffix=suffix,
-                          suffix_delimiter=suffix_delimiter,
-                          cancel_lim=cancel_lim,
-                          expand_overwrite=expand_overwrite,
-                          sampling_period_overwrite=sampling_period_overwrite[[ss]],
-                          rmNApct=rmNApct,
-                          rm_duplicates=rm_duplicates,
-                          dev=dev,
-                          verbose=verbose,
-                          .init=data)
-        
-        
-        if (tibble::is_tibble(dataEX[[ss]])) {
-            dataEX[[ss]] = list(dataEX[[ss]])
-            if (!simplify) {
-                variable = paste0(variable, collapse=" ")
-                names(dataEX[[ss]]) = variable
+
+        if (!extract_only_metadata) {
+            dataEX[[ss]] =
+                purrr::reduce(1:nProcess,
+                              reduce_process,
+                              Process=Process,
+                              period_default=period_default,
+                              suffix=suffix,
+                              suffix_delimiter=suffix_delimiter,
+                              cancel_lim=cancel_lim,
+                              expand_overwrite=expand_overwrite,
+                              sampling_period_overwrite=sampling_period_overwrite[[ss]],
+                              rmNApct=rmNApct,
+                              rm_duplicates=rm_duplicates,
+                              dev=dev,
+                              verbose=verbose,
+                              .init=data)
+            
+            
+            if (tibble::is_tibble(dataEX[[ss]])) {
+                dataEX[[ss]] = list(dataEX[[ss]])
+                if (!simplify) {
+                    variable = paste0(variable, collapse=" ")
+                    names(dataEX[[ss]]) = variable
+                }
             }
         }
 
@@ -430,17 +388,20 @@ CARD_extraction = function (data,
     rm ("data")
     gc()
 
-    dataEX = unlist(dataEX, recursive=FALSE)
-    
-    if (simplify) {
-        by = names(dplyr::select(dataEX[[1]],
-                                 dplyr::where(is.character)))
-        dataEX = purrr::reduce(.x=dataEX,
-                               .f=dplyr::full_join,
-                               by=by)
-    }
+    if (extract_only_metadata) {
+        return (list(metaEX=metaEX))
 
-    return (list(metaEX=metaEX, dataEX=dataEX))
+    } else {
+        dataEX = unlist(dataEX, recursive=FALSE)
+        if (simplify) {
+            by = names(dplyr::select(dataEX[[1]],
+                                     dplyr::where(is.character)))
+            dataEX = purrr::reduce(.x=dataEX,
+                                   .f=dplyr::full_join,
+                                   by=by)
+        }
+        return (list(metaEX=metaEX, dataEX=dataEX))
+    }
 }
 
 

@@ -19,6 +19,7 @@ CARD_extraction(
   sampling_period_overwrite = NULL,
   rmNApct = TRUE,
   rm_duplicates = FALSE,
+  extract_only_metadata = FALSE,
   dev = FALSE,
   verbose = FALSE
 )
