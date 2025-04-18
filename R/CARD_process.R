@@ -358,9 +358,6 @@ CARD_extraction = function (data,
             sampling_period_en = paste0(sampling_period_en, collapse=", ")
             sampling_period_fr = paste0(sampling_period_fr, collapse=", ")
         }
-
-        print(script)
-        print(metaEX)
         
         metaEX =
             dplyr::bind_rows(
