@@ -22,6 +22,44 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 
+#' @title CARD_download
+#' @description Download the CARD repository in order to use last version of CARD available.
+#' @param overwrite [logical][base::logical] If TRUE, the current CARD version will be overwrite by the most recent one. Default, FALSE.
+#' @seealso
+#' - [CARD_management()] for managing CARD parameterization files.
+#' @export
+#' @md
+CARD_download = function(overwrite=FALSE) {
+  inst_dir = system.file(package="EXstat")
+  card_path = file.path(inst_dir, "CARD")
+  
+  if (dir.exists(card_path)) {
+    if (!overwrite) {
+      message("CARD directory already exists. Use overwrite = TRUE to refresh.")
+      return(invisible(card_path))
+    } else {
+      unlink(card_path, recursive=TRUE)
+    }
+  }
+
+  temp_zip = tempfile(fileext = ".zip")
+  zip_url = "https://github.com/super-lou/CARD/archive/refs/heads/main.zip"
+  download.file(zip_url, destfile=temp_zip, mode="wb")
+
+  temp_dir = tempdir()
+  unzip(temp_zip, exdir=temp_dir)
+  
+  repo_dir = file.path(temp_dir, "CARD-main")
+  
+  dir.create(card_path, recursive = TRUE, showWarnings = FALSE)
+  file.copy(from = list.files(repo_dir, full.names = TRUE),
+            to = card_path,
+            recursive = TRUE)
+
+  message("CARD has been downloaded to: ", card_path)
+  invisible(card_path)
+}
+
 
 #' @title CARD_management
 #' @description Manage the CARD directory structure by performing automatic file operations to copy and paste CARD parameterization files more efficiently.
