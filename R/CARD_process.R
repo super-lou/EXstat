@@ -121,7 +121,7 @@ get_CARD_metadata = function (CARD_path) {
         file.path(CARD_path, "__default__.R"))
     
     Process = sourceProcess(
-        file.path(CARD_dirpath, script),
+        file.path(CARD_path, script),
         default=Process_default)
 
     principal = Process$P
