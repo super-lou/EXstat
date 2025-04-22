@@ -134,7 +134,6 @@ CARD_list_all = function () {
 CARD_management = function (CARD_name=c("QA", "QJXA"),
                             CARD_dir="WIP",
                             CARD_path=".",
-                            # CARD_path=NULL,
                             layout=NULL,
                             underscore_to_white=TRUE,
                             add_id=TRUE,
@@ -143,23 +142,20 @@ CARD_management = function (CARD_name=c("QA", "QJXA"),
                             args=NULL) {
 
     CARD_path_system = system.file(package="CARD")
-    
-    # if (is.null(CARD_path)) {
-        # CARD_path = system.file(package="CARD")
-    # }
+    CARD_dir = paste0("CARD-", CARD_dir)
     
     if (is.null(layout)) {
         layout = c(CARD_dir, "[", CARD_name, "]")
     }
     
     if (is.null(args)) {
-        args = list(CARD_path_system=CARD_path_system, CARD_path=CARD_path, layout=layout,
+        args = list(CARD_path_system=CARD_path_system, CARD_path=CARD_path,
+                    layout=layout,
                     underscore_to_white=underscore_to_white,
                     add_id=add_id, overwrite=overwrite,
                     verbose=verbose)        
     }
 
-    
     # if (is.null(args$CARD_path)) {
         # args$CARD_path = file.path(args$CARD_path_system)
     # }

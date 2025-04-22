@@ -217,7 +217,6 @@ get_last_Process = function (Process) {
 CARD_extraction = function (data,
                             CARD_name=c("QA", "QJXA"),
                             CARD_dir=NULL,
-                            # CARD_tmp=NULL,
                             CARD_path=NULL,
                             period_default=NULL,
                             suffix=NULL,
@@ -239,6 +238,8 @@ CARD_extraction = function (data,
     }
     if (is.null(CARD_dir)) {
         CARD_dir = "__all__"
+    } else {
+        CARD_dir = paste0("CARD-", CARD_dir)
     }
     
     CARD_dirpath = file.path(CARD_path, CARD_dir)   
