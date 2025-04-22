@@ -8,23 +8,30 @@
 #' So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 #'
 #' @author
-#' Main Developer and Maintainer
-#' - Louis Héraut <louis.heraut@inrae.fr> INRAE
+#'  Main Developer and Maintainer
+#' Louis, Héraut, <louis.heraut@inrae.fr>*1
 #' 
-#' Other Developer
-#' - Benjamin Renard <benjamin.renard@inrae.fr> INRAE
-#' - Valentin Mansanarez
+#'  Other Developer
+#' Benjamin, Renard, <benjamin.renard@inrae.fr>*2
+#' Valentin, Mansanarez
 #' 
-#' Other Contributors
-#' - Éric Sauquet <eric.sauquet@inrae.fr> INRAE
-#' - Jean-Philippe Vidal <jean-philippe.vidal@inrae.fr> INRAE
-#' - Nathan Pellerin
+#'  Other Contributors
+#' Éric, Sauquet, <eric.sauquet@inrae.fr>*1
+#' Jean-Philippe, Vidal, <jean-philippe.vidal@inrae.fr>*1
+#' Nathan, Pellerin, <nathan.pellerin@inrae.fr>*1
+#' David, Dorchies. <david.dorchies@inrae.fr>*3
+#' 
+#' *1 INRAE, UR RiverLy, Villeurbanne, France
+#' *2 INRAE, RECOVER, Aix-Marseille Université, Aix-en-Provence, France
+#' *3 INRAE, UMR G-Eau, Montpellier, France
 #' 
 #' @seealso
-#' - [process_extraction()] for extracting variables.
-#' - [process_trend()] for performing trend analysis on extracted variables.
-#' - [CARD_extraction()] for extracting variables using CARD parameterization files.
-#' - [CARD_management()] for managing CARD parameterization files.
+#' 1. [CARD_download()] for downloading last version of CARD parameterization files.
+#' 2. [CARD_list_all()] list all available CARD.
+#' 3. [CARD_management()] for managing CARD parameterization files.
+#' 4. [CARD_extraction()] for extracting variables using CARD.
+#' 5. [process_extraction()] for extracting variables.
+#' 6. [process_trend()] for performing trend analysis on extracted variables.
 #'
 #' @md
 NULL

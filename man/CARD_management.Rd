@@ -5,7 +5,7 @@
 \title{CARD_management}
 \usage{
 CARD_management(
-  CARD_path,
+  CARD_path = NULL,
   CARD_tmp = NULL,
   CARD_dir = "WIP",
   CARD_name = c("QA", "QJXA"),

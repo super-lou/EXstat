@@ -1,6 +1,6 @@
 Package: EXstat
-Version: 2.4.0
-Date: 2024-09-16
+Version: 3.0.0
+Date: 2025-04-18
 Title: EXstat
 Description: Provides an efficient and simple solution to aggregate and analyze the stationarity of time series.
 Authors@R: c(
@@ -25,7 +25,11 @@ Authors@R: c(
            email = "jean-philippe.vidal@inrae.fr"),
     person(given = "Nathan",
            family = "Pellerin",
-           role = c("ctb"))
+           role = c("ctb")),
+    person(given = "David",
+           family = "Dorchies",
+           role = c("ctb"),
+	   email = "david.dorchies@inrae.fr")
 	   )
 Maintainer: Louis Héraut <louis.heraut@inrae.fr>
 Encoding: UTF-8
@@ -42,6 +46,9 @@ Imports:
     utils,
     CircStats,
     stringr,
-    purrr
+    purrr,
+    CARD
+Remotes:
+    super-lou/CARD
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)

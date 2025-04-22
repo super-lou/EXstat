@@ -17,12 +17,12 @@
         {
             "type": "Role",
             "schema:author": "https://orcid.org/0009-0006-4372-0923",
-            "roleName": "Developper"
+            "roleName": "Maintainer"
         },
         {
             "type": "Role",
             "schema:author": "https://orcid.org/0009-0006-4372-0923",
-            "roleName": "Maintainer"
+            "roleName": "Developper"
         },
         {
             "id": "https://orcid.org/0000-0001-8447-5430",
@@ -53,74 +53,8 @@
         }
     ],
     "codeRepository": "https://github.com/super-lou/EXstat",
-    "contributor": [
-        {
-            "id": "https://orcid.org/0000-0003-1417-1495",
-            "type": "Person",
-            "affiliation": {
-                "type": "Organization",
-                "name": "RiverLy, INRAE, France"
-            },
-            "email": "michel.lang@inrae.fr",
-            "familyName": "Lang",
-            "givenName": "Michel"
-        },
-        {
-            "type": "Role",
-            "contributor": "https://orcid.org/0000-0003-1417-1495",
-            "roleName": "Management"
-        },
-        {
-            "id": "https://orcid.org/0000-0002-3748-6150",
-            "type": "Person",
-            "affiliation": {
-                "type": "Organization",
-                "name": "RiverLy, INRAE, France"
-            },
-            "email": "jean-philippe.vidal@inrae.fr",
-            "familyName": "Vidal",
-            "givenName": "Jean-Philippe"
-        },
-        {
-            "type": "Role",
-            "contributor": "https://orcid.org/0000-0002-3748-6150",
-            "roleName": "Management"
-        },
-        {
-            "id": "https://orcid.org/0000-0001-9539-7730",
-            "type": "Person",
-            "affiliation": {
-                "type": "Organization",
-                "name": "RiverLy, INRAE, France"
-            },
-            "email": "eric.sauquet@inrae.fr",
-            "familyName": "Sauquet",
-            "givenName": "Eric"
-        },
-        {
-            "type": "Role",
-            "contributor": "https://orcid.org/0000-0001-9539-7730",
-            "roleName": "Management"
-        },
-	{
-            "id": "_:contributor_4",
-            "type": "Person",
-            "affiliation": {
-                "type": "Organization",
-                "name": "RiverLy, INRAE, France"
-            },
-            "email": "nathan.pellerin@inrae.fr",
-            "familyName": "Pellerin",
-            "givenName": "Nathan"
-        },
-        {
-            "type": "Role",
-            "contributor": "_:contributor_4",
-            "roleName": "Support"
-        }
-    ],
     "dateCreated": "2022-04-07",
-    "dateModified": "2022-04-07",
+    "dateModified": "2025-04-18",
     "datePublished": "2022-04-07",
     "description": "<a href=\"https://github.com/super-lou/EXstat\" target=\"_blank\">EXstat</a> is a R package which provide an efficient and simple solution to aggregate and analyze the stationarity of time series.\n\n<a href=\"https://github.com/super-lou/EXstat\">EXstat</a> est un package R qui offre une solution simple et efficace pour agréger et analyser la stationnarité de séries temporelles.",
     "keywords": [
@@ -134,5 +68,6 @@
     "name": "EXstat",
     "programmingLanguage": "R 4.x.x",
     "softwareRequirements": "https://github.com/super-lou/CARD",
-    "developmentStatus": "inactive"
+    "version": "3.0.0",
+    "developmentStatus": "active"
 }

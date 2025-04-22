@@ -1,13 +1,19 @@
 # Authors list for the project
 
 # Main Developer and Maintainer
-Louis Héraut <louis.heraut@inrae.fr> INRAE
+Louis, Héraut, <louis.heraut@inrae.fr>*1
 
 # Other Developer
-Benjamin Renard <benjamin.renard@inrae.fr> INRAE
-Valentin Mansanarez
+Benjamin, Renard, <benjamin.renard@inrae.fr>*2
+Valentin, Mansanarez
 
 # Other Contributors
-Éric Sauquet <eric.sauquet@inrae.fr> INRAE
-Jean-Philippe Vidal <jean-philippe.vidal@inrae.fr> INRAE
-Nathan Pellerin
+Éric, Sauquet, <eric.sauquet@inrae.fr>*1
+Jean-Philippe, Vidal, <jean-philippe.vidal@inrae.fr>*1
+Nathan, Pellerin, <nathan.pellerin@inrae.fr>*1
+David, Dorchies. <david.dorchies@inrae.fr>*3
+
+
+*1 INRAE, UR RiverLy, Villeurbanne, France
+*2 INRAE, RECOVER, Aix-Marseille Université, Aix-en-Provence, France
+*3 INRAE, UMR G-Eau, Montpellier, France

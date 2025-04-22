@@ -109,9 +109,12 @@
 #' @return A [tibble][tibble::tibble()] containing the extracted variable, or a named [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable if `expand` is `TRUE`. This output follows the same format as the input data described in `data`, making it possible to iterate over this output using [process_extraction()].
 #'
 #' @seealso
-#' - [process_trend()] for performing trend analysis on extracted variables.
-#' - [CARD_extraction()] for extracting variables using CARD parameterization files.
-#' - [CARD_management()] for managing CARD parameterization files.
+#' 1. [CARD_download()] for downloading last version of CARD parameterization files.
+#' 2. [CARD_list_all()] list all available CARD.
+#' 3. [CARD_management()] for managing CARD parameterization files.
+#' 4. [CARD_extraction()] for extracting variables using CARD.
+#' - 5. [process_extraction()] for extracting variables.
+#' 6. [process_trend()] for performing trend analysis on extracted variables.
 #' 
 #' @examples
 #' ## Creation of random data set

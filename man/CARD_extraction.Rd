@@ -6,7 +6,7 @@
 \usage{
 CARD_extraction(
   data,
-  CARD_path,
+  CARD_path = NULL,
   CARD_tmp = NULL,
   CARD_dir = "WIP",
   CARD_name = NULL,
@@ -78,6 +78,8 @@ Default \code{NULL} to conserve the value specified in the CARDs used.}
 \item{rmNApct}{\link[base:logical]{logical}. Should the \code{NApct} column, which shows the percentage of missing values in the output, be removed ? Default \code{TRUE}.}
 
 \item{rm_duplicates}{\link[base:logical]{logical}. Should duplicate time series values be automatically removed ? Default \code{FALSE}.}
+
+\item{extract_only_metadata}{\link[base:logical]{logical}. If TRUE, only metadata of CARD will be extracted. In that case, use \code{data=NULL}. Default FALSE.}
 
 \item{dev}{\link[base:logical]{logical} If \code{TRUE}, development mode is enabled. Default is \code{FALSE}.}
 
