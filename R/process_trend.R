@@ -23,7 +23,6 @@
 
 #' @title process_trend
 #' @description Process a trend analyze on time series data. The Mann-Kendall statistical test is applied to detect trends and some additional statistics are computed like the Sen-Theil slope estimator.
-#'
 #' @param dataEX Input data format is a [tibble][tibble::tibble()] from the tibble package. It needs to have :
 #' * Only one column of [Date][base::Date] that are regularly spaced and unique for each time serie.
 #' * If there is more than one time serie, at least one column needs to be of [character][base::character] string for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
@@ -37,7 +36,7 @@
 #' @param suffix A [character][base::character] string [vector][base::c()] representing suffixes to be appended to the column names of the extracted variables. See [process_extraction()] for more info. Default `NULL`.
 #' @param suffix_delimiter [character][base::character] string specifies the delimiter to use between the variable name and the suffix if not `NULL`. The default is `"_"`.
 #' @param to_normalise A named [logical][base::logical] [vector][base::c()] indicating whether each variable's trend should be normalised. `TRUE` performs normalisation, while `FALSE` does nothing. This vector must be of length one or have the same length as the number of [numeric][base::numeric] (or [logical][base::logical]) variables in `dataEX`, with names specifying which value corresponds to which variable. Default 'FALSE'.
-#' @param metaEX One of the outputs of the [CARD_extraction] function that contains metadata for the normalisation process. Default is `NULL`. If supplied, this normalisation information will be used instead of the settings provided in the `to_normalise` variable.
+#' @param metaEX One of the outputs of the CARD_extraction() function from EXstat.CARD extension that contains metadata for the normalisation process. Default is `NULL`. If supplied, this normalisation information will be used instead of the settings provided in the `to_normalise` variable.
 #' @param extreme_take_not_signif_into_account [logical][base::logical] Whether to consider non-significant trends in the computation of extreme trends. Default is `TRUE`.
 #' @param extreme_take_only_series [character][base::character] string A [vector][base::c()] of the names of time series to be used for computing extreme trends. Default is `NULL`, which includes all available series.
 #' @param extreme_by_suffix [logical][base::logical] If `TRUE`, extreme trends will be computed across separate sets of trend values of the same variable and the same suffix. If `FALSE`, all extreme trends of a variable will be used without considering suffixes. Default is `TRUE`.
@@ -48,7 +47,6 @@
 #' @param dev [logical][base::logical] If `TRUE`, development mode is enabled. Default is `FALSE`.
 #' @param verbose [logical][base::logical] Whether to print intermediate messages. Default is `FALSE`.
 #' @param verbose_stat [logical][base::logical] Whether to print detailed statistical messages. Default is `FALSE`.
-#'
 #' @return A [tibble][tibble::tibble()] with trend analysis results, including trend coefficients and statistical significance for each variables.
 #'
 #' More precisely, the returned `trendEX` [tibble][tibble::tibble()] contains the following columns :
@@ -74,15 +72,9 @@
 #' * `change` :
 #' * `change_min` :
 #' * `change_max` :
-#'
 #' @seealso
-#' 1. [CARD_download()] for downloading last version of CARD parameterization files.
-#' 2. [CARD_list_all()] list all available CARD.
-#' 3. [CARD_management()] for managing CARD parameterization files.
-#' 4. [CARD_extraction()] for extracting variables using CARD.
-#' 5. [process_extraction()] for extracting variables.
-#' - 6. [process_trend()] for performing trend analysis on extracted variables.
-#'
+#' 1. [process_extraction()] for extracting variables.
+#' 2. [process_trend()] for performing trend analysis on extracted variables.
 #' @examples
 #' ## Creation of random data set
 #' set.seed(99)
@@ -149,7 +141,6 @@
 #'                                      c(as.Date("2006-01-01"),
 #'                                        as.Date("2010-01-01"))))
 #' print(trendEX2, width=Inf)
-#' 
 #' @export
 #' @md
 process_trend = function (dataEX,

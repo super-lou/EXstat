@@ -48,7 +48,7 @@ The \link[tibble:tibble]{tibble} output of the \code{\link[=process_extraction]{
 
 \item{to_normalise}{A named \link[base:logical]{logical} \link[base:c]{vector} indicating whether each variable's trend should be normalised. \code{TRUE} performs normalisation, while \code{FALSE} does nothing. This vector must be of length one or have the same length as the number of \link[base:numeric]{numeric} (or \link[base:logical]{logical}) variables in \code{dataEX}, with names specifying which value corresponds to which variable. Default 'FALSE'.}
 
-\item{metaEX}{One of the outputs of the \link{CARD_extraction} function that contains metadata for the normalisation process. Default is \code{NULL}. If supplied, this normalisation information will be used instead of the settings provided in the \code{to_normalise} variable.}
+\item{metaEX}{One of the outputs of the CARD_extraction() function from EXstat.CARD extension that contains metadata for the normalisation process. Default is \code{NULL}. If supplied, this normalisation information will be used instead of the settings provided in the \code{to_normalise} variable.}
 
 \item{extreme_take_not_signif_into_account}{\link[base:logical]{logical} Whether to consider non-significant trends in the computation of extreme trends. Default is \code{TRUE}.}
 
@@ -172,20 +172,10 @@ trendEX2 =
                                      c(as.Date("2006-01-01"),
                                        as.Date("2010-01-01"))))
 print(trendEX2, width=Inf)
-
 }
 \seealso{
 \enumerate{
-\item \code{\link[=CARD_download]{CARD_download()}} for downloading last version of CARD parameterization files.
-\item \code{\link[=CARD_list_all]{CARD_list_all()}} list all available CARD.
-\item \code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
-\item \code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD.
 \item \code{\link[=process_extraction]{process_extraction()}} for extracting variables.
-}
-\itemize{
-\item 
-\enumerate{
 \item \code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
-}
 }
 }

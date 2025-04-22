@@ -23,7 +23,6 @@
 
 #' @title process_extraction
 #' @description Extracts a variable from time series (for example the yearly mean of time series). Extraction can have a specific time step and sampled differently along this time step.
-#'
 #' @param data Input data format is a [tibble][tibble::tibble()] from the tibble package. It needs to have :
 #' * Only one column of [Date][base::Date] that are regularly spaced and unique for each time serie.
 #' * If there is more than one time serie, at least one column needs to be of [character][base::character] string for names of time series in order to identify them. If more than one column of identifier is given, they will all be used in order to identify a unique time serie.
@@ -46,7 +45,6 @@
 #' 106 2001-01-04  1.1       91  serie 2
 #'     ...
 #' ```
-#' 
 #' @param funct The function that you want to use for the process of variable extraction. More specificaly, it is possible to give a [list][base::list()] with several functions as element of that [list][base::list()] and the name that will be used for the extracted column as the names element of each function of that previously defined [list][base::list()]. A simple case will be `funct=mean` and a more complicated one `funct=list(QA=mean, QJXA=max)`. Default [max][base::max()].
 #' @param funct_args A [list][base::list()] of [list][base::list()] of named arguments needed for each functions provided through `funct`. This [list][base::list()] can be a simple [list][base::list()] if there is only one function given by `funct`. The argument can relate to a column name in order to specify on which numerical column the extraction will be perfom. For the simple example, `funct_args=list("Q_obs", na.rm=TRUE)` and for the more complex case `funct_args=list(list("Q_obs", na.rm=TRUE), list("Q_sim", na.rm=FALSE))`. Default [list][base::list()].
 #' @param time_step A [character][base::character] string specifying the time step of the variable extraction process. Possible values are :
@@ -100,22 +98,14 @@
 #' @param rm_duplicates [logical][base::logical]. Should duplicate time series values be automatically removed ? Default `FALSE`.
 #' @param dev [logical][base::logical] If `TRUE`, development mode is enabled. Default is `FALSE`.
 #' @param verbose [logical][base::logical]. Should intermediate messages be printed during the execution of the function ? Default `FALSE`.
-#'
-#' @note 
+#' @note
 #' - `compress` and `expand` cannot be both set to TRUE for `time_step` set to `"year-month"` or `"year-season"`.
 #' - `NA` values are considered missing values and are used to compute the percentage of gaps over each time step, potentially removing the results if the percentage exceeds `NApct_lim`.
 #' - `NaN` values are considered non-existent values but can also be computation artifacts, for example, when the `keep` option is used. For speed performance reasons, `NaN` values are needed as masked values for input time series that are not daily and are extracted throughout the year.
-#'
 #' @return A [tibble][tibble::tibble()] containing the extracted variable, or a named [list][base::list()] of [tibble][tibble::tibble()] for each extracted variable if `expand` is `TRUE`. This output follows the same format as the input data described in `data`, making it possible to iterate over this output using [process_extraction()].
-#'
 #' @seealso
-#' 1. [CARD_download()] for downloading last version of CARD parameterization files.
-#' 2. [CARD_list_all()] list all available CARD.
-#' 3. [CARD_management()] for managing CARD parameterization files.
-#' 4. [CARD_extraction()] for extracting variables using CARD.
-#' - 5. [process_extraction()] for extracting variables.
-#' 6. [process_trend()] for performing trend analysis on extracted variables.
-#' 
+#' 1. [process_extraction()] for extracting variables.
+#' 2. [process_trend()] for performing trend analysis on extracted variables.
 #' @examples
 #' ## Creation of random data set
 #' set.seed(99)
@@ -220,7 +210,6 @@
 #'                    time_step="season",
 #'                    compress=TRUE,
 #'                    expand=TRUE)
-#' 
 #' @importFrom rlang .data
 #' @importFrom data.table :=
 #' @importFrom magrittr %>%
