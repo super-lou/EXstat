@@ -46,9 +46,6 @@ Imports:
     utils,
     CircStats,
     stringr,
-    purrr,
-    CARD
-Remotes:
-    super-lou/CARD@dev
+    purrr
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
