@@ -247,9 +247,19 @@ process_extraction(data=data,
 
 }
 \seealso{
-\itemize{
-\item \code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
-\item \code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
+\enumerate{
+\item \code{\link[=CARD_download]{CARD_download()}} for downloading last version of CARD parameterization files.
+\item \code{\link[=CARD_list_all]{CARD_list_all()}} list all available CARD.
 \item \code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+\item \code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD.
+}
+\itemize{
+\item 
+\enumerate{
+\item \code{\link[=process_extraction]{process_extraction()}} for extracting variables.
+}
+}
+\enumerate{
+\item \code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
 }
 }

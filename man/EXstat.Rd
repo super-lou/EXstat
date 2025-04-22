@@ -13,29 +13,30 @@ For a more user-friendly interaction, this package has been developed in symbios
 So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 }
 \seealso{
-\itemize{
+\enumerate{
+\item \code{\link[=CARD_download]{CARD_download()}} for downloading last version of CARD parameterization files.
+\item \code{\link[=CARD_list_all]{CARD_list_all()}} list all available CARD.
+\item \code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
+\item \code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD.
 \item \code{\link[=process_extraction]{process_extraction()}} for extracting variables.
 \item \code{\link[=process_trend]{process_trend()}} for performing trend analysis on extracted variables.
-\item \code{\link[=CARD_extraction]{CARD_extraction()}} for extracting variables using CARD parameterization files.
-\item \code{\link[=CARD_management]{CARD_management()}} for managing CARD parameterization files.
 }
 }
 \author{
 Main Developer and Maintainer
-\itemize{
-\item Louis Héraut \href{mailto:louis.heraut@inrae.fr}{louis.heraut@inrae.fr} INRAE
-}
+Louis, Héraut, \href{mailto:louis.heraut@inrae.fr}{louis.heraut@inrae.fr}*1
 
 Other Developer
-\itemize{
-\item Benjamin Renard \href{mailto:benjamin.renard@inrae.fr}{benjamin.renard@inrae.fr} INRAE
-\item Valentin Mansanarez
-}
+Benjamin, Renard, \href{mailto:benjamin.renard@inrae.fr}{benjamin.renard@inrae.fr}*2
+Valentin, Mansanarez
 
 Other Contributors
-\itemize{
-\item Éric Sauquet \href{mailto:eric.sauquet@inrae.fr}{eric.sauquet@inrae.fr} INRAE
-\item Jean-Philippe Vidal \href{mailto:jean-philippe.vidal@inrae.fr}{jean-philippe.vidal@inrae.fr} INRAE
-\item Nathan Pellerin
-}
+Éric, Sauquet, \href{mailto:eric.sauquet@inrae.fr}{eric.sauquet@inrae.fr}*1
+Jean-Philippe, Vidal, \href{mailto:jean-philippe.vidal@inrae.fr}{jean-philippe.vidal@inrae.fr}*1
+Nathan, Pellerin, \href{mailto:nathan.pellerin@inrae.fr}{nathan.pellerin@inrae.fr}*1
+David, Dorchies. \href{mailto:david.dorchies@inrae.fr}{david.dorchies@inrae.fr}*3
+
+*1 INRAE, UR RiverLy, Villeurbanne, France
+*2 INRAE, RECOVER, Aix-Marseille Université, Aix-en-Provence, France
+*3 INRAE, UMR G-Eau, Montpellier, France
 }
