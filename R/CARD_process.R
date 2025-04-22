@@ -215,10 +215,10 @@ get_last_Process = function (Process) {
 #' @export
 #' @md
 CARD_extraction = function (data,
-                            CARD_path=NULL,
+                            CARD_name=c("QA", "QJXA"),
+                            CARD_dir=NULL,
                             CARD_tmp=NULL,
-                            CARD_dir="WIP",
-                            CARD_name=NULL,
+                            CARD_path=NULL,
                             period_default=NULL,
                             suffix=NULL,
                             suffix_delimiter="_",
@@ -234,10 +234,12 @@ CARD_extraction = function (data,
 
     if (is.null(CARD_path)) {
         CARD_path = system.file(package="CARD")
-    }
-    
+    }    
     if (is.null(CARD_tmp)) {
         CARD_tmp = CARD_path
+    }
+    if (is.null(CARD_dir)) {
+        CARD_dir = "__all__"
     }
     
     CARD_dirpath = file.path(CARD_tmp, CARD_dir)   
