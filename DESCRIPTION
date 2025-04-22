@@ -46,10 +46,6 @@ Imports:
     utils,
     CircStats,
     stringr,
-    purrr,
-    EXstat-CARD
-Depends: EXstat-CARD
-Remotes:
-    super-lou/EXstat-CARD
+    purrr
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)

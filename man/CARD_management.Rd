@@ -7,8 +7,7 @@
 CARD_management(
   CARD_name = c("QA", "QJXA"),
   CARD_dir = "WIP",
-  CARD_path = NULL,
-  CARD_tmp = NULL,
+  CARD_path = ".",
   layout = NULL,
   underscore_to_white = TRUE,
   add_id = TRUE,
@@ -23,8 +22,6 @@ CARD_management(
 \item{CARD_dir}{A \link[base:character]{character} string for the name of your analysis represented by the CARDs selected with \code{CARD_name}. In fact, \emph{for CARD developers}, it is the name of a subdirectory in \code{CARD_path} (or \code{CARD_tmp}) where the CARD parameterization files are located for an analysis. Default is \code{"WIP"}.}
 
 \item{CARD_path}{\emph{For CARD developers}, a \link[base:character]{character} string representing the path to the downloaded CARD directory (it should end with \code{"CARD"}). In this directory, you can search for the CARDs you want in the \code{"__all__"} subdirectory that will be used for an analysis (see \link{layout} to know how to specify which CARD you want).}
-
-\item{CARD_tmp}{\emph{For CARD developers}, a \link[base:character]{character} string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is \code{NULL} if you want to use a \code{tmp} subdirectory in the \code{CARD_path} directory.}
 
 \item{layout}{\emph{for CARD developper} A \link[base:character]{character} string \link[base:c]{vector} specifying the tree structure of files that you want for your analysis. Each element of the vector represents either:
 \itemize{
@@ -43,6 +40,8 @@ For example, if you want to create an \code{"WIP"} analysis directory for the CA
 \item{verbose}{\link[base:logical]{logical}. Should intermediate messages be printed during the execution of the function ? Default \code{FALSE}.}
 
 \item{args}{\emph{for CARD developper} An intermediate form of arguments that is useful if the argparse package is used. If not provided, it will be automatically created using the other function arguments. Default is \code{NULL}.}
+
+\item{CARD_tmp}{\emph{For CARD developers}, a \link[base:character]{character} string for a path to a directory where the CARD parameterization files will be copied and pasted for an analysis. Default is \code{NULL} if you want to use a \code{tmp} subdirectory in the \code{CARD_path} directory.}
 }
 \value{
 \emph{for CARD developper} CARD parameterization files will be copied and pasted from \code{CARD_path} and organized according to the structure given by \link{layout} into the \code{CARD_tmp} directory.

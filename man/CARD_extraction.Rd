@@ -6,10 +6,9 @@
 \usage{
 CARD_extraction(
   data,
+  CARD_name = c("QA", "QJXA"),
+  CARD_dir = NULL,
   CARD_path = NULL,
-  CARD_tmp = NULL,
-  CARD_dir = "WIP",
-  CARD_name = NULL,
   period_default = NULL,
   suffix = NULL,
   suffix_delimiter = "_",
@@ -50,13 +49,11 @@ A tibble: 201 × 4
     ...
 }\if{html}{\out{</div>}}}
 
-\item{CARD_path}{A \link[base:character]{character} string representing the path to the downloaded CARD directory (it should end with \code{"CARD"}). In this directory, you can copy and paste (and later modify) CARDs from the \code{"__all__"} subdirectory that you want to use for an analysis represented by a subdirectory named \code{CARD_dir} (see \code{CARD_tmp} if you want to locate your \code{CARD_dir} directory elsewhere). In your CARDs, you can specify functions available in the scripts of the \code{"__tools__"} subdirectory.}
-
-\item{CARD_tmp}{If you want to locate the \code{CARD_dir} directory somewhere other than in the \code{CARD_path} directory, you can specify a \link[base:character]{character} string in \code{CARD_tmp} for a path where the \code{CARD_dir} subdirectory of CARDs will be searched. Default is \code{"NULL"} if you want to locate the \code{CARD_dir} subdirectory of CARDs in \code{CARD_path}.}
+\item{CARD_name}{By default, all CARDs in the \code{CARD_dir} directory will be used for the analysis. However, you can specify a \link[base:c]{vector} of \link[base:character]{character} strings with the names of the CARDs to be used. Default is \code{"NULL"} for using all the CARDs.}
 
 \item{CARD_dir}{A \link[base:character]{character} string for the name of a subdirectory in \code{CARD_path} (or \code{CARD_tmp}) where the CARD parameterization files are located for an analysis. Default is \code{"WIP"}.}
 
-\item{CARD_name}{By default, all CARDs in the \code{CARD_dir} directory will be used for the analysis. However, you can specify a \link[base:c]{vector} of \link[base:character]{character} strings with the names of the CARDs to be used. Default is \code{"NULL"} for using all the CARDs.}
+\item{CARD_path}{A \link[base:character]{character} string representing the path to the downloaded CARD directory (it should end with \code{"CARD"}). In this directory, you can copy and paste (and later modify) CARDs from the \code{"__all__"} subdirectory that you want to use for an analysis represented by a subdirectory named \code{CARD_dir} (see \code{CARD_tmp} if you want to locate your \code{CARD_dir} directory elsewhere). In your CARDs, you can specify functions available in the scripts of the \code{"__tools__"} subdirectory.}
 
 \item{period_default}{A \link[base:c]{vector} of two \link[base:Dates]{dates} (or two unambiguous \link[base:character]{character} strings that can be coerced to \link[base:Dates]{dates}) to restrict the period of analysis. As an example, it can be \code{c("1950-01-01", "2020-12-31")} to select data from the 1st January of 1950 to the end of December of 2020. The default option is \code{period=NULL}, which considers all available data for each time serie.}
 
@@ -84,6 +81,8 @@ Default \code{NULL} to conserve the value specified in the CARDs used.}
 \item{dev}{\link[base:logical]{logical} If \code{TRUE}, development mode is enabled. Default is \code{FALSE}.}
 
 \item{verbose}{\link[base:logical]{logical}. Should intermediate messages be printed during the execution of the function ? Default \code{FALSE}.}
+
+\item{CARD_tmp}{If you want to locate the \code{CARD_dir} directory somewhere other than in the \code{CARD_path} directory, you can specify a \link[base:character]{character} string in \code{CARD_tmp} for a path where the \code{CARD_dir} subdirectory of CARDs will be searched. Default is \code{"NULL"} if you want to locate the \code{CARD_dir} subdirectory of CARDs in \code{CARD_path}.}
 }
 \value{
 A \link[base:list]{list} of two \link[tibble:tibble]{tibbles}.
