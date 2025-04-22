@@ -133,8 +133,8 @@ CARD_list_all = function () {
 #' @md
 CARD_management = function (CARD_name=c("QA", "QJXA"),
                             CARD_dir="WIP",
-                            CARD_path=NULL,
-                            CARD_tmp=NULL,
+                            CARD_path=".",
+                            # CARD_path=NULL,
                             layout=NULL,
                             underscore_to_white=TRUE,
                             add_id=TRUE,
@@ -142,24 +142,27 @@ CARD_management = function (CARD_name=c("QA", "QJXA"),
                             verbose=FALSE,
                             args=NULL) {
 
-    if (is.null(CARD_path)) {
-        CARD_path = system.file(package="CARD")
-    }
+    CARD_path_system = system.file(package="CARD")
+    
+    # if (is.null(CARD_path)) {
+        # CARD_path = system.file(package="CARD")
+    # }
     
     if (is.null(layout)) {
         layout = c(CARD_dir, "[", CARD_name, "]")
     }
     
     if (is.null(args)) {
-        args = list(CARD_path=CARD_path, CARD_tmp=CARD_tmp, layout=layout,
+        args = list(CARD_path_system=CARD_path_system, CARD_path=CARD_path, layout=layout,
                     underscore_to_white=underscore_to_white,
                     add_id=add_id, overwrite=overwrite,
                     verbose=verbose)        
     }
 
-    if (is.null(args$CARD_tmp)) {
-        args$CARD_tmp = file.path(args$CARD_path)
-    }
+    
+    # if (is.null(args$CARD_path)) {
+        # args$CARD_path = file.path(args$CARD_path_system)
+    # }
         
     if (args$verbose) {
         remind(args)
@@ -169,8 +172,8 @@ CARD_management = function (CARD_name=c("QA", "QJXA"),
         stop ()
     }
 
-    source_dir = file.path(args$CARD_path, "__all__")
-
+    source_dir = file.path(args$CARD_path_system, "__all__")
+    
     OUT = unlist(args$layout)
     nOUT = length(OUT)
     test1 = "[[]|[(]|[]]|[)]"
@@ -266,7 +269,7 @@ CARD_management = function (CARD_name=c("QA", "QJXA"),
     }
 
     DIR = DIR[!duplicated(DIR)]
-    DIR = file.path(args$CARD_tmp, DIR)
+    DIR = file.path(args$CARD_path, DIR)
 
     if (any(dir.exists(DIR)) &
         args$overwrite |
@@ -284,7 +287,7 @@ CARD_management = function (CARD_name=c("QA", "QJXA"),
             names(files) = basename(files)
             
             file.copy(file.path(source_dir, files[IN[i]]),
-                      file.path(args$CARD_tmp, OUT[i]))
+                      file.path(args$CARD_path, OUT[i]))
         }
         
     } else if (any(dir.exists(DIR)) &

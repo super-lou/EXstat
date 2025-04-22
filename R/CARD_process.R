@@ -217,7 +217,7 @@ get_last_Process = function (Process) {
 CARD_extraction = function (data,
                             CARD_name=c("QA", "QJXA"),
                             CARD_dir=NULL,
-                            CARD_tmp=NULL,
+                            # CARD_tmp=NULL,
                             CARD_path=NULL,
                             period_default=NULL,
                             suffix=NULL,
@@ -232,17 +232,16 @@ CARD_extraction = function (data,
                             dev=FALSE,
                             verbose=FALSE) {
 
+    CARD_path_system = system.file(package="CARD")
+
     if (is.null(CARD_path)) {
-        CARD_path = system.file(package="CARD")
-    }    
-    if (is.null(CARD_tmp)) {
-        CARD_tmp = CARD_path
+        CARD_path = CARD_path_system
     }
     if (is.null(CARD_dir)) {
         CARD_dir = "__all__"
     }
     
-    CARD_dirpath = file.path(CARD_tmp, CARD_dir)   
+    CARD_dirpath = file.path(CARD_path, CARD_dir)   
     script_to_analyse = list.files(CARD_dirpath,
                                    pattern=".R$",
                                    recursive=TRUE,
@@ -287,7 +286,7 @@ CARD_extraction = function (data,
         # }
 
         Process_default = sourceProcess(
-            file.path(CARD_path, "__default__.R"))
+            file.path(CARD_path_system, "__default__.R"))
         
         Process = sourceProcess(
             file.path(CARD_dirpath, script),
