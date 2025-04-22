@@ -47,9 +47,9 @@ Imports:
     CircStats,
     stringr,
     purrr,
-    CARD
-Depends: CARD
+    EXstat-CARD
+Depends: EXstat-CARD
 Remotes:
-    super-lou/CARD@dev
+    super-lou/EXstat-CARD
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
