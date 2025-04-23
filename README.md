@@ -191,6 +191,46 @@ $dataEX$QA
 
 So the result is a list of the metadata of the extraction in the `metaEX` tibble and the result of the extraction in the `dataEX` tibble.
 
+Many CARDs are available. If you want to have a look of every current possibility, use the `CARD_list_all()` function
+``` R
+metaEX_all = CARD_list_all()
+```
+which gives
+``` R
+> metaEX_all
+# A tibble: 565 × 20
+   variable_en     unit_en name_en description_en method_en sampling_period_en
+   <chr>           <chr>   <chr>   <chr>          <chr>     <chr>             
+ 1 ETPA            mm      Cumula… ""             ""        09-01, 08-31      
+ 2 BFI_Wal         withou… Basefl… "Ratio betwe…" "1. no …" NA                
+ 3 BFM             withou… Basefl… ""             "1. no …" NA                
+ 4 delta{BFI}_LH_… withou… Change… "Ratio betwe…" "1. no …" NA                
+ 5 delta{BFI}_LH_… withou… Change… "Ratio betwe…" "1. no …" NA                
+ 6 delta{BFI}_LH_… withou… Change… "Ratio betwe…" "1. no …" NA                
+ 7 delta{BFI}_Wal… withou… Change… "Ratio betwe…" "1. no …" NA                
+ 8 delta{BFI}_Wal… withou… Change… "Ratio betwe…" "1. no …" NA                
+ 9 delta{BFI}_Wal… withou… Change… "Ratio betwe…" "1. no …" NA                
+10 delta{centerBF… day     Averag… "Date when 5…" "1. ann…" 09-01, 08-31      
+# ℹ 555 more rows
+# ℹ 14 more variables: topic_en <chr>, variable_fr <chr>, unit_fr <chr>,
+#   name_fr <chr>, description_fr <chr>, method_fr <chr>,
+#   sampling_period_fr <chr>, topic_fr <chr>, source <chr>,
+#   preferred_hydrological_month <int>, is_date <lgl>, to_normalise <lgl>,
+#   palette <chr>, script_path <chr>
+# ℹ Use `print(n = ...)` to see more rows
+```
+
+Based on that, you can for example filter variable by their topic with
+``` R
+metaEX_low_flow = dplyr::filter(metaEX_all, grepl("Low Flow", topic_en))
+```
+and get the name of all the available CARDs with  
+``` R
+metaEX_low_flow$variable_en
+```
+
+
+#### Complex workflow
 In a similar, more complex way, you can extract multiple variables at a time with more than one discharge series,
 ``` R
 # For one station
@@ -277,24 +317,24 @@ $dataEX$QA
 
 
 #### Custom workflow
-Maybe you can't find the CARD that you want so you want to try to customize one or even create one based on other example. To do so, you need to first get the CARD example that you want in a local directory with for example
-``` R
-CARD_management(CARD_name=c("VCN10-5"), CARD_path="CARD-WIP")
-```
-that will create the `VCN10-5.R` CARD in the directory `"CARD-WIP"` of your working directory.
+Maybe you can't find the CARD that you want so you want to try to customize one or even create a new one based on another example. To do so, get the example CARD you want in a local directory by running
+```R  
+CARD_management(CARD_name = c("VCN10-5"), CARD_path = "CARD-WIP")  
+```  
+This will create the `VCN10-5.R` CARD in the `"CARD-WIP"` directory of your working directory.
 
-From that point, you can open this R file and for example change the metadata and the return period parameter from `5` to `10` in order to get the `VCN10-10` so the annual minimum of 10-day mean daily discharge with a return period of 10 years instead of 5.
+From there, you can open this R file and, for example, change the metadata and the return period parameter from `5` to `10` to get the `VCN10-10` CARD, which represents the annual minimum of 10-day mean daily discharge with a return period of 10 years instead of 5.
 
-And now for the extraction, just run
-``` R
-res = CARD_extraction(data, CARD_name=NULL,
-                      CARD_path="CARD-WIP")
-```
-in order to perform the extraction of all the CARD in the `CARD_path` directory.
+For the extraction, simply run  
+```R  
+res = CARD_extraction(data, CARD_name = NULL,  
+                      CARD_path = "CARD-WIP")  
+```  
+This will perform the extraction of all the CARDs in the `CARD_path` directory.
 
-If you want to make a selection of the variable to extract in your custom CARD directory, simply use the variable `CARD_name` like previously seen in the [basic workflow](#basic-workflow) section.
+If you want to select specific variables to extract from your custom CARD directory, just use the `CARD_name` variable as seen in the [basic workflow](#basic-workflow) section.
 
-Take a look at the [EXstat.CARD documentation](https://github.com/super-lou/EXstat.CARD?tab=readme-ov-file#exstatcard-) to better understand the CARD formatting.
+For a deeper understanding of the CARD formatting, refer to the [EXstat.CARD documentation](https://github.com/super-lou/EXstat.CARD?tab=readme-ov-file#exstatcard-).
 
 
 ### Trend analyse
