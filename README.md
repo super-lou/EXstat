@@ -191,7 +191,7 @@ $dataEX$QA
 
 So the result is a list of the metadata of the extraction in the `metaEX` tibble and the result of the extraction in the `dataEX` tibble.
 
-Many CARDs are available. If you want to have a look of every current possibility, use the `CARD_list_all()` function
+Many CARDs are available. If you want to have a look of every current possibilities, use the `CARD_list_all()` function
 ``` R
 metaEX_all = CARD_list_all()
 ```
@@ -220,11 +220,11 @@ which gives
 # ℹ Use `print(n = ...)` to see more rows
 ```
 
-Based on that, you can for example filter variable by their topic with
+Based on that, you can for example filter variables by their topic with
 ``` R
 metaEX_low_flow = dplyr::filter(metaEX_all, grepl("Low Flow", topic_en))
 ```
-and get the name of all the available CARDs with  
+and get the name of all those available CARDs with  
 ``` R
 metaEX_low_flow$variable_en
 ```
