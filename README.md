@@ -139,8 +139,8 @@ For a more user-friendly interaction, this package has been developed in symbios
 
 So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 
-##### Basic workflow
-For example in hydrology, if you want to extract the annual mean daily discharge QA of such hydrometric data
+#### Basic workflow
+For example, in hydrology, if you want to extract the annual mean daily discharge QA from hydrometric data
 ``` R
 install.packages("airGRdatasets")
 library(dplyr)
@@ -156,7 +156,7 @@ you can simply run
 res = CARD_extraction(data, CARD_name="QA")
 ```
 
-This will get you
+which will return
 ``` R
 > res
 $metaEX
@@ -191,7 +191,7 @@ $dataEX$QA
 
 So the result is a list of the metadata of the extraction in the `metaEX` tibble and the result of the extraction in the `dataEX` tibble.
 
-In a similare more complexe way, you can extract more than one variable at a time with more than one discharge serie,
+In a similar, more complex way, you can extract multiple variables at a time with more than one discharge series,
 ``` R
 # For one station
 data1 = tibble(airGRdatasets::A273011002$TS) %>%
@@ -216,7 +216,7 @@ res = CARD_extraction(data,
                       suffix=c("obs", "sim"))
 ```
 
-Which will give you
+which will return
 ``` R
 > res
 $metaEX
@@ -276,7 +276,7 @@ $dataEX$QA
 ```
 
 
-##### Custom workflow
+#### Custom workflow
 Maybe you can't find the CARD that you want so you want to try to customize one or even create one based on other example. To do so, you need to first get the CARD example that you want in a local directory with for example
 ``` R
 CARD_management(CARD_name=c("VCN10-5"), CARD_path="CARD-WIP")
