@@ -1,4 +1,4 @@
-# EXstat [<img src="figures/flower_hex.png" align="right" width=160 height=160 alt=""/>](https://github.com/super-lou/CARD/)
+# EXstat [<img src="figures/flower_hex.png" align="right" width=160 height=160 alt=""/>](https://github.com/super-lou/EXstat.CARD)
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/super-lou/EXstat/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/super-lou/EXstat/actions/workflows/R-CMD-check.yaml)
@@ -9,14 +9,22 @@
 
 **EXstat** is a R package which provide an efficient and simple solution to aggregate and analyze the stationarity of time series.
 
-This project was carried out for National Research Institute for Agriculture, Food and the Environment (Institut National de Recherche pour l’Agriculture, l’Alimentation et l’Environnement, [INRAE](https://agriculture.gouv.fr/inrae-linstitut-national-de-recherche-pour-lagriculture-lalimentation-et-lenvironnement) in french).
+EXstat is highly customizable, but the **EXstat.CARD** extension provides a simpler solution for performing common hydroclimatic aggregations. See the  [EXstat.CARD documentation](#extraction-process-with-card) or the [EXstat.CARD package](https://github.com/super-lou/EXstat.CARD) for advance understanding.
+
+This project was carried out for National Research Institute for Agriculture, Food and the Environment (Institut National de Recherche pour l’Agriculture, l’Alimentation et l’Environnement, [INRAE](https://agriculture.gouv.fr/inrae-linstitut-national-de-recherche-pour-lagriculture-lalimentation-et-lenvironnement) in french) and is at the core of [MAKAHO](https://github.com/super-lou/MAKAHO)
 
 
 ## Installation
 For latest development version
-``` r
+``` R
 remotes::install_github("super-lou/EXstat")
 ```
+
+And for [EXstat.CARD](https://github.com/super-lou/EXstat.CARD) extension latest development version
+``` R
+remotes::install_github("super-lou/EXstat.CARD")
+```
+(which will take care of EXstat installation also)
 
 
 ## Documentation
@@ -25,7 +33,7 @@ Based on [dplyr](https://dplyr.tidyverse.org/), **input data** format is a `tibb
 
 For example, we can use the following `tibble` : 
 
-``` r
+``` R
 library(dplyr)
 
 # Date
@@ -43,7 +51,7 @@ data = tibble(Date=Date, ID="serie A", X=X)
 ```
 
 Which looks like that :
-``` r
+``` R
 > data
 # A tibble: 17,898 × 3
    Date       ID           X
@@ -85,7 +93,7 @@ More parameters are available, for example, to :
 * manage variables related to seasonality.
 
 In this way
-``` r
+``` R
 dataEX = process_extraction(data=data,
                             funct=max,
                             funct_args=list("X", na.rm=TRUE),
@@ -100,7 +108,7 @@ will perform a yearly extraction of the maximum value between may and november, 
 
 The output is also a `tibble` with a column of **date**, of **character** for the name of time series and a **numerical** column with the extracted variable from the time series.
 
-``` r
+``` R
 > dataEX
 # A tibble: 31 × 3
    ID      Date           X
@@ -120,50 +128,173 @@ The output is also a `tibble` with a column of **date**, of **character** for th
 ```
 
 Other examples of more complex cases are available in the package documentation. Try starting with 
-``` r
+``` R
 library(EXstat)
 ?EXstat
 ```
 
 
-### Extraction process with [CARD](https://github.com/super-lou/CARD/)
+### Extraction process with [CARD](https://github.com/super-lou/EXstat.CARD/)
 For a more user-friendly interaction, this package has been developed in symbiosis with predefined parameterisation files called CARD.
 
 So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 
-To do this, you need to download the [CARD archive](https://github.com/super-lou/CARD/archive/refs/heads/main.zip), extract it and place it wherever you like (as if it were data). Then you can create a new subdirectory within this main CARD directory, which you can call for example `"analyse_1"`, and copy and paste the CARD `"__all__/Hautes_Eaux/QJXA.R"` into it.
+##### Basic workflow
+For example in hydrology, if you want to extract the annual mean daily discharge QA of such hydrometric data
+``` R
+install.packages("airGRdatasets")
+library(dplyr)
 
-In this way, you can carry out "analyse_1" by running:
+data = tibble(airGRdatasets::A273011002$TS) %>%
+    mutate(code="A273011002",
+           Date=as.Date(Date)) %>%
+    rename(Q=Qls)
+```		     
 
-``` r
-CARD_extraction(data %>% rename(Q=X),
-                CARD_path="path/to/CARD",
-                CARD_dir="analyse_1")
+you can simply run
+``` R
+res = CARD_extraction(data, CARD_name="QA")
 ```
 
-Thus, you can place several CARDs in your `"analyse_1"` sub-directory for multiple analyses.
+This will get you
+``` R
+> res
+$metaEX
+# A tibble: 1 × 19
+  variable_en unit_en      name_en description_en method_en sampling_period_en
+  <chr>       <chr>        <chr>   <chr>          <chr>     <chr>             
+1 QA          m^{3}.s^{-1} Annual… ""             1. annua… 09-01, 08-31      
+# ℹ 13 more variables: topic_en <chr>, variable_fr <chr>, unit_fr <chr>,
+#   name_fr <chr>, description_fr <chr>, method_fr <chr>,
+#   sampling_period_fr <chr>, topic_fr <chr>,
+#   preferred_hydrological_month <dbl>, is_date <lgl>, to_normalise <lgl>,
+#   palette <chr>, script_path <chr>
 
-However, this copy/pasting action can be quite cumbersome and repetitive for large analyses. Therefore, with `CARD_management()`, it is possible to automate the CARD copy/pasting from the CARD directory to an external temporary directory, like this:   
-
-``` r
-CARD_management(CARD_path="path/to/CARD",
-                CARD_tmp="path/to/copy/CARD",
-                CARD_dir="analyse_1",
-                CARD_name=c("QA", "QJXA"),
-                overwrite=TRUE,
-                verbose=TRUE)
+$dataEX
+$dataEX$QA
+# A tibble: 21 × 3
+   code       Date          QA
+   <chr>      <date>     <dbl>
+ 1 A273011002 1998-09-01   NA 
+ 2 A273011002 1999-09-01 7048.
+ 3 A273011002 2000-09-01 6409.
+ 4 A273011002 2001-09-01 6403.
+ 5 A273011002 2002-09-01 4850.
+ 6 A273011002 2003-09-01 3768.
+ 7 A273011002 2004-09-01 5044.
+ 8 A273011002 2005-09-01 4805.
+ 9 A273011002 2006-09-01 7095.
+10 A273011002 2007-09-01 5575.
+# ℹ 11 more rows
+# ℹ Use `print(n = ...)` to see more rows
 ```
 
-As a result, to run the analysis, use:
+So the result is a list of the metadata of the extraction in the `metaEX` tibble and the result of the extraction in the `dataEX` tibble.
 
-``` r
-CARD_extraction(data %>% rename(Q=X),
-                CARD_path="path/to/CARD",
-                CARD_tmp="path/to/copy/CARD",
-                CARD_dir="analyse_1")
+In a similare more complexe way, you can extract more than one variable at a time with more than one discharge serie,
+``` R
+# For one station
+data1 = tibble(airGRdatasets::A273011002$TS) %>%
+    mutate(code="A273011002",
+           Date=as.Date(Date)) %>%
+    rename(Q_obs=Qls)
+
+# and an other
+data2 = tibble(airGRdatasets::H622101001$TS) %>%
+    mutate(code="H622101001",
+           Date=as.Date(Date)) %>%
+    rename(Q_obs=Qls)
+# make one tibble
+data = bind_rows(data1, data2)
+
+# add some noise for mock simulation data
+data$Q_sim = data$Q_obs + rnorm(nrow(data), mean=0, sd=100)
+
+# and perfom an extraction
+res = CARD_extraction(data,
+                      CARD_name=c("QA", "QMNA", "VCN10-5"),
+                      suffix=c("obs", "sim"))
 ```
 
-Take a look at the [CARD](https://github.com/super-lou/CARD/?tab=readme-ov-file#documentation) repository to better understand the CARD formatting.
+Which will give you
+``` R
+> res
+$metaEX
+# A tibble: 3 × 19
+  variable_en unit_en      name_en description_en method_en sampling_period_en
+  <chr>       <chr>        <chr>   <chr>          <chr>     <chr>             
+1 VCN10-5     m^{3}.s^{-1} Annual… ""             "1. no t… Month of maximum …
+2 QMNA        m^{3}.s^{-1} Annual… ""             "1. mont… Month of maximum …
+3 QA          m^{3}.s^{-1} Annual… ""             "1. annu… 09-01, 08-31      
+# ℹ 13 more variables: topic_en <chr>, variable_fr <chr>, unit_fr <chr>,
+#   name_fr <chr>, description_fr <chr>, method_fr <chr>,
+#   sampling_period_fr <chr>, topic_fr <chr>,
+#   preferred_hydrological_month <dbl>, is_date <lgl>, to_normalise <lgl>,
+#   script_path <chr>, palette <chr>
+
+$dataEX
+$dataEX$`VCN10-5`
+# A tibble: 2 × 3
+  code       `VCN10-5_obs` `VCN10-5_sim`
+  <chr>              <dbl>         <dbl>
+1 A273011002          914.          901.
+2 H622101001         2770.         2769.
+
+$dataEX$QMNA
+# A tibble: 40 × 4
+   code       Date       QMNA_obs QMNA_sim
+   <chr>      <date>        <dbl>    <dbl>
+ 1 A273011002 1999-01-01    1050.    1070.
+ 2 A273011002 2000-01-01    2586.    2569.
+ 3 A273011002 2001-01-01    1401.    1408.
+ 4 A273011002 2002-01-01    1463.    1454.
+ 5 A273011002 2003-01-01    1182.    1167.
+ 6 A273011002 2004-01-01    1362.    1354.
+ 7 A273011002 2005-01-01    1245.    1264.
+ 8 A273011002 2006-01-01    1770     1778.
+ 9 A273011002 2007-01-01    1889.    1875.
+10 A273011002 2008-01-01    1669.    1659.
+# ℹ 30 more rows
+# ℹ Use `print(n = ...)` to see more rows
+
+$dataEX$QA
+# A tibble: 42 × 4
+   code       Date       QA_obs QA_sim
+   <chr>      <date>      <dbl>  <dbl>
+ 1 A273011002 1998-09-01    NA     NA 
+ 2 A273011002 1999-09-01  7048.  7049.
+ 3 A273011002 2000-09-01  6409.  6419.
+ 4 A273011002 2001-09-01  6403.  6407.
+ 5 A273011002 2002-09-01  4850.  4842.
+ 6 A273011002 2003-09-01  3768.  3763.
+ 7 A273011002 2004-09-01  5044.  5045.
+ 8 A273011002 2005-09-01  4805.  4805.
+ 9 A273011002 2006-09-01  7095.  7093.
+10 A273011002 2007-09-01  5575.  5562.
+# ℹ 32 more rows
+# ℹ Use `print(n = ...)` to see more rows
+```
+
+
+##### Custom workflow
+Maybe you can't find the CARD that you want so you want to try to customize one or even create one based on other example. To do so, you need to first get the CARD example that you want in a local directory with for example
+``` R
+CARD_management(CARD_name=c("VCN10-5"), CARD_path="CARD-WIP")
+```
+that will create the `VCN10-5.R` CARD in the directory `"CARD-WIP"` of your working directory.
+
+From that point, you can open this R file and for example change the metadata and the return period parameter from `5` to `10` in order to get the `VCN10-10` so the annual minimum of 10-day mean daily discharge with a return period of 10 years instead of 5.
+
+And now for the extraction, just run
+``` R
+res = CARD_extraction(data, CARD_name=NULL,
+                      CARD_path="CARD-WIP")
+```
+in order to perform the extraction of all the CARD in the `CARD_path` directory.
+
+If you want to make a selection of the variable to extract in your custom CARD directory, simply use the variable `CARD_name` like previously seen in the [basic workflow](#basic-workflow) section.
+
+Take a look at the [EXstat.CARD documentation](https://github.com/super-lou/EXstat.CARD?tab=readme-ov-file#exstatcard-) to better understand the CARD formatting.
 
 
 ### Trend analyse
@@ -171,7 +302,7 @@ The stationarity analyse is computed with the `process_trend()` function on the 
 
 Hence, the following expression
 
-``` r
+``` R
 trendEX = process_trend(data=dataEX)
 ```
 
