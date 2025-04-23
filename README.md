@@ -223,9 +223,9 @@ $metaEX
 # A tibble: 3 × 19
   variable_en unit_en      name_en description_en method_en sampling_period_en
   <chr>       <chr>        <chr>   <chr>          <chr>     <chr>             
-1 VCN10-5     m^{3}.s^{-1} Annual… ""             "1. no t… Month of maximum …
-2 QMNA        m^{3}.s^{-1} Annual… ""             "1. mont… Month of maximum …
-3 QA          m^{3}.s^{-1} Annual… ""             "1. annu… 09-01, 08-31      
+1 VCN10-5     m^{3}.s^{-1} Annual… ""             "1. no t…" "Month of maximum …"
+2 QMNA        m^{3}.s^{-1} Annual… ""             "1. mont…" "Month of maximum …"
+3 QA          m^{3}.s^{-1} Annual… ""             "1. annu…" 09-01, 08-31      
 # ℹ 13 more variables: topic_en <chr>, variable_fr <chr>, unit_fr <chr>,
 #   name_fr <chr>, description_fr <chr>, method_fr <chr>,
 #   sampling_period_fr <chr>, topic_fr <chr>,
