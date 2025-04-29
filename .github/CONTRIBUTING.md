@@ -26,7 +26,7 @@ Click the **Fork** button at the top right of the [EXstat GitHub page](https://g
 Clone your fork to your local machine:
 
 ```bash
-git clone https://github.com/your-username/EXstat.git
+git clone git@github.com:your-username/EXstat.git
 cd EXstat
 ```
 
