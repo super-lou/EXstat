@@ -394,6 +394,8 @@ If you want to try by yourself, why not start by also [opening an issue](https:/
 
 If we’re connected through work, why not reach out via email to see if we can collaborate more closely on this repo by adding you as a collaborator !
 
+See [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) file for more info about contribution help and guidline.
+
 
 ## Code of Conduct
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
