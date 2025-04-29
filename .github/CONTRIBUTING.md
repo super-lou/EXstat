@@ -1,4 +1,4 @@
-# 🤝 Contributing to EXstat
+# Contributing
 
 Thank you for your interest in contributing to **EXstat** !
 Whether you're fixing bugs, improving documentation, or developing new features, we appreciate your involvement.
