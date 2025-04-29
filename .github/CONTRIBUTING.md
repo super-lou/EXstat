@@ -83,7 +83,7 @@ git push origin main
 
 ## 🤝 Work Collaboration
 
-If we’re connected through work and you’d like to collaborate more deeply :
+If we’re connected through work or you’d like to collaborate more deeply :
 - [Reach out via email](mailto:louis.heraut@inrae.fr?subject=%5BEXstat%5D) to discuss becoming a project collaborator.
 
 
