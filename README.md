@@ -139,6 +139,12 @@ For a more user-friendly interaction, this package has been developed in symbios
 
 So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 
+To use CARD extraction with EXstat you need to install the EXstat.CARD extension as follows :
+``` R
+remotes::install_github("super-lou/EXstat.CARD")
+```
+
+
 #### Basic workflow
 For example, in hydrology, if you want to extract the annual mean daily discharge QA from hydrometric data
 ``` R
