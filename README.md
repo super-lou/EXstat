@@ -1,28 +1,28 @@
-# EXstat [<img src="figures/flower_hex.png" align="right" width=160 height=160 alt=""/>](https://github.com/super-lou/EXstat.CARD)
+# EXstat [<img src="figures/flower_hex.png" align="right" width=160 height=160 alt=""/>](https://github.com/louis-heraut/EXstat.CARD)
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/super-lou/EXstat/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/super-lou/EXstat/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/louis-heraut/EXstat/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/louis-heraut/EXstat/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-green)](https://lifecycle.r-lib.org/articles/stages.html)
-![](https://img.shields.io/github/last-commit/super-lou/EXstat)
+![](https://img.shields.io/github/last-commit/louis-heraut/EXstat)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md) 
 <!-- badges: end -->
 
 **EXstat** is a R package which provide an efficient and simple solution to aggregate and analyze the stationarity of time series.
 
-EXstat is highly customizable, but the **EXstat.CARD** extension provides a simpler solution for performing common hydroclimatic aggregations. See the  [EXstat.CARD documentation](#extraction-process-with-card) or the [EXstat.CARD package](https://github.com/super-lou/EXstat.CARD) for advance understanding.
+EXstat is highly customizable, but the **EXstat.CARD** extension provides a simpler solution for performing common hydroclimatic aggregations. See the  [EXstat.CARD documentation](#extraction-process-with-card) or the [EXstat.CARD package](https://github.com/louis-heraut/EXstat.CARD) for advance understanding.
 
-This project was carried out for National Research Institute for Agriculture, Food and the Environment (Institut National de Recherche pour l’Agriculture, l’Alimentation et l’Environnement, [INRAE](https://agriculture.gouv.fr/inrae-linstitut-national-de-recherche-pour-lagriculture-lalimentation-et-lenvironnement) in french) and is at the core of [MAKAHO](https://github.com/super-lou/MAKAHO) which won the [2024 Open Science Research Data Award](https://www.enseignementsup-recherche.gouv.fr/fr/remise-des-prix-science-ouverte-des-donnees-de-la-recherche-2024-98045) in the “Creating the Conditions for Reuse” category.
+This project was carried out for National Research Institute for Agriculture, Food and the Environment (Institut National de Recherche pour l’Agriculture, l’Alimentation et l’Environnement, [INRAE](https://agriculture.gouv.fr/inrae-linstitut-national-de-recherche-pour-lagriculture-lalimentation-et-lenvironnement) in french) and is at the core of [MAKAHO](https://github.com/louis-heraut/MAKAHO) which won the [2024 Open Science Research Data Award](https://www.enseignementsup-recherche.gouv.fr/fr/remise-des-prix-science-ouverte-des-donnees-de-la-recherche-2024-98045) in the “Creating the Conditions for Reuse” category.
 
 
 ## Installation
 For latest development version
 ``` R
-remotes::install_github("super-lou/EXstat")
+remotes::install_github("louis-heraut/EXstat")
 ```
 
-And for [EXstat.CARD](https://github.com/super-lou/EXstat.CARD) extension latest development version
+And for [EXstat.CARD](https://github.com/louis-heraut/EXstat.CARD) extension latest development version
 ``` R
-remotes::install_github("super-lou/EXstat.CARD")
+remotes::install_github("louis-heraut/EXstat.CARD")
 ```
 (which will take care of EXstat installation also)
 
@@ -134,14 +134,14 @@ library(EXstat)
 ```
 
 
-### Extraction process with [CARD](https://github.com/super-lou/EXstat.CARD/)
+### Extraction process with [CARD](https://github.com/louis-heraut/EXstat.CARD/)
 For a more user-friendly interaction, this package has been developed in symbiosis with predefined parameterisation files called CARD.
 
 So you don't have to define complex parameters yourself to extract hydroclimatological variables. What's more, if the CARD you want doesn't exist, it's easy to create one based on the others.
 
-To use CARD extraction with EXstat you need to install the [EXstat.CARD extension](https://github.com/super-lou/EXstat.CARD) as follows :
+To use CARD extraction with EXstat you need to install the [EXstat.CARD extension](https://github.com/louis-heraut/EXstat.CARD) as follows :
 ``` R
-remotes::install_github("super-lou/EXstat.CARD")
+remotes::install_github("louis-heraut/EXstat.CARD")
 ```
 
 
@@ -340,7 +340,7 @@ This will perform the extraction of all the CARDs in the `CARD_path` directory.
 
 If you want to select specific variables to extract from your custom CARD directory, just use the `CARD_name` variable as seen in the [basic workflow](#basic-workflow) section.
 
-For a deeper understanding of the CARD formatting, refer to the [EXstat.CARD documentation](https://github.com/super-lou/EXstat.CARD?tab=readme-ov-file#exstatcard-).
+For a deeper understanding of the CARD formatting, refer to the [EXstat.CARD documentation](https://github.com/louis-heraut/EXstat.CARD?tab=readme-ov-file#exstatcard-).
 
 
 ### Trend analyse
@@ -372,7 +372,7 @@ Finaly, as the **p value** is below 0.1, the previous time serie shows an **incr
 
 ## FAQ
 📬 — **I would like an upgrade / I have a question / Need to reach me**  
-Feel free to [open an issue](https://github.com/super-lou/EXstat/issues) ! I’m actively maintaining this project, so I’ll do my best to respond quickly.  
+Feel free to [open an issue](https://github.com/louis-heraut/EXstat/issues) ! I’m actively maintaining this project, so I’ll do my best to respond quickly.  
 I’m also reachable on my institutional INRAE [email](mailto:louis.heraut@inrae.fr?subject=%5BEXstat%5D) for more in-depth discussions.
 
 🛠️ — **I found a bug**  
@@ -381,9 +381,9 @@ I’m also reachable on my institutional INRAE [email](mailto:louis.heraut@inrae
 - *Best Solution* : Fix the issue and submit a pull request. This is the fastest way to get a bug fixed.
 
 🚀 — **Want to contribute ?**  
-If you don't know where to start, [open an issue](https://github.com/super-lou/EXstat/issues).
+If you don't know where to start, [open an issue](https://github.com/louis-heraut/EXstat/issues).
 
-If you want to try by yourself, why not start by also [opening an issue](https://github.com/super-lou/EXstat/issues) to let me know you're working on something ? Then:
+If you want to try by yourself, why not start by also [opening an issue](https://github.com/louis-heraut/EXstat/issues) to let me know you're working on something ? Then:
 
 - Fork this repository  
 - Clone your fork locally and make changes (or even better, create a new branch for your modifications)
