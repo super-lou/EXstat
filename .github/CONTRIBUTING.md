@@ -10,7 +10,7 @@ If you're unsure where to begin:
 - Check out our [open issues](https://github.com/louis-heraut/EXstat/issues).
 - Feel free to open a new issue to ask questions or suggest ideas.
 
-### ✏️ Want to Work on Something?
+#### Want to Work on Something?
 If you plan to tackle an issue or develop something new :
 - Open or comment on an issue to let us know you're working on it. This helps avoid duplication and promotes collaboration !
 
@@ -19,10 +19,10 @@ If you plan to tackle an issue or develop something new :
 
 Here’s a step-by-step guide to contributing :
 
-### 1. **Fork the Repository**
+#### 1. **Fork the Repository**
 Click the **Fork** button at the top right of the [EXstat GitHub page](https://github.com/louis-heraut/EXstat) to create a copy of the repo under your GitHub account.
 
-### 2. **Clone Your Fork**
+#### 2. **Clone Your Fork**
 Clone your fork to your local machine:
 
 ```bash
@@ -30,20 +30,20 @@ git clone https://github.com/your-username/EXstat.git
 cd EXstat
 ```
 
-### 3. **Create a New Branch**
+#### 3. **Create a New Branch**
 It's best to work in a dedicated branch for each feature or fix :
 
 ```bash
 git checkout -b your-feature-name
 ```
 
-### 4. **Make Your Changes**
+#### 4. **Make Your Changes**
 Edit the code, documentation, or tests. Be sure your changes :
 - Follow the project’s code style
 - Don’t break existing functionality
 - Include comments or documentation if needed
 
-### 5. **Commit and Push**
+#### 5. **Commit and Push**
 After testing your changes locally :
 
 ```bash
@@ -52,7 +52,7 @@ git commit -m "Clear description of what you did"
 git push origin your-feature-name
 ```
 
-### 6. **Open a Pull Request**
+#### 6. **Open a Pull Request**
 - Go to your fork on GitHub and click **“Compare & Pull Request.”**
 - Fill out the PR template with:
   - A description of what you changed and why
@@ -67,11 +67,11 @@ Your PR may receive comments. Please respond, make updates, and re-push your bra
 
 To sync your fork with the main repo:
 
-### Option 1: Using GitHub's Web Interface
+#### Option 1: Using GitHub's Web Interface
 - Navigate to your fork
 - Click **"Sync fork"** (in the top bar)
 
-### Option 2: Using Git (advanced)
+#### Option 2: Using Git (advanced)
 
 ```bash
 git remote add upstream https://github.com/louis-heraut/EXstat.git
