@@ -3,7 +3,6 @@
 Thank you for your interest in contributing to **EXstat** !
 Whether you're fixing bugs, improving documentation, or developing new features, we appreciate your involvement.
 
----
 
 ## 🚀 Getting Started
 
@@ -15,7 +14,6 @@ If you're unsure where to begin:
 If you plan to tackle an issue or develop something new :
 - Open or comment on an issue to let us know you're working on it. This helps avoid duplication and promotes collaboration !
 
----
 
 ## 🔧 How to Contribute
 
@@ -64,7 +62,6 @@ git push origin your-feature-name
 ### 7. **Address Feedback**
 Your PR may receive comments. Please respond, make updates, and re-push your branch.
 
----
 
 ## 🔄 Keeping Your Fork Up to Date
 
@@ -83,14 +80,12 @@ git merge upstream/main
 git push origin main
 ```
 
----
 
 ## 🤝 Work Collaboration
 
 If we’re connected through work and you’d like to collaborate more deeply :
 - [Reach out via email](mailto:louis.heraut@inrae.fr?subject=%5BEXstat%5D) to discuss becoming a project collaborator.
 
----
 
 ## 📌 Notes
 
@@ -98,6 +93,5 @@ If we’re connected through work and you’d like to collaborate more deeply :
 - We use [CODEOWNERS](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners) to manage pull request approvals.
 - Protected branches may require reviews or checks to pass before merging.
 
----
 
 Thank you for contributing to EXstat ! 🧪✨
