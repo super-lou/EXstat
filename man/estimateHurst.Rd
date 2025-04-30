@@ -4,12 +4,12 @@
 \alias{estimateHurst}
 \title{Hurst coefficient}
 \usage{
-estimateHurst(Z, DoDetrending = TRUE, trend = getMKStat(Z)$trend)
+estimateHurst(Z, do_detrending = TRUE, trend = getMKStat(Z)$trend)
 }
 \arguments{
 \item{Z}{numeric, data (NA-free)}
 
-\item{DoDetrending}{logical, detrend data before estimating Hurst?}
+\item{do_detrending}{logical, detrend data before estimating Hurst?}
 
 \item{trend}{numeric, trend value (only used if detrending
 required)}

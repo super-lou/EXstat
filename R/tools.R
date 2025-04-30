@@ -23,80 +23,19 @@
 
 ## 1. GENERAL MANN-KENDALL ___________________________________________
 ### 1.1. Statistical test ____________________________________________
-#' @title General Mann-Kendall
-#' @description A general version of the Mann-Kendall test, enabling
-#' various dependence assumptions.
-#' @param X numeric vector, data. IMPORTANT: X is assumed to be
-#' regularly-spaced. It uses NA to fill the gaps rather than removing
-#' missing values.
-#' @param level numeric in (0,1), level of the test.
-#' @param dep.option string, option for handling temporal dependence.
-#' Available :
-#' \enumerate{
-#'     \item 'INDE', assume independence (i.e. the standard MK test)
-#'     \item 'AR1', assumes AR1 short-term dependence structure (i.e.
-#' Hamed and Rao's version of the MK test)
-#'     \item 'LTP', assume long-term persistence (i.e. Hamed's version
-#' of the MK test)
-#' }
-#' @param DoDetrending, logical, only used for dep.option == LTP:
-#' do detrending before estimating Hurst coefficient (default=TRUE as
-#' recommended in Hamed's paper)
-#' @param verbose [logical][base::logical] Whether to print intermediate messages. Default is `FALSE`.
-#' @return A list with the following fields :
-#' \enumerate{
-#'     \item H: logical, reject (true) or do not reject (false) H0
-#'     \item P: p-value of the test
-#'     \item STAT: test statistics
-#'     \item TREND: trend estimate (using Sen's slope estimate)
-#'     \item DEP: dependence estimate (= 0 if dep.option='INDE',
-#' =lag-1 autocorrelation if dep.option='AR1', =Hurst coefficient if
-#' dep.option='LTP')
-#' }
-#' @details
-#' \enumerate{
-#'     \item Handling of ties: Specific formula exist for INDE and
-#' AR1, but the LTP case is trickier. Hammed's paper is unclear on how
-#' to handle ties, especially at the step of Hurst coefficient
-#' estimation. There is a normal-score transformation at this step,
-#' and one needs to decide how to assign a rank to ties. What is
-#' implemented below is the option ties.method = "random", i.e. the
-#' rank is randomized for ties. This is not, strictly speaking,
-#' correct because this randomization impacts the dependence
-#' structure. However synthetic runs suggest it works OK.
-#'     \item Computational efficiency: Likely poor for case
-#' dep.option='LTP'. There is a 4-level loop which leads to a n^4
-#' algorithm. I attempted to vectorize this loop but it didn't improve
-#' things => Expect significant running times for dep.option='LTP
-#' ' when size(X) > 50... (orders of magnitude: 1s for n=30, 10s for
-#' n=50, 2-3 minutes for n=100). On the other hand both options INDE
-#' and AR1 are very fast.
-#' }
-#' @examples
-#' \dontrun{
-#' data(nhtemp) #Average Yearly Temperatures in New Haven
-#' generalMannKendall(X=nhtemp, dep.option='AR1')
-#' }
-#' @references
-#' \enumerate{
-#'     \item Hamed, Rao, 1998. A modified Mann-Kendall trend test for
-#' autocorrelated data. J. Hydrol., 204(1-4): 182-196.
-#'     \item Hamed, 2008. Trend detection in hydrologic data: The
-#' Mann-Kendall trend test under the scaling hypothesis. J. Hydrol.,
-#' 349(3-4): 350-363.
-#'  }
-#' @export
-generalMannKendall = function(X, level=0.1, dep.option='INDE',
-                              DoDetrending=TRUE, verbose=FALSE) {
+generalMannKendall_hide = function(X, level=0.1,
+                                   time_dependency_option='INDE',
+                                   do_detrending=TRUE,
+                                   verbose=FALSE) {
     
     #*****************************************************************
     # STEP 0: preliminaries
     #*****************************************************************
     # Create output list and initialize it
     OUT = list(H=NA, P=NA, STAT=NA, TREND=NA, DEP=NA)
-    # Check dep.option is valid
-    if (!((dep.option == 'INDE') | (dep.option == 'AR1') | (dep.option == 'LTP'))) {
-        if (verbose) warning('Unknown dep.option')
+    # Check time_dependency_option is valid
+    if (!((time_dependency_option == 'INDE') | (time_dependency_option == 'AR1') | (time_dependency_option == 'LTP'))) {
+        if (verbose) warning('Unknown time_dependency_option')
         return (OUT)
     }
     # Remove Nas from X to create NA-free vector Z
@@ -115,7 +54,7 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
     #*****************************************************************
     # CASE 1: 'INDE' or 'AR1'
     #*****************************************************************
-    if ((dep.option == 'INDE') | (dep.option == 'AR1')) {
+    if ((time_dependency_option == 'INDE') | (time_dependency_option == 'AR1')) {
         # Compute basic variance
         var0 = ((n*(n-1)*(2*n+5)))/18
         # Compute ties correction and get ties-corrected variance
@@ -128,8 +67,8 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
             if (verbose) warning('negative variance')
             return (OUT)
         }
-        # Compute autocorrelation correction if dep.option == 'AR1'
-        if (dep.option == 'AR1') {
+        # Compute autocorrelation correction if time_dependency_option == 'AR1'
+        if (time_dependency_option == 'AR1') {
             AR1.correction=getAR1Correction(X)
             correction=AR1.correction$correction
             OUT$DEP = AR1.correction$lag1
@@ -147,9 +86,9 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
     #*****************************************************************
     # CASE 2: 'LTP'
     #*****************************************************************
-    if (dep.option == 'LTP') {
+    if (time_dependency_option == 'LTP') {
         # Estimate Hurst Coeff
-        Hu = estimateHurst(X, DoDetrending, OUT$TREND)
+        Hu = estimateHurst(X, do_detrending, OUT$TREND)
         OUT$DEP = Hu
         # Get autocorrelation function
         lambda = 0:n
@@ -208,42 +147,85 @@ generalMannKendall = function(X, level=0.1, dep.option='INDE',
     return (OUT)
 }
 
+
 ### 1.2. Wrap ________________________________________________________
-#' @title Mann-Kendall trend analysis  commit 1
-#' @description Apply the generalMannKendall function to the serie X.
-#' @param X data (vector). IMPORTANT: it assumes that X is
-#' regularly-spaced.
-#' @param level [numeric][base::numeric] Mann-Kendall test significance level between `0` and `1`. Default is `0.1`.
-#' @param time_dependency_option [character][base::character] string for handling temporal dependence for the Mann-Kendall test. Possible values are :
-#' * `"INDE"`, assume independence (i.e. the standard MK test)
-#' * `"AR1"`, assumes AR1 short-term dependence structure (i.e. Hamed and Rao's version of the MK test)
-#' * `"LTP"`, assume long-term persistence (i.e. Hamed's version of the MK test)
-#' @param DoDetrending, logical, only used for dep.option == LTP:
+#' @title General Mann-Kendall
+#' @description A general version of the Mann-Kendall test, enabling
+#' various dependence assumptions.
+#' @param X numeric vector, data. IMPORTANT: X is assumed to be
+#' regularly-spaced. It uses NA to fill the gaps rather than removing
+#' missing values.
+#' @param level numeric in (0,1), level of the test.
+#' @param time_dependency_option string, option for handling temporal dependence.
+#' Available :
+#' \enumerate{
+#'     \item 'INDE', assume independence (i.e. the standard MK test)
+#'     \item 'AR1', assumes AR1 short-term dependence structure (i.e.
+#' Hamed and Rao's version of the MK test)
+#'     \item 'LTP', assume long-term persistence (i.e. Hamed's version
+#' of the MK test)
+#' }
+#' @param do_detrending, logical, only used for time_dependency_option == LTP:
 #' do detrending before estimating Hurst coefficient (default=TRUE as
 #' recommended in Hamed's paper)
 #' @param show_advance_stat [logical][base::logical] Whether to display advanced statistical details. Default is `FALSE`.
 #' @param verbose [logical][base::logical] Whether to print intermediate messages. Default is `FALSE`.
-#' @return a dataframe, with the different statistics and values of
-#' interest of the test.
+#' @return A tibble with the following possible fields :
+#' \enumerate{
+#'     \item level: level of the test
+#'     \item H: logical, reject (true) or do not reject (false) H0
+#'     \item p: p-value of the test
+#'     \item stat: test statistics
+#'     \item a: trend estimate (using Sen's slope estimate)
+#'     \item time_dependency_option: dependence estimate (= 0 if time_dependency_option='INDE',
+#' =lag-1 autocorrelation if time_dependency_option='AR1', =Hurst coefficient if
+#' time_dependency_option='LTP')
+#' }
+#' @details
+#' \enumerate{
+#'     \item Handling of ties: Specific formula exist for INDE and
+#' AR1, but the LTP case is trickier. Hammed's paper is unclear on how
+#' to handle ties, especially at the step of Hurst coefficient
+#' estimation. There is a normal-score transformation at this step,
+#' and one needs to decide how to assign a rank to ties. What is
+#' implemented below is the option ties.method = "random", i.e. the
+#' rank is randomized for ties. This is not, strictly speaking,
+#' correct because this randomization impacts the dependence
+#' structure. However synthetic runs suggest it works OK.
+#'     \item Computational efficiency: Likely poor for case
+#' time_dependency_option='LTP'. There is a 4-level loop which leads to a n^4
+#' algorithm. I attempted to vectorize this loop but it didn't improve
+#' things => Expect significant running times for time_dependency_option='LTP
+#' ' when size(X) > 50... (orders of magnitude: 1s for n=30, 10s for
+#' n=50, 2-3 minutes for n=100). On the other hand both options INDE
+#' and AR1 are very fast.
+#' }
 #' @examples
 #' \dontrun{
-#' GeneralMannKendall_WRAP(X=1:100)
-#' GeneralMannKendall_WRAP(X=rep(1, 100))
+#' data(nhtemp) #Average Yearly Temperatures in New Haven
+#' generalMannKendall(X=nhtemp, time_dependency_option='AR1')
 #' }
-GeneralMannKendall_WRAP = function(X,
-                                   level=0.1,
-                                   time_dependency_option='INDE',
-                                   DoDetrending=TRUE,
-                                   show_advance_stat=FALSE,
-                                   verbose=FALSE) {
+#' @references
+#' \enumerate{
+#'     \item Hamed, Rao, 1998. A modified Mann-Kendall trend test for
+#' autocorrelated data. J. Hydrol., 204(1-4): 182-196.
+#'     \item Hamed, 2008. Trend detection in hydrologic data: The
+#' Mann-Kendall trend test under the scaling hypothesis. J. Hydrol.,
+#' 349(3-4): 350-363.
+#'  }
+#' @export
+GeneralMannKendall = function(X,
+                              level=0.1,
+                              time_dependency_option='INDE',
+                              do_detrending=TRUE,
+                              show_advance_stat=FALSE,
+                              verbose=FALSE) {
     
-    # Assume that the package BFunk is installed on the machine
-    # Apply the Mann Kendall test on vector X
-    res = generalMannKendall(X=X,
-                             level=level,
-                             dep.option=time_dependency_option,
-                             DoDetrending=DoDetrending,
-                             verbose=verbose)
+    res = generalMannKendall_hide(X=X,
+                                  level=level,
+                                  time_dependency_option=time_dependency_option,
+                                  do_detrending=do_detrending,
+                                  verbose=verbose)
 
     if (show_advance_stat) {
         res = dplyr::tibble(level=level,
@@ -273,7 +255,6 @@ GeneralMannKendall_WRAP = function(X,
 #' data(nhtemp) #Average Yearly Temperatures in New Haven
 #' getMKStat(X = nhtemp)
 #' }
-#' @export
 getMKStat = function(X) {
     n = length(X);count.p = 0;count.m = 0;k = 0
     slope.list = matrix(NA, ((n-1)*n)/2, 1)
@@ -298,7 +279,7 @@ getMKStat = function(X) {
 #' @title Hurst coefficient
 #' @description Estimate the Hurst coefficient of a series
 #' @param Z numeric, data (NA-free)
-#' @param DoDetrending logical, detrend data before estimating Hurst?
+#' @param do_detrending logical, detrend data before estimating Hurst?
 #' @param trend numeric, trend value (only used if detrending
 #' required)
 #' @return The estimated value of the hurst coefficient
@@ -307,20 +288,19 @@ getMKStat = function(X) {
 #' data(nhtemp) #Average Yearly Temperatures in New Haven
 #' estimateHurst(Z=nhtemp)
 #' }
-#' @export
-estimateHurst = function(Z, DoDetrending=TRUE,
+estimateHurst = function(Z, do_detrending=TRUE,
                          trend=getMKStat(Z)$trend) {
     #~****************************************************************
     #~* PURPOSE: Get correction for AR(1)-like dependence
     #~****************************************************************
     #~ IN:  1. Z, data vector
-    #~      2. DoDetrending, detrend data before estimating Hurst?
+    #~      2. do_detrending, detrend data before estimating Hurst?
     #~      3. trend, trend value (only used if detrending required)
     #~ OUT: 1. Estimated value of the hurst coefficient
     #~****************************************************************
     n = length(Z)
     # Detrend if requested
-    if (DoDetrending) {
+    if (do_detrending) {
         Y = Z-trend*(1:n)
     } else {
         Y = Z
@@ -346,7 +326,6 @@ estimateHurst = function(Z, DoDetrending=TRUE,
 #' par(mfrow = c(1, 2))
 #' plot(nhtemp, type='b');plot(z, type='b')
 #' }
-#' @export
 randomizedNormalScore = function(x) {
     # empirical frequencies
     p = (rank(x,
@@ -479,7 +458,6 @@ HurstLkh = function(H, x) {
 #' @references Benjamini, Y., and Y. Hochberg (1995), Controlling the
 #' false discovery rate: A practical and powerful approach to multiple
 #' testing, J. R. Stat. Soc., Ser. B., 57, 289–300.
-#' @export
 fieldSignificance_FDR = function (pvals, level=0.1) {
     n = length(pvals)
     z = sort(pvals)

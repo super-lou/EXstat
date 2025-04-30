@@ -385,12 +385,12 @@ process_trend = function (dataEX,
             
             trendEX_period_Variable =
                 dplyr::summarise(dataEX_period_Variable,
-                                 GeneralMannKendall_WRAP(
+                                 GeneralMannKendall(
                                      get(variable),
                                      level=MK_level,
                                      time_dependency_option=
                                          time_dependency_option,
-                                     DoDetrending=TRUE,
+                                     do_detrending=TRUE,
                                      show_advance_stat=show_advance_stat,
                                      verbose=verbose_stat))
 
